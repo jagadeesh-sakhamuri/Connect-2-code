@@ -13,7 +13,15 @@ export default defineConfig({
     alias: {
       '@': path.resolve(import.meta.dirname, './src')
     }
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'https://codingplatform-tdt0.onrender.com',
+        changeOrigin: true,
+        secure: false,
+      }
+    }
   }
 })
-
-

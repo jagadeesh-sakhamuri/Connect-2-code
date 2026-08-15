@@ -4,7 +4,7 @@ import { mockDelay } from '../mock/mockAdapter';
 import userProfileData from '../mock/data/userProfile.json';
 import { ApiResponse } from '../core/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 export const profileService = {
   async getProfile(): Promise<ApiResponse<typeof userProfileData>> {

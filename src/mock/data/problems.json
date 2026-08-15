@@ -1,5 +1,33 @@
 [
   {
+    "id": "gfg-000",
+    "title": "Check Even or Odd Number",
+    "slug": "check-even-or-odd-number",
+    "difficulty": "Basic",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "94.2%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "TCS",
+      "Infosys",
+      "Wipro"
+    ],
+    "description": "Given an integer n, determine whether it is even or odd. Return 'Even' if divisible by 2, else 'Odd'.",
+    "examples": [
+      {
+        "input": "n = 4",
+        "output": "Even",
+        "explanation": "4 is divisible by 2."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/check-even-or-odd-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/check-even-or-odd-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/check-even-or-odd-number"
+  },
+  {
     "id": "gfg-001",
     "title": "Second Largest Element in Array",
     "slug": "second-largest-element",
@@ -31,7 +59,11 @@
         "output": "-1",
         "explanation": "As all elements are equal, there is no second largest element."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/second-largest-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/second-largest-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/second-largest-element"
   },
   {
     "id": "gfg-002",
@@ -60,7 +92,11 @@
         "output": "[10, 20, 30]",
         "explanation": "No zeroes present, array remains unchanged."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/move-all-zeroes-to-end/",
+    "leetCodeUrl": "https://leetcode.com/problems/move-all-zeroes-to-end/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/move-all-zeroes-to-end"
   },
   {
     "id": "gfg-003",
@@ -89,7 +125,11 @@
         "output": "[2, 5, 4]",
         "explanation": "Reversing array [4, 5, 2] yields [2, 5, 4]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/reverse-an-array/",
+    "leetCodeUrl": "https://leetcode.com/problems/reverse-an-array/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/reverse-an-array"
   },
   {
     "id": "gfg-004",
@@ -118,7 +158,11 @@
         "output": "[8, 10, 12, 14, 16, 18, 20, 2, 4, 6]",
         "explanation": "Rotating by 3 positions shifts first 3 elements to the end."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/rotate-array-by-d-elements/",
+    "leetCodeUrl": "https://leetcode.com/problems/rotate-array-by-d-elements/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/rotate-array-by-d-elements"
   },
   {
     "id": "gfg-005",
@@ -147,7 +191,11 @@
         "output": "[1, 2, 3]",
         "explanation": "As the array is sorted in descending order, next permutation resets to lowest sorted order."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/next-permutation/",
+    "leetCodeUrl": "https://leetcode.com/problems/next-permutation/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/next-permutation"
   },
   {
     "id": "gfg-006",
@@ -176,7 +224,11 @@
         "output": "0",
         "explanation": "Prices continuously decrease, so no transaction done and max profit = 0."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/stock-buy-and-sell-max-one-transaction/",
+    "leetCodeUrl": "https://leetcode.com/problems/stock-buy-and-sell-max-one-transaction/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/stock-buy-and-sell-max-one-transaction"
   },
   {
     "id": "gfg-007",
@@ -205,7 +257,11 @@
         "output": "2",
         "explanation": "Buy on day 3 (price = 2) and sell on day 4 (price = 4), profit = 2."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/stock-buy-and-sell-multiple-transactions/",
+    "leetCodeUrl": "https://leetcode.com/problems/stock-buy-and-sell-multiple-transactions/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/stock-buy-and-sell-multiple-transactions"
   },
   {
     "id": "gfg-008",
@@ -233,7 +289,11 @@
         "output": "11",
         "explanation": "Modified array [6, 12, 9, 13, 17]. Max height 17, min height 6. Difference = 11."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/minimize-the-heights-ii/",
+    "leetCodeUrl": "https://leetcode.com/problems/minimize-the-heights-ii/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/minimize-the-heights-ii"
   },
   {
     "id": "gfg-009",
@@ -263,7 +323,11 @@
         "output": "-2",
         "explanation": "The contiguous subarray [-2] has the largest sum = -2."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/maximum-subarray-sum-kadanes/",
+    "leetCodeUrl": "https://leetcode.com/problems/maximum-subarray-sum-kadanes/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/maximum-subarray-sum-kadanes"
   },
   {
     "id": "gfg-010",
@@ -292,7 +356,11 @@
         "output": "6",
         "explanation": "Subarray [2, 3] yields max product 6."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/maximum-product-subarray/",
+    "leetCodeUrl": "https://leetcode.com/problems/maximum-product-subarray/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/maximum-product-subarray"
   },
   {
     "id": "gfg-011",
@@ -326,7 +394,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/smallest-positive-missing-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/smallest-positive-missing-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/smallest-positive-missing-number"
   },
   {
     "id": "gfg-012",
@@ -360,7 +432,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/implement-atoi/",
+    "leetCodeUrl": "https://leetcode.com/problems/implement-atoi/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/implement-atoi"
   },
   {
     "id": "gfg-013",
@@ -393,7 +469,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/add-binary-strings/",
+    "leetCodeUrl": "https://leetcode.com/problems/add-binary-strings/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/add-binary-strings"
   },
   {
     "id": "gfg-014",
@@ -427,7 +507,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/valid-anagram/",
+    "leetCodeUrl": "https://leetcode.com/problems/valid-anagram/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/valid-anagram"
   },
   {
     "id": "gfg-015",
@@ -460,7 +544,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/search-pattern-kmp/",
+    "leetCodeUrl": "https://leetcode.com/problems/search-pattern-kmp/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/search-pattern-kmp"
   },
   {
     "id": "gfg-016",
@@ -494,7 +582,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/sort-colors-dutch-flag/",
+    "leetCodeUrl": "https://leetcode.com/problems/sort-colors-dutch-flag/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/sort-colors-dutch-flag"
   },
   {
     "id": "gfg-017",
@@ -529,7 +621,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/two-sum/",
+    "leetCodeUrl": "https://leetcode.com/problems/two-sum/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/two-sum"
   },
   {
     "id": "gfg-018",
@@ -563,7 +659,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/3sum-triplet-sum/",
+    "leetCodeUrl": "https://leetcode.com/problems/3sum-triplet-sum/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/3sum-triplet-sum"
   },
   {
     "id": "gfg-019",
@@ -598,7 +698,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/longest-substring-without-repeating-characters/",
+    "leetCodeUrl": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/longest-substring-without-repeating-characters"
   },
   {
     "id": "gfg-020",
@@ -633,7 +737,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/trapping-rain-water/",
+    "leetCodeUrl": "https://leetcode.com/problems/trapping-rain-water/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/trapping-rain-water"
   },
   {
     "id": "gfg-021",
@@ -667,7 +775,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/search-in-rotated-sorted-array/",
+    "leetCodeUrl": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/search-in-rotated-sorted-array"
   },
   {
     "id": "gfg-022",
@@ -701,7 +813,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/allocate-minimum-pages/",
+    "leetCodeUrl": "https://leetcode.com/problems/allocate-minimum-pages/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/allocate-minimum-pages"
   },
   {
     "id": "gfg-023",
@@ -735,7 +851,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/merge-intervals/",
+    "leetCodeUrl": "https://leetcode.com/problems/merge-intervals/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/merge-intervals"
   },
   {
     "id": "gfg-024",
@@ -769,7 +889,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/spiral-matrix/",
+    "leetCodeUrl": "https://leetcode.com/problems/spiral-matrix/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/spiral-matrix"
   },
   {
     "id": "gfg-025",
@@ -803,7 +927,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/set-matrix-zeroes/",
+    "leetCodeUrl": "https://leetcode.com/problems/set-matrix-zeroes/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/set-matrix-zeroes"
   },
   {
     "id": "gfg-026",
@@ -836,7 +964,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/single-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/single-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/single-number"
   },
   {
     "id": "gfg-027",
@@ -869,7 +1001,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/n-queens/",
+    "leetCodeUrl": "https://leetcode.com/problems/n-queens/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/n-queens"
   },
   {
     "id": "gfg-028",
@@ -904,7 +1040,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/reverse-linked-list/",
+    "leetCodeUrl": "https://leetcode.com/problems/reverse-linked-list/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/reverse-linked-list"
   },
   {
     "id": "gfg-029",
@@ -938,7 +1078,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/linked-list-cycle-ii/",
+    "leetCodeUrl": "https://leetcode.com/problems/linked-list-cycle-ii/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/linked-list-cycle-ii"
   },
   {
     "id": "gfg-030",
@@ -972,7 +1116,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/valid-parentheses/",
+    "leetCodeUrl": "https://leetcode.com/problems/valid-parentheses/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/valid-parentheses"
   },
   {
     "id": "gfg-031",
@@ -1005,7 +1153,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/next-greater-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/next-greater-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/next-greater-element"
   },
   {
     "id": "gfg-032",
@@ -1039,7 +1191,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/binary-tree-level-order-traversal/",
+    "leetCodeUrl": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/binary-tree-level-order-traversal"
   },
   {
     "id": "gfg-033",
@@ -1073,7 +1229,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/lca-bst/",
+    "leetCodeUrl": "https://leetcode.com/problems/lca-bst/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/lca-bst"
   },
   {
     "id": "gfg-034",
@@ -1107,7 +1267,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/kth-largest-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/kth-largest-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/kth-largest-element"
   },
   {
     "id": "gfg-035",
@@ -1141,7 +1305,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/number-of-islands/",
+    "leetCodeUrl": "https://leetcode.com/problems/number-of-islands/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/number-of-islands"
   },
   {
     "id": "gfg-036",
@@ -1175,7 +1343,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/dijkstra-algorithm/",
+    "leetCodeUrl": "https://leetcode.com/problems/dijkstra-algorithm/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/dijkstra-algorithm"
   },
   {
     "id": "gfg-037",
@@ -1209,7 +1381,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/coin-change/",
+    "leetCodeUrl": "https://leetcode.com/problems/coin-change/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/coin-change"
   },
   {
     "id": "gfg-038",
@@ -1242,7 +1418,11 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/longest-common-subsequence/",
+    "leetCodeUrl": "https://leetcode.com/problems/longest-common-subsequence/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/longest-common-subsequence"
   },
   {
     "id": "gfg-039",
@@ -1276,6 +1456,10 @@
         "output": "[0, 1]",
         "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
       }
-    ]
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/implement-trie/",
+    "leetCodeUrl": "https://leetcode.com/problems/implement-trie/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/implement-trie"
   }
 ]

@@ -1,59 +1,39 @@
 /**
  * Centralized REST API Endpoint Constants
- * These endpoints map directly to Java Spring Boot REST Controllers
+ * Maps directly to Java Spring Boot REST Controllers
  */
 export const API_ENDPOINTS = {
   AUTH: {
+    SIGNUP: '/signUp',
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    REFRESH_TOKEN: '/auth/refresh-token',
-    ME: '/auth/me',
+    REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
   },
+  REFERENCE: {
+    GROUP: (refGroupCode: string) => `/referenceLibrary/refGroupCode/${refGroupCode}`,
+  },
+  COMPANY: {
+    BASE: '/company',
+    DETAILS: (id: string | number) => `/company/${id}`,
+  },
+  QUESTION: {
+    BASE: '/question',
+    DETAILS: (id: string | number) => `/question/${id}`,
+    TEST_CASES: (id: string | number) => `/question/${id}/testCases`,
+  },
   PROBLEMS: {
-    LIST: '/problems',
-    DETAILS: (id: string) => `/problems/${id}`,
-    SUBMIT: (id: string) => `/problems/${id}/submit`,
-    CATEGORIES: '/problems/categories',
+    LIST: '/question',
+    DETAILS: (id: string) => `/question/${id}`,
+    SUBMIT: (id: string) => `/question/${id}/submit`,
+    CATEGORIES: '/question/categories',
   },
   COMPANIES: {
-    LIST: '/companies',
-    DETAILS: (id: string) => `/companies/${id}`,
-    PROBLEMS: (id: string) => `/companies/${id}/problems`,
-  },
-  APTITUDE: {
-    LIST: '/prep/aptitude',
-    TOPICS: '/prep/aptitude/topics',
-  },
-  LOGICAL: {
-    LIST: '/prep/logical',
-    TOPICS: '/prep/logical/topics',
-  },
-  VERBAL: {
-    LIST: '/prep/verbal',
-    TOPICS: '/prep/verbal/topics',
-  },
-  INTERVIEWS: {
-    LIST: '/interviews',
-    CATEGORIES: '/interviews/categories',
-  },
-  DASHBOARD: {
-    OVERVIEW: '/dashboard/overview',
-    STATS: '/dashboard/stats',
-    RECENT_ACTIVITY: '/dashboard/activity',
+    LIST: '/company',
+    DETAILS: (id: string) => `/company/${id}`,
+    PROBLEMS: (id: string) => `/company/${id}/problems`,
   },
   BOOKMARKS: {
     LIST: '/bookmarks',
     TOGGLE: (id: string) => `/bookmarks/toggle/${id}`,
-  },
-  PROFILE: {
-    GET: '/profile',
-    UPDATE: '/profile/update',
-    CHANGE_PASSWORD: '/profile/change-password',
-  },
-  SETTINGS: {
-    GET: '/settings',
-    UPDATE: '/settings/update',
   },
 } as const;

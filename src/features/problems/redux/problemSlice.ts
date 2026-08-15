@@ -60,6 +60,8 @@ export const fetchProblemById = createAsyncThunk(
   }
 );
 
+export const fetchProblemBySlug = fetchProblemById;
+
 const SOLVED_STORAGE_KEY = 'myjo_solved_problems';
 const BOOKMARKS_STORAGE_KEY = 'myjo_bookmarks';
 

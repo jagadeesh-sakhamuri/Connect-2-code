@@ -1,3 +1,4 @@
+import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
@@ -102,81 +103,86 @@ export const ProblemList: React.FC = () => {
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
-              {st === 'All' ? 'All Problems' : st === 'Answered' ? 'Answered ✓' : 'Bookmarked'}
+              {st === 'All' ? 'All Questions' : st === 'Answered' ? 'Answered Only' : 'Bookmarked Questions'}
             </button>
           ))}
         </div>
       </section>
 
-      {/* DSA Sheet Single Div Per Row List - Matching Companies Page Div Hover Design */}
-      <div className="flex flex-col gap-3.5 max-w-5xl w-full mt-10 px-4">
+      {/* DSA Topic Modules Accordion Section */}
+      <section id="dsaModules" className="relative mx-auto mt-12 max-w-6xl px-4 sm:px-6 w-full flex flex-col gap-4">
         {dsaModules.map((module) => {
           const isExpanded = expandedModuleNum === module.num;
-
-          const moduleProblems = problems.filter(
-            (p) =>
-              p.topic?.toLowerCase().includes(module.topic.toLowerCase()) ||
-              p.category?.toLowerCase().includes(module.topic.toLowerCase()) ||
-              p.title?.toLowerCase().includes(module.topic.toLowerCase())
-          );
-
-          let topicQuestions = moduleProblems.length > 0 ? moduleProblems : problems.slice(0, 3);
           
-          if (statusFilter === 'Answered') {
-            topicQuestions = topicQuestions.filter((q) => q.isSolved);
-          } else if (statusFilter === 'Bookmarked') {
-            topicQuestions = topicQuestions.filter((q) => bookmarks.some((b) => b.itemId === q.id));
-          }
+          // Filter questions for this module
+          const topicQuestions = problems.filter((p) => {
+            const pTopic = (p.topic || '').toLowerCase();
+            const mTopic = module.topic.toLowerCase();
+            const mTitle = module.title.toLowerCase();
 
-          const solvedInModule = topicQuestions.filter((q) => q.isSolved).length;
-          const progressPercent = Math.round((solvedInModule / (topicQuestions.length || 1)) * 100);
+            const matchesTopic =
+              pTopic === mTopic ||
+              pTopic === mTitle ||
+              pTopic.includes(mTopic) ||
+              mTopic.includes(pTopic) ||
+              p.title.toLowerCase().includes(mTopic);
+
+            if (!matchesTopic) return false;
+
+            const isBookmarked = bookmarks.some((b) => b.itemId === p.id);
+            if (statusFilter === 'Answered') return p.isSolved;
+            if (statusFilter === 'Bookmarked') return isBookmarked;
+
+            return true;
+          });
+
+          const totalCount = topicQuestions.length;
+          const solvedCount = topicQuestions.filter((q) => q.isSolved).length;
+          const progressPercent = totalCount > 0 ? Math.round((solvedCount / totalCount) * 100) : 0;
 
           return (
             <div
               key={module.num}
-              className={`w-full rounded-lg transition-all duration-200 shadow-md border overflow-hidden ${
+              className={`w-full rounded-2xl transition-all duration-300 border overflow-hidden shadow-lg ${
                 isExpanded
-                  ? 'bg-[#2f3136] border-white/40 ring-1 ring-white/20'
-                  : 'bg-[#202225] hover:bg-[#2f3136] border-white/10 hover:border-white/30'
+                  ? 'bg-[#202225] border-white/20 ring-1 ring-white/10'
+                  : 'bg-[#090A0C] hover:bg-[#202225] border-white/10'
               }`}
             >
-              {/* Single Div Header Bar - Click to Toggle */}
+              {/* Module Accordion Header */}
               <div
                 onClick={() => setExpandedModuleNum(isExpanded ? null : module.num)}
-                className="group flex items-center justify-between p-5 cursor-pointer select-none"
+                className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none"
               >
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-11 h-11 rounded-lg bg-[#121113] border border-white/10 flex items-center justify-center shrink-0">
-                    <span className="text-base font-mono font-bold text-white">
-                      {module.num}
-                    </span>
+                <div className="flex items-center gap-4">
+                  {/* Module Number Badge */}
+                  <div className="w-12 h-12 rounded-xl bg-[#121113] border border-white/10 flex items-center justify-center font-mono font-bold text-[#A3E635] text-lg shrink-0 shadow-inner">
+                    {module.num}
                   </div>
-
-                  <div className="flex flex-col min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold text-white font-heading tracking-tight group-hover:text-white transition-colors truncate">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-white font-heading tracking-tight">
                       {module.title}
                     </h3>
-                    <div className="flex items-center gap-3 mt-1.5">
-                      <div className="w-32 h-1.5 bg-[#121113] rounded-full overflow-hidden border border-white/5">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#38BDF8] via-[#818CF8] to-[#C084FC] rounded-full transition-all duration-300"
-                          style={{ width: `${progressPercent || (isExpanded ? 100 : 0)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs font-mono text-gray-400 font-sans">
-                        {solvedInModule} / {topicQuestions.length} Solved ({progressPercent}%)
-                      </span>
+                    <div className="flex items-center gap-2 text-xs font-mono text-gray-400 mt-1">
+                      <span className="text-[#A3E635] font-semibold">{solvedCount}/{totalCount} Completed</span>
+                      <span>•</span>
+                      <span>{progressPercent}% Done</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-gray-400 hidden sm:inline-block bg-[#121113] px-3 py-1 rounded-lg border border-white/5">
-                    {topicQuestions.length} Questions
-                  </span>
+                {/* Progress Bar & Toggle Arrow */}
+                <div className="flex items-center gap-4">
+                  <div className="w-32 sm:w-40 bg-[#121113] h-2 rounded-full border border-white/10 overflow-hidden hidden sm:block">
+                    <div
+                      className="bg-gradient-to-r from-[#A3E635] to-[#84CC16] h-full transition-all duration-500 rounded-full"
+                      style={{ width: `${progressPercent}%` }}
+                    ></div>
+                  </div>
+
                   <i
-                    className={`fa-solid fa-chevron-down text-xs text-gray-400 group-hover:text-white transition-transform duration-300 ${
-                      isExpanded ? 'rotate-180 text-white' : ''
+                    className={`fa-solid fa-chevron-down text-sm text-gray-400 transition-transform duration-300 ${
+                      isExpanded ? 'rotate-180 text-[#A3E635]' : ''
                     }`}
                   ></i>
                 </div>
@@ -243,7 +249,9 @@ export const ProblemList: React.FC = () => {
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   <span
                                     className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md ${
-                                      q.difficulty === 'Easy'
+                                      q.difficulty === 'Basic'
+                                        ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
+                                        : q.difficulty === 'Easy'
                                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                         : q.difficulty === 'Medium'
                                         ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -254,25 +262,62 @@ export const ProblemList: React.FC = () => {
                                   </span>
 
                                   {q.companies && q.companies.length > 0 && (
-                                    <div className="flex items-center gap-1">
-                                      {q.companies.slice(0, 3).map((comp) => (
-                                        <span key={comp} className="text-[10px] font-mono text-gray-400 bg-[#121113] px-1.5 py-0.5 rounded border border-white/5">
-                                          {comp}
-                                        </span>
-                                      ))}
-                                    </div>
+                                    <span className="text-[10px] text-gray-400 font-mono">
+                                      {q.companies.slice(0, 2).join(', ')}
+                                      {q.companies.length > 2 ? ` +${q.companies.length - 2}` : ''}
+                                    </span>
                                   )}
                                 </div>
                               </div>
                             </div>
 
-                            <Link
-                              to={`/problems/${q.slug}`}
-                              className="shrink-0 px-4 py-2 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 font-sans"
-                            >
-                              <span>Solve Problem</span>
-                              <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                            </Link>
+                            {/* Practice Link Action or External Platform Links */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              {q.isOwnProblem !== false ? (
+                                <Link
+                                  to={`/problems/${q.slug}`}
+                                  className="px-3.5 py-1.5 bg-[#A3E635] hover:bg-[#84CC16] text-black font-bold rounded-lg text-xs transition-all shadow-sm flex items-center gap-1.5 font-mono cursor-pointer"
+                                >
+                                  <span>Practice</span>
+                                  <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                                </Link>
+                              ) : (
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {/* GeeksforGeeks Circle Logo Icon */}
+                                  <a
+                                    href={q.gfgUrl || `https://www.geeksforgeeks.org/${q.slug}/`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Solve on GeeksforGeeks"
+                                    className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-emerald-500/25 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                  >
+                                    <GfgLogoIcon className="w-4.5 h-4.5" />
+                                  </a>
+
+                                  {/* LeetCode Circle Logo Icon */}
+                                  <a
+                                    href={q.leetCodeUrl || `https://leetcode.com/problems/${q.slug}/`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Solve on LeetCode"
+                                    className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 text-amber-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                  >
+                                    <LeetCodeLogoIcon className="w-4.5 h-4.5" />
+                                  </a>
+
+                                  {/* HackerRank Circle Logo Icon */}
+                                  <a
+                                    href={q.hackerRankUrl || `https://www.hackerrank.com/challenges/${q.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Solve on HackerRank"
+                                    className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-teal-500/25 border border-teal-500/40 hover:border-teal-400 text-teal-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                  >
+                                    <HackerRankLogoIcon className="w-4.5 h-4.5" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -283,7 +328,7 @@ export const ProblemList: React.FC = () => {
             </div>
           );
         })}
-      </div>
+      </section>
     </div>
   );
 };

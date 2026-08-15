@@ -4,7 +4,7 @@ import { mockDelay } from '../mock/mockAdapter';
 import verbalData from '../mock/data/verbal.json';
 import { ApiResponse } from '../core/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 export const verbalService = {
   async getTopics(): Promise<ApiResponse<typeof verbalData>> {

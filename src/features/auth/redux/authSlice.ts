@@ -1,10 +1,20 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authService, LoginPayload, RegisterPayload } from '../../../services/authService';
-import userProfileData from '../../../mock/data/userProfile.json';
+import { authService, LoginPayload, SignUpPayload } from '../../../services/authService';
+
+export interface UserProfile {
+  id?: number | string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email: string;
+  role?: string;
+  avatarUrl?: string;
+}
 
 export interface AuthState {
-  user: typeof userProfileData | null;
+  user: UserProfile | null;
   token: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -15,6 +25,7 @@ export interface AuthState {
 const initialState: AuthState = {
   user: null,
   token: null,
+  refreshToken: null,
   isAuthenticated: false,
   loading: false,
   error: null,
@@ -27,21 +38,29 @@ export const loginUser = createAsyncThunk(
   async (payload: LoginPayload, { rejectWithValue }) => {
     try {
       const res = await authService.login(payload);
-      return res.data;
+      if (res.statusCode === 200 && res.data) {
+        return res.data;
+      }
+      return rejectWithValue(res.message || 'Login failed');
     } catch (err: any) {
-      return rejectWithValue(err.message || 'Login failed');
+      const errMsg = err.message || (err.errors && err.errors[0]) || 'Invalid Email or Password';
+      return rejectWithValue(errMsg);
     }
   }
 );
 
 export const registerUser = createAsyncThunk(
-  'auth/register',
-  async (payload: RegisterPayload, { rejectWithValue }) => {
+  'auth/signUp',
+  async (payload: SignUpPayload, { rejectWithValue }) => {
     try {
-      const res = await authService.register(payload);
-      return res.data;
+      const res = await authService.signUp(payload);
+      if (res.statusCode === 200) {
+        return res.data || res.message;
+      }
+      return rejectWithValue(res.message || (res.errors && res.errors[0]) || 'SignUp failed');
     } catch (err: any) {
-      return rejectWithValue(err.message || 'Registration failed');
+      const errMsg = err.message || (err.errors && err.errors[0]) || 'Error while Creating the User';
+      return rejectWithValue(errMsg);
     }
   }
 );
@@ -81,24 +100,32 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = true;
         state.isAuthModalOpen = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        const data = action.payload;
+        state.token = data.token;
+        state.refreshToken = data.refreshToken;
+        state.user = {
+          id: data.id,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
+          email: data.email,
+          role: data.role,
+        };
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Register
+      // SignUp
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state) => {
         state.loading = false;
-        state.isAuthenticated = true;
-        state.isAuthModalOpen = false;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.error = null;
+        // On signup success, switch mode to login so user can log in
+        state.authModalMode = 'login';
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -108,7 +135,10 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
+        state.refreshToken = null;
         state.isAuthenticated = false;
+        state.loading = false;
+        state.error = null;
       });
   },
 });

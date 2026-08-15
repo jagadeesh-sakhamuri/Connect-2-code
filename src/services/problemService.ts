@@ -4,7 +4,7 @@ import { mockDelay } from '../mock/mockAdapter';
 import problemsData from '../mock/data/problems.json';
 import { ApiResponse } from '../core/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 export interface ProblemFilterParams {
   category?: string;

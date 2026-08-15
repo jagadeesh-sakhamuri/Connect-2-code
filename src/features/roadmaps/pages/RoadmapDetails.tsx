@@ -1,3 +1,4 @@
+import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -54,7 +55,7 @@ const getRoadmapData = (slug: string | undefined): RoadmapData => {
             'Two pointers and sliding window cut down time complexity from O(N^2) to O(N).'
           ],
           problems: [
-            { title: 'Two Sum', difficulty: 'Easy', slug: 'two-sum' },
+            { title: 'Two Sum', difficulty: 'Easy', slug: 'two-sum', isOwnProblem: false, gfgUrl: 'https://www.geeksforgeeks.org/two-sum/', leetCodeUrl: 'https://leetcode.com/problems/two-sum/', hackerRankUrl: 'https://www.hackerrank.com/challenges/two-sum' },
             { title: 'Best Time to Buy and Sell Stock', difficulty: 'Easy', slug: 'best-time-to-buy-and-sell-stock' },
             { title: 'Container With Most Water', difficulty: 'Medium', slug: 'container-with-most-water' }
           ]
@@ -170,7 +171,7 @@ const getRoadmapData = (slug: string | undefined): RoadmapData => {
           tags: ['subsets', 'permutations', 'N-Queens', 'call stack'],
           description: 'Master recursive call stack state, base cases, and state space pruning.',
           problems: [
-            { title: 'Subsets', difficulty: 'Medium', slug: 'subsets' },
+            { title: 'Subsets', difficulty: 'Medium', slug: 'subsets', isOwnProblem: false, gfgUrl: 'https://www.geeksforgeeks.org/subsets/', leetCodeUrl: 'https://leetcode.com/problems/subsets/', hackerRankUrl: 'https://www.hackerrank.com/challenges/subsets' },
             { title: 'Permutations', difficulty: 'Medium', slug: 'permutations' }
           ]
         },
@@ -183,7 +184,7 @@ const getRoadmapData = (slug: string | undefined): RoadmapData => {
           description: 'Master overlapping subproblems and optimal substructure via memoization and bottom-up DP tables.',
           problems: [
             { title: 'Climbing Stairs', difficulty: 'Easy', slug: 'climbing-stairs' },
-            { title: 'Coin Change', difficulty: 'Medium', slug: 'coin-change' },
+            { title: 'Coin Change', difficulty: 'Medium', slug: 'coin-change', isOwnProblem: false, gfgUrl: 'https://www.geeksforgeeks.org/coin-change-dp-7/', leetCodeUrl: 'https://leetcode.com/problems/coin-change/', hackerRankUrl: 'https://www.hackerrank.com/challenges/coin-change' },
             { title: 'Longest Increasing Subsequence', difficulty: 'Medium', slug: 'longest-increasing-subsequence' }
           ]
         }
@@ -193,7 +194,7 @@ const getRoadmapData = (slug: string | undefined): RoadmapData => {
         { q: 'Which programming language should I use for DSA?', a: 'Java, C++, or Python are the most popular choices. Pick one and stick with it consistently.' },
         { q: 'Is DSA really needed for getting a job?', a: 'Yes, almost all top product companies and startups assess DSA in coding rounds.' },
         { q: 'Should I focus on quantity or quality of problems?', a: 'Quality. Understanding 100 core pattern problems is far better than blindly solving 500 without understanding.' },
-        { q: 'What is the best resource to learn DSA?', a: 'Follow this structured roadmap, practice on Connect 2 Code DSA Sheet, and watch video explanations for stuck problems.' }
+        { q: 'What is the best resource to learn DSA?', a: 'Follow this structured roadmap, practice on Talent Shine DSA Sheet, and watch video explanations for stuck problems.' }
       ]
     };
   }
@@ -578,19 +579,67 @@ export const RoadmapDetails: React.FC = () => {
                             {node.problems && node.problems.length > 0 && (
                               <div className="flex flex-col gap-1.5 mt-2">
                                 <span className="font-bold text-white font-heading">Practice Problems:</span>
-                                <div className="grid grid-cols-1 gap-1.5">
-                                  {node.problems.map((p, pIdx) => (
-                                    <Link
-                                      key={pIdx}
-                                      to={`/problems/${p.slug}`}
-                                      className="flex items-center justify-between p-2.5 rounded-xl bg-[#121113] border border-white/10 hover:border-[#A3E635]/40 text-gray-200 hover:text-[#A3E635] transition-all"
-                                    >
-                                      <span className="font-medium font-sans">{p.title}</span>
-                                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-lg ${
-                                        p.difficulty === 'Easy' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : p.difficulty === 'Medium' ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20'
-                                      }`}>{p.difficulty}</span>
-                                    </Link>
-                                  ))}
+                                <div className="grid grid-cols-1 gap-2">
+                                  {node.problems.map((p, pIdx) => {
+                                    const isOwn = (p as any).isOwnProblem !== false;
+                                    return (
+                                      <div
+                                        key={pIdx}
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-xl bg-[#121113] border border-white/10 text-gray-200 gap-2"
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                          <span className="font-medium font-sans text-xs sm:text-sm text-white truncate">{p.title}</span>
+                                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-lg shrink-0 ${
+                                            p.difficulty === 'Easy' ? 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20' : p.difficulty === 'Medium' ? 'text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20'
+                                          }`}>{p.difficulty}</span>
+                                        </div>
+
+                                        {isOwn ? (
+                                          <Link
+                                            to={`/problems/${p.slug}`}
+                                            className="px-3 py-1 bg-[#A3E635] hover:bg-[#84CC16] text-black font-bold rounded-lg text-xs transition-all font-mono self-start sm:self-auto"
+                                          >
+                                            Solve
+                                          </Link>
+                                        ) : (
+                                          <div className="flex items-center gap-2 self-start sm:self-auto">
+                                            {/* GeeksforGeeks Circle Logo Icon */}
+                                            <a
+                                              href={(p as any).gfgUrl || `https://www.geeksforgeeks.org/${p.slug}/`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              title="Solve on GeeksforGeeks"
+                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-emerald-500/25 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                            >
+                                              <GfgLogoIcon className="w-4 h-4" />
+                                            </a>
+
+                                            {/* LeetCode Circle Logo Icon */}
+                                            <a
+                                              href={(p as any).leetCodeUrl || `https://leetcode.com/problems/${p.slug}/`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              title="Solve on LeetCode"
+                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 text-amber-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                            >
+                                              <LeetCodeLogoIcon className="w-4 h-4" />
+                                            </a>
+
+                                            {/* HackerRank Circle Logo Icon */}
+                                            <a
+                                              href={(p as any).hackerRankUrl || `https://www.hackerrank.com/challenges/${p.slug}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              title="Solve on HackerRank"
+                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-teal-500/25 border border-teal-500/40 hover:border-teal-400 text-teal-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                                            >
+                                              <HackerRankLogoIcon className="w-4 h-4" />
+                                            </a>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
                                 </div>
                               </div>
                             )}

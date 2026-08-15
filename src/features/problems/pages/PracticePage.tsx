@@ -1,3 +1,4 @@
+import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
@@ -321,14 +322,51 @@ export const PracticePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Solve Problem Action Button */}
-                  <Link
-                    to={`/problems/${problem.slug}`}
-                    className="shrink-0 px-4 py-2 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors border border-white/10 flex items-center justify-center gap-1.5 font-sans"
-                  >
-                    <span>Solve Problem</span>
-                    <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                  </Link>
+                  {/* Solve Problem Action Button or 3 External Platform Icons */}
+                  {problem.isOwnProblem !== false ? (
+                    <Link
+                      to={`/problems/${problem.slug}`}
+                      className="shrink-0 px-4 py-2 text-xs font-semibold bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-lg transition-all border border-[#A3E635]/50 flex items-center justify-center gap-1.5 font-sans shadow-md"
+                    >
+                      <span>Solve Problem</span>
+                      <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                    </Link>
+                  ) : (
+                    <div className="shrink-0 flex items-center gap-2">
+                      {/* GeeksforGeeks Circle Logo Icon */}
+                      <a
+                        href={problem.gfgUrl || `https://www.geeksforgeeks.org/${problem.slug}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Solve on GeeksforGeeks"
+                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-emerald-500/25 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                      >
+                        <GfgLogoIcon className="w-4.5 h-4.5" />
+                      </a>
+
+                      {/* LeetCode Circle Logo Icon */}
+                      <a
+                        href={problem.leetCodeUrl || `https://leetcode.com/problems/${problem.slug}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Solve on LeetCode"
+                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 text-amber-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                      >
+                        <LeetCodeLogoIcon className="w-4.5 h-4.5" />
+                      </a>
+
+                      {/* HackerRank Circle Logo Icon */}
+                      <a
+                        href={problem.hackerRankUrl || `https://www.hackerrank.com/challenges/${problem.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Solve on HackerRank"
+                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-teal-500/25 border border-teal-500/40 hover:border-teal-400 text-teal-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
+                      >
+                        <HackerRankLogoIcon className="w-4.5 h-4.5" />
+                      </a>
+                    </div>
+                  )}
                 </div>
               );
             })}

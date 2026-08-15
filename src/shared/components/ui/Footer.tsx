@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
                 </svg>
               </span>
               <div className="flex flex-col">
-                <span className="hero-font text-[20px] font-extrabold text-white leading-none">Connect 2 Code</span>
+                <span className="hero-font text-[20px] font-extrabold text-white leading-none">Talent Shine</span>
                 <span className="text-[9.5px] font-black uppercase tracking-[.2em] text-[#A3E635] mt-0.5">
                   YOUR CAREER STARTS HERE
                 </span>
@@ -184,7 +184,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Copyright & Terms */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-[#667085]">
           <p className="font-mono text-center sm:text-left">
-            © {new Date().getFullYear()} Connect 2 Code — Campus Placement Preparation. All rights reserved.
+            © {new Date().getFullYear()} Talent Shine — Campus Placement Preparation. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-[#98A2B3]">

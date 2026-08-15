@@ -4,7 +4,7 @@ import { mockDelay } from '../mock/mockAdapter';
 import interviewData from '../mock/data/interviews.json';
 import { ApiResponse } from '../core/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 export const interviewService = {
   async getQuestions(category?: string): Promise<ApiResponse<typeof interviewData>> {

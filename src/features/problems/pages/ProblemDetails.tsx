@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { fetchProblemById } from '../redux/problemSlice';
+import { fetchProblemBySlug } from '../redux/problemSlice';
+import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
+import { openAuthModal } from '../../auth/redux/authSlice';
+import { Button } from '../../../shared/components/ui/Button';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-hot-toast';
 
@@ -9,19 +12,45 @@ export const ProblemDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
   const { selectedProblem: problem, loading } = useAppSelector((state) => state.problems);
+  const { bookmarks } = useAppSelector((state) => state.bookmarks);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const [activeTab, setActiveTab] = useState<'topics' | 'companies' | 'hints' | 'similar' | null>(null);
-  const [selectedTestCaseIdx, setSelectedTestCaseIdx] = useState<number>(0);
-  const [copiedCode, setCopiedCode] = useState(false);
+  const [activeTab, setActiveTab] = useState<'topics' | 'companies' | 'hints' | 'examPlatform' | null>(null);
   const [selectedLang, setSelectedLang] = useState<'java' | 'cpp' | 'python' | 'javascript'>('java');
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     if (slug) {
-      dispatch(fetchProblemById(slug));
+      dispatch(fetchProblemBySlug(slug));
     }
-  }, [dispatch, slug]);
+    if (isAuthenticated) {
+      dispatch(fetchBookmarks());
+    }
+  }, [dispatch, slug, isAuthenticated]);
 
-  const defaultDriverCode: Record<string, string> = {
+  const isBookmarked = problem ? bookmarks.some((b) => b.itemId === problem.id) : false;
+
+  const handleBookmarkToggle = () => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to bookmark questions');
+      dispatch(openAuthModal({ mode: 'login' }));
+      return;
+    }
+    if (problem) {
+      dispatch(
+        toggleBookmarkItem({
+          itemId: problem.id,
+          type: 'PROBLEM',
+          title: problem.title,
+          difficulty: problem.difficulty,
+          category: problem.topic || 'DSA',
+        })
+      );
+      toast.success(isBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
+    }
+  };
+
+  const defaultDriverCode = {
     java: `import java.util.*;
 
 class Solution {
@@ -101,7 +130,9 @@ public:
   ];
 
   const difficultyBadge =
-    problem.difficulty.toLowerCase() === 'easy'
+    problem.difficulty.toLowerCase() === 'basic'
+      ? 'text-teal-400 bg-teal-500/10 border-teal-500/30'
+      : problem.difficulty.toLowerCase() === 'easy'
       ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
       : problem.difficulty.toLowerCase() === 'medium'
       ? 'text-amber-400 bg-amber-500/10 border-amber-500/30'
@@ -150,234 +181,202 @@ public:
           {/* Companies Pill */}
           <button
             onClick={() => setActiveTab(activeTab === 'companies' ? null : 'companies')}
-            className={`inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-[#121113] border border-white/10 hover:border-amber-400/50 hover:text-amber-300 transition-all cursor-pointer shadow-sm ${
-              activeTab === 'companies' ? 'border-amber-400 text-amber-300 bg-amber-400/10' : 'text-gray-300'
+            className={`inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-[#121113] border border-white/10 hover:border-[#A3E635]/50 hover:text-[#A3E635] transition-all cursor-pointer shadow-sm ${
+              activeTab === 'companies' ? 'border-[#A3E635] text-[#A3E635] bg-[#A3E635]/10' : 'text-gray-300'
             }`}
           >
-            <i className="fa-solid fa-building text-xs text-amber-400"></i>
-            <span className="bg-gradient-to-r from-amber-300 to-amber-100 bg-clip-text text-transparent font-bold">
-              Companies
-            </span>
+            <i className="fa-solid fa-building text-xs text-[#A3E635]"></i>
+            <span>Companies ({problem.companies?.length || 0})</span>
           </button>
 
-          {/* Hint Pill */}
+          {/* Hints Pill */}
           <button
             onClick={() => setActiveTab(activeTab === 'hints' ? null : 'hints')}
-            className={`inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-[#121113] border border-white/10 hover:border-amber-400/50 hover:text-amber-300 transition-all cursor-pointer shadow-sm ${
-              activeTab === 'hints' ? 'border-amber-400 text-amber-300 bg-amber-400/10' : 'text-gray-300'
+            className={`inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-[#121113] border border-white/10 hover:border-[#A3E635]/50 hover:text-[#A3E635] transition-all cursor-pointer shadow-sm ${
+              activeTab === 'hints' ? 'border-[#A3E635] text-[#A3E635] bg-[#A3E635]/10' : 'text-gray-300'
             }`}
           >
-            <i className="fa-solid fa-lightbulb text-xs text-amber-400 animate-pulse"></i>
-            <span>Hint</span>
+            <i className="fa-solid fa-lightbulb text-xs text-[#A3E635]"></i>
+            <span>Hints ({problem.hints?.length || 0})</span>
+          </button>
+
+          {/* Exam Platform Pill */}
+          <button
+            onClick={() => setActiveTab(activeTab === 'examPlatform' ? null : 'examPlatform')}
+            className={`inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl bg-[#121113] border border-white/10 hover:border-[#A3E635]/50 hover:text-[#A3E635] transition-all cursor-pointer shadow-sm ${
+              activeTab === 'examPlatform' ? 'border-[#A3E635] text-[#A3E635] bg-[#A3E635]/10' : 'text-gray-300'
+            }`}
+          >
+            <i className="fa-solid fa-desktop text-xs text-[#A3E635]"></i>
+            <span>Exam Platform</span>
+          </button>
+
+          {/* Bookmark Button */}
+          <button
+            onClick={handleBookmarkToggle}
+            className={`ml-auto inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl border transition-all cursor-pointer shadow-sm ${
+              isBookmarked
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
+                : 'bg-[#121113] border-white/10 text-gray-400 hover:text-amber-400 hover:border-amber-400/40'
+            }`}
+          >
+            <i className={`fa-${isBookmarked ? 'solid' : 'regular'} fa-star text-xs`}></i>
+            <span>{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
           </button>
         </div>
 
-        {/* EXPANDABLE TAB PANELS */}
+        {/* EXPANDABLE CHIP CONTENT BOARDS */}
         {activeTab === 'topics' && (
-          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl flex flex-wrap gap-2.5 animate-fade-in">
-            <span className="text-xs sm:text-sm font-mono font-semibold px-3.5 py-1.5 rounded-lg bg-[#202225] border border-[#A3E635]/30 text-[#A3E635]">
-              {problem.topic}
-            </span>
-            <span className="text-xs sm:text-sm font-mono px-3.5 py-1.5 rounded-lg bg-[#202225] border border-white/10 text-gray-300">
-              Array
-            </span>
-            <span className="text-xs sm:text-sm font-mono px-3.5 py-1.5 rounded-lg bg-[#202225] border border-white/10 text-gray-300">
-              Hash Table
-            </span>
+          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs sm:text-sm animate-fade-in flex items-center gap-2 font-mono">
+            <span className="text-gray-400">Category:</span>
+            <span className="text-[#A3E635] font-bold">{problem.category}</span>
+            <span className="text-gray-600">•</span>
+            <span className="text-gray-400">Topic:</span>
+            <span className="text-white font-bold">{problem.topic}</span>
           </div>
         )}
 
         {activeTab === 'companies' && (
-          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl flex flex-wrap gap-2.5 animate-fade-in">
-            <span className="text-xs sm:text-sm font-mono font-bold px-3.5 py-1.5 rounded-lg bg-[#202225] border border-amber-400/40 text-amber-300">
-              Amazon (Top Asked)
-            </span>
-            <span className="text-xs sm:text-sm font-mono font-semibold px-3.5 py-1.5 rounded-lg bg-[#202225] border border-amber-400/30 text-amber-200">
-              Google
-            </span>
-            <span className="text-xs sm:text-sm font-mono font-semibold px-3.5 py-1.5 rounded-lg bg-[#202225] border border-amber-400/30 text-amber-200">
-              Microsoft
-            </span>
+          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs sm:text-sm animate-fade-in flex flex-wrap gap-2">
+            {problem.companies && problem.companies.length > 0 ? (
+              problem.companies.map((c) => (
+                <span key={c} className="px-3 py-1 bg-[#202225] border border-white/15 rounded-lg text-gray-200 font-mono font-medium">
+                  {c}
+                </span>
+              ))
+            ) : (
+              <span className="text-gray-500 font-mono text-xs">No specific company tags recorded.</span>
+            )}
           </div>
         )}
 
         {activeTab === 'hints' && (
-          <div className="p-5 bg-[#121113] border border-amber-400/30 rounded-xl flex flex-col gap-2 animate-fade-in text-sm text-gray-200 leading-relaxed font-sans">
-            <div className="font-bold text-amber-300 flex items-center gap-2 text-base">
-              <i className="fa-solid fa-lightbulb text-amber-400"></i>
-              <span>Hint 1:</span>
+          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs sm:text-sm animate-fade-in space-y-2">
+            {problem.hints && problem.hints.length > 0 ? (
+              problem.hints.map((hint, idx) => (
+                <div key={idx} className="p-3 bg-[#202225] border border-white/10 rounded-lg text-gray-300 flex items-start gap-2">
+                  <span className="text-[#A3E635] font-mono font-bold shrink-0">Hint {idx + 1}:</span>
+                  <span>{hint}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-gray-500 font-mono text-xs">Try analyzing time complexity or using a Hash Map for fast lookup.</span>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'examPlatform' && (
+          <div className="p-5 bg-[#121113] border border-white/10 rounded-xl text-xs sm:text-sm animate-fade-in flex flex-col gap-3 font-sans shadow-inner">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#A3E635]/10 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635]">
+                  <i className="fa-solid fa-desktop text-sm"></i>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 block font-mono">Exam Platform Name</span>
+                  <span className="font-bold text-white text-sm sm:text-base font-heading">
+                    {(problem as any).qpfRefName || (problem as any).examPlatform || 'TCS iON Digital Exam Platform'}
+                  </span>
+                </div>
+              </div>
+              <span className="text-[11px] font-mono px-3 py-1 rounded-full bg-[#A3E635]/15 border border-[#A3E635]/40 text-[#A3E635] font-extrabold shadow-xs">
+                Featured Online Assessment
+              </span>
             </div>
-            <p className="text-gray-300">
-              A brute-force solution checks every pair of elements in O(N^2) time. Can we use a Hash Map to store previously seen numbers and reduce the lookup time to O(1)?
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div className="p-3 bg-[#202225] border border-white/10 rounded-lg flex flex-col gap-1">
+                <span className="text-gray-400 text-[11px] font-mono uppercase tracking-wider">Exam Platform Code</span>
+                <span className="text-[#A3E635] font-mono font-extrabold text-sm">{(problem as any).qpfRefCode || 'TCSION'}</span>
+              </div>
+
+              <div className="p-3 bg-[#202225] border border-white/10 rounded-lg flex flex-col gap-1">
+                <span className="text-gray-400 text-[11px] font-mono uppercase tracking-wider">Platform Category</span>
+                <span className="text-white font-semibold font-mono text-sm">{(problem as any).qpfRefGroupCode || 'QPF'} (Question Platform)</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-gray-300 leading-relaxed font-sans mt-1 p-3 bg-[#202225]/60 border border-white/5 rounded-lg">
+              This coding question was featured on the <strong className="text-white font-semibold">{(problem as any).qpfRefName || (problem as any).examPlatform || 'TCS iON Digital Exam Platform'}</strong> during national level campus recruitment drives and technical assessment coding rounds.
             </p>
           </div>
         )}
       </div>
 
-      {/* PROBLEM STATEMENT & DESCRIPTION SECTION */}
-      <div className="p-6 sm:p-8 bg-[#202225] border border-white/10 rounded-2xl flex flex-col gap-8 shadow-xl">
-        <div>
-          <h2 className="text-lg sm:text-xl font-heading font-bold text-white mb-3">
-            Problem Description
-          </h2>
-          <p className="text-base sm:text-lg text-gray-200 leading-relaxed font-sans whitespace-pre-line">
-            {problem.description}
-          </p>
+      {/* PROBLEM DESCRIPTION BOARD */}
+      <div className="p-6 sm:p-8 bg-[#202225] border border-white/10 rounded-2xl shadow-xl flex flex-col gap-6">
+        <h2 className="text-lg sm:text-xl font-heading font-bold text-white tracking-tight border-b border-white/10 pb-3 flex items-center gap-2">
+          <i className="fa-solid fa-file-lines text-[#A3E635] text-base"></i>
+          <span>Problem Statement</span>
+        </h2>
+
+        <div className="text-sm sm:text-base leading-relaxed text-gray-300 font-sans whitespace-pre-line">
+          {problem.description}
         </div>
 
-        {/* Constraints */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-            Constraints
-          </h2>
-          <ul className="list-disc list-inside space-y-2 text-sm sm:text-base font-mono text-gray-200 bg-[#121113] p-5 rounded-xl border border-white/10">
-            <li><code className="text-[#38BDF8] font-semibold">2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-            <li><code className="text-[#38BDF8] font-semibold">-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-            <li><code className="text-[#38BDF8] font-semibold">-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
-            <li className="text-[#A3E635] font-semibold font-sans">Only one valid solution exists.</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* EXPLICIT INTERACTIVE TEST CASES SECTION */}
-      <div className="p-6 sm:p-8 bg-[#202225] border border-white/10 rounded-2xl flex flex-col gap-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#A3E635]/10 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635] shrink-0">
-              <i className="fa-solid fa-vial text-base"></i>
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-heading font-bold text-white">
-                Interactive Test Cases
-              </h2>
-              <p className="text-xs text-gray-400 font-sans">
-                Sample inputs and expected outputs
-              </p>
-            </div>
-          </div>
-
-          {/* Test Case Selector Tabs */}
-          <div className="flex items-center gap-2 bg-[#121113] p-1.5 rounded-xl border border-white/10 self-start sm:self-auto">
-            {displayExamples.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setSelectedTestCaseIdx(idx)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
-                  selectedTestCaseIdx === idx
-                    ? 'bg-[#A3E635] text-black shadow-sm'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                Case {idx + 1}
-              </button>
+        {/* INPUT / OUTPUT EXAMPLES */}
+        <div className="space-y-4 pt-2">
+          <h3 className="text-sm font-mono font-bold uppercase text-gray-400 tracking-wider">Examples &amp; Test Cases</h3>
+          
+          <div className="grid grid-cols-1 gap-4">
+            {displayExamples.map((ex, idx) => (
+              <div key={idx} className="p-4 sm:p-5 bg-[#121113] border border-white/10 rounded-xl font-mono text-xs sm:text-sm space-y-2">
+                <div className="text-[#A3E635] font-bold text-xs">Example {idx + 1}:</div>
+                <div>
+                  <span className="text-gray-500">Input: </span>
+                  <span className="text-white font-semibold">{ex.input}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Output: </span>
+                  <span className="text-[#A3E635] font-bold">{ex.output}</span>
+                </div>
+                {ex.explanation && (
+                  <div className="pt-1 border-t border-white/5 text-gray-400 text-xs font-sans">
+                    <span className="font-mono text-gray-500">Explanation: </span>
+                    {ex.explanation}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
-
-        {/* Active Test Case Detail Panel */}
-        {displayExamples[selectedTestCaseIdx] && (
-          <div className="p-5 bg-[#121113] border border-white/10 rounded-xl flex flex-col gap-4 font-mono text-sm sm:text-base animate-fade-in shadow-inner">
-            <div>
-              <span className="text-[#38BDF8] font-bold block text-xs uppercase mb-1.5 font-sans">
-                Input:
-              </span>
-              <div className="bg-[#202225] p-3.5 rounded-xl border border-white/10 text-gray-200">
-                <code>{displayExamples[selectedTestCaseIdx].input}</code>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-[#A3E635] font-bold block text-xs uppercase mb-1.5 font-sans">
-                Expected Output:
-              </span>
-              <div className="bg-[#202225] p-3.5 rounded-xl border border-white/10 text-gray-200">
-                <code>{displayExamples[selectedTestCaseIdx].output}</code>
-              </div>
-            </div>
-
-            {displayExamples[selectedTestCaseIdx].explanation && (
-              <div>
-                <span className="text-[#818CF8] font-bold block text-xs uppercase mb-1.5 font-sans">
-                  Explanation:
-                </span>
-                <div className="text-gray-300 font-sans text-sm leading-relaxed bg-[#202225]/50 p-3 rounded-xl border border-white/5">
-                  {displayExamples[selectedTestCaseIdx].explanation}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* CODE DISPLAY CONTAINER (OUR LIME & DSA SHEET PALETTE) */}
-      <div className="codeblock-container bg-[#202225] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-        
-        {/* Editor Buttons Header Bar */}
-        <div className="p-4 bg-[#121113] border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold font-heading text-white">Solution Code Implementation</span>
-            
-            {/* Language Selector */}
-            <select
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value as any)}
-              className="bg-[#202225] border border-white/10 text-xs sm:text-sm font-mono text-[#A3E635] font-bold rounded-xl px-3 py-1.5 outline-none focus:border-[#A3E635] cursor-pointer shadow-sm"
-            >
-              <option value="java">Java</option>
-              <option value="cpp">C++</option>
-              <option value="python">Python</option>
-              <option value="javascript">JavaScript</option>
-            </select>
+      {/* CODE SNIPPET DRIVER BOARD */}
+      <div className="p-6 sm:p-8 bg-[#202225] border border-white/10 rounded-2xl shadow-xl flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2">
+            <i className="fa-solid fa-code text-[#A3E635] text-base"></i>
+            <h2 className="text-lg sm:text-xl font-heading font-bold text-white tracking-tight">Solution Template</h2>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Copy Button */}
-            <button
-              onClick={handleCopyCode}
-              title="Copy Code"
-              className="px-4 py-2 rounded-xl bg-[#202225] border border-white/10 hover:border-[#A3E635]/50 text-xs sm:text-sm font-semibold text-gray-200 hover:text-[#A3E635] transition-all flex items-center gap-2 cursor-pointer shadow-sm"
-            >
-              <i className={`fa-regular ${copiedCode ? 'fa-check text-[#A3E635]' : 'fa-copy'}`}></i>
-              <span>{copiedCode ? 'Copied!' : 'Copy Code'}</span>
-            </button>
+          {/* LANGUAGE SELECTOR & COPY */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {(['java', 'cpp', 'python', 'javascript'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setSelectedLang(lang)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
+                  selectedLang === lang
+                    ? 'bg-[#A3E635] text-black shadow-sm'
+                    : 'bg-[#121113] text-gray-400 hover:text-white border border-white/10'
+                }`}
+              >
+                {lang === 'cpp' ? 'C++' : lang === 'javascript' ? 'JS' : lang}
+              </button>
+            ))}
+
+            <Button variant="secondary" size="sm" onClick={handleCopyCode} className="ml-2">
+              <i className={`fa-solid ${copiedCode ? 'fa-check text-[#A3E635]' : 'fa-copy'} text-xs`}></i>
+              <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+            </Button>
           </div>
         </div>
 
-        {/* Code Content Panel */}
-        <div className="p-6 bg-[#121113] font-mono text-sm sm:text-base overflow-x-auto text-gray-200 max-h-[70vh] scrollbar-thin">
-          <pre className="leading-relaxed">
-            <code>
-              {problem.codeSnippets?.[selectedLang] || defaultDriverCode[selectedLang]}
-            </code>
-          </pre>
-        </div>
-      </div>
-
-      {/* ACCORDION: SIMILAR QUESTIONS */}
-      <div className="border border-white/10 rounded-2xl bg-[#202225] overflow-hidden shadow-md mb-12">
-        <button
-          onClick={() => setActiveTab(activeTab === 'similar' ? null : 'similar')}
-          className="w-full p-5 flex items-center justify-between text-sm sm:text-base font-bold font-heading text-white hover:text-[#A3E635] cursor-pointer"
-        >
-          <div className="flex items-center gap-3">
-            <i className="fa-solid fa-list-tree text-[#38BDF8]"></i>
-            <span>Similar Questions</span>
-          </div>
-          <i className={`fa-solid fa-chevron-down text-sm text-[#A3E635] transition-transform ${activeTab === 'similar' ? 'rotate-180' : ''}`}></i>
-        </button>
-
-        {activeTab === 'similar' && (
-          <div className="p-5 bg-[#121113] border-t border-white/10 flex flex-col gap-3 text-sm font-sans">
-            <div className="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl transition-colors">
-              <Link to="/problems/3sum" className="text-gray-200 font-semibold hover:text-[#A3E635]">3Sum</Link>
-              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">Medium</span>
-            </div>
-            <div className="flex items-center justify-between p-3 hover:bg-white/5 rounded-xl transition-colors">
-              <Link to="/problems/4sum" className="text-gray-200 font-semibold hover:text-[#A3E635]">4Sum</Link>
-              <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">Medium</span>
-            </div>
-          </div>
-        )}
+        {/* CODE BLOCK */}
+        <pre className="p-5 bg-[#090A0C] border border-white/10 rounded-xl text-xs sm:text-sm font-mono text-[#A3E635] overflow-x-auto leading-relaxed">
+          <code>{problem.codeSnippets?.[selectedLang] || defaultDriverCode[selectedLang]}</code>
+        </pre>
       </div>
 
     </div>

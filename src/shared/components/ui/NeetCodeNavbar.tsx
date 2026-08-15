@@ -25,7 +25,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
   const isLoggedIn = user !== undefined ? user !== null : (isAuthenticated && reduxUser !== null);
   const currentUser = user || reduxUser || {
     fullName: 'Alex Developer',
-    email: 'alex.dev@Connect 2 Code.io',
+    email: 'alex.dev@talentshine.io',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
   };
 
@@ -75,11 +75,11 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
           >
             <img
               src="/logo-mark-transparent.png"
-              alt="Connect 2 Code Logo"
+              alt="Talent Shine Logo"
               className="h-7 sm:h-9 w-auto object-contain shrink-0"
             />
             <span className="text-sm sm:text-lg font-bold text-white font-sans tracking-tight">
-              Connect <span className="text-[#A3E635]">2</span> Code
+              Talent <span className="text-[#A3E635]">Shine</span>
             </span>
           </Link>
 
@@ -140,7 +140,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                           {currentUser?.fullName || 'Alex Developer'}
                         </span>
                         <span className="text-[10px] text-gray-400 font-mono truncate">
-                          {currentUser?.email || 'alex.dev@Connect 2 Code.io'}
+                          {currentUser?.email || 'alex.dev@talentshine.io'}
                         </span>
                       </div>
                     </div>

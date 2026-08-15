@@ -358,7 +358,7 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. SECTION 3: "WHY Connect 2 Code IS DIFFERENT?" BENTO GRID SECTION (Exact Requested Alignment & Spacing) */}
+      {/* 4. SECTION 3: "WHY Talent Shine IS DIFFERENT?" BENTO GRID SECTION (Exact Requested Alignment & Spacing) */}
       <section className="bg-[#090A0C] w-full pt-10 pb-16 border-t border-white/10">
         <div className="relative max-w-7xl px-6 pt-5 pb-10 mx-auto md:px-12 lg:px-24">
           <div className="flex flex-col w-full items-center justify-center text-center">
@@ -367,7 +367,7 @@ export const Landing: React.FC = () => {
             </h2>
             <div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight font-heading mb-3 text-center">
-                Why <span className="text-[#A3E635]">Connect 2 Code</span> <span className="block sm:inline">is different?</span>
+                Why <span className="text-[#A3E635]">Talent Shine</span> <span className="block sm:inline">is different?</span>
               </h2>
               <p className="mt-2 text-gray-400 text-base sm:text-lg font-medium font-sans max-w-2xl mx-auto">
                 From topic-wise practice to company-pattern mocks — we teach what actually gets you hired in campus drives.

@@ -1,38 +1,60 @@
 /**
- * Token Storage Abstraction Layer
- * Provides safe in-memory token retention with encrypted session storage fallback
- * Prepares the codebase for production HTTP-Only Cookie or JWT Refresh Token flows
+ * Token Storage Abstraction Layer with Cookie & LocalStorage Fallbacks
+ * Stores accessToken and refreshToken in HttpCookies & LocalStorage
+ * Clears cookies on logout as requested
  */
 
-let memoryToken: string | null = null;
+function setCookie(name: string, value: string, days = 7) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
 
-const TOKEN_KEY = 'prep_auth_token';
+function getCookie(name: string): string | null {
+  const nameEQ = name + '=';
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+}
+
+function eraseCookie(name: string) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+}
 
 export const tokenStorage = {
   getToken(): string | null {
-    if (memoryToken) return memoryToken;
-    try {
-      return sessionStorage.getItem(TOKEN_KEY);
-    } catch {
-      return null;
-    }
+    return getCookie('accessToken') || localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
   },
 
   setToken(token: string): void {
-    memoryToken = token;
+    setCookie('accessToken', token);
     try {
-      sessionStorage.setItem(TOKEN_KEY, token);
-    } catch (e) {
-      console.warn('Session storage write restricted', e);
-    }
+      localStorage.setItem('accessToken', token);
+    } catch {}
   },
 
-  clearToken(): void {
-    memoryToken = null;
+  getRefreshToken(): string | null {
+    return getCookie('refreshToken') || localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
+  },
+
+  setRefreshToken(token: string): void {
+    setCookie('refreshToken', token);
     try {
-      sessionStorage.removeItem(TOKEN_KEY);
-    } catch (e) {
-      console.warn('Session storage clear restricted', e);
-    }
+      localStorage.setItem('refreshToken', token);
+    } catch {}
+  },
+
+  clearTokens(): void {
+    eraseCookie('accessToken');
+    eraseCookie('refreshToken');
+    try {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+    } catch {}
   },
 };

@@ -1,40 +1,25 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { mockDelay } from '../mock/mockAdapter';
-import companiesData from '../mock/data/companies.json';
-import problemsData from '../mock/data/problems.json';
-import { ApiResponse } from '../core/types/api';
+import { BackendApiResponse } from './authService';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
+export interface CompanyPayload {
+  id?: number;
+  name: string;
+  logo: string;
+  website: string;
+  isActive: boolean;
+}
 
 export const companyService = {
-  async getCompanies(search?: string): Promise<ApiResponse<typeof companiesData>> {
-    if (USE_MOCK) {
-      let filtered = [...companiesData];
-      if (search) {
-        const query = search.toLowerCase();
-        filtered = filtered.filter((c) => c.name.toLowerCase().includes(query) || c.industry.toLowerCase().includes(query));
-      }
-      return mockDelay(filtered, 'Companies list retrieved');
-    }
-    return apiClient.get(API_ENDPOINTS.COMPANIES.LIST, { params: { search } });
+  async getCompanies(): Promise<BackendApiResponse<CompanyPayload[]>> {
+    return apiClient.get(API_ENDPOINTS.COMPANY.BASE);
   },
 
-  async getCompanyBySlug(slug: string): Promise<ApiResponse<typeof companiesData[0] | null>> {
-    if (USE_MOCK) {
-      const company = companiesData.find((c) => c.slug === slug || c.id === slug) || null;
-      return mockDelay(company, company ? 'Company detail retrieved' : 'Company not found');
-    }
-    return apiClient.get(API_ENDPOINTS.COMPANIES.DETAILS(slug));
+  async getCompanyById(id: string | number): Promise<BackendApiResponse<CompanyPayload>> {
+    return apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(id));
   },
 
-  async getCompanyProblems(companyName: string): Promise<ApiResponse<typeof problemsData>> {
-    if (USE_MOCK) {
-      const companyProblems = problemsData.filter((p) =>
-        p.companies.some((c) => c.toLowerCase() === companyName.toLowerCase())
-      );
-      return mockDelay(companyProblems, 'Company problems retrieved');
-    }
-    return apiClient.get(API_ENDPOINTS.COMPANIES.PROBLEMS(companyName));
+  async createCompany(payload: CompanyPayload): Promise<BackendApiResponse<CompanyPayload>> {
+    return apiClient.post(API_ENDPOINTS.COMPANY.BASE, payload);
   },
 };

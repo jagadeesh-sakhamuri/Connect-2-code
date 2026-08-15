@@ -122,7 +122,7 @@ export const CompanyList: React.FC = () => {
                       if (fallbackLogos[company.slug] && target.src !== fallbackLogos[company.slug]) {
                         target.src = fallbackLogos[company.slug];
                       } else {
-                        target.src = `https://logo.clearbit.com/${company.slug.replace('-nqt', '')}.com`;
+                        target.src = `https://logo.clearbit.com/${(company?.slug || 'company').replace('-nqt', '')}.com`;
                       }
                     }}
                   />
