@@ -79,7 +79,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
               className="h-7 sm:h-9 w-auto object-contain shrink-0"
             />
             <span className="text-sm sm:text-lg font-bold text-white font-sans tracking-tight">
-              Talent <span className="text-[#A3E635]">Shine</span>
+              Talent <span className="text-[#E5A117]">Shine</span>
             </span>
           </Link>
 
@@ -123,7 +123,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                     />
                     <span className="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[#A3E635] rounded-full ring-2 ring-[#090A0C]"></span>
                   </div>
-                  <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180 text-[#A3E635]' : ''}`}></i>
+                  <i className={`fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200 ${isProfileDropdownOpen ? 'rotate-180 text-[#14B8A6]' : ''}`}></i>
                 </button>
 
                 {/* Profile Dropdown */}
@@ -151,7 +151,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                         onClick={() => setIsProfileDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors font-sans"
                       >
-                        <i className="fa-regular fa-user text-xs text-[#A3E635] w-4 text-center"></i>
+                        <i className="fa-regular fa-user text-xs text-[#14B8A6] w-4 text-center"></i>
                         <span>Profile Settings</span>
                       </Link>
 
@@ -180,7 +180,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
             ) : (
               <button
                 onClick={() => dispatch(openAuthModal({ mode: 'signup' }))}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#A3E635] hover:bg-[#84CC16] px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-black shadow-sm transition-all active:translate-y-0.5 cursor-pointer font-sans shrink-0"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#14B8A6] hover:bg-[#0D9488] text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-bold text-black shadow-sm transition-all active:translate-y-0.5 cursor-pointer font-sans shrink-0"
               >
                 <i className="fa-solid fa-user-plus text-xs text-black"></i>
                 <span>Sign up</span>

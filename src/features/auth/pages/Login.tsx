@@ -150,7 +150,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                 <button
                   type="button"
                   onClick={() => setMode('signup')}
-                  className="text-[#A3E635] hover:underline font-bold cursor-pointer"
+                  className="text-[#E5A117] hover:underline font-bold cursor-pointer"
                 >
                   Register Now
                 </button>
@@ -166,7 +166,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                 <input
                   type="email"
                   placeholder="Enter email address"
-                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-sm text-white placeholder-gray-500 px-3.5 py-2.5 rounded-lg outline-none transition-all"
+                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-sm text-white placeholder-gray-500 px-3.5 py-2.5 rounded-lg outline-none transition-all"
                   {...registerLogin('email')}
                 />
                 {loginErrors.email && (
@@ -183,7 +183,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Enter password"
-                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-sm text-white placeholder-gray-500 px-3.5 py-2.5 pr-10 rounded-lg outline-none transition-all"
+                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-sm text-white placeholder-gray-500 px-3.5 py-2.5 pr-10 rounded-lg outline-none transition-all"
                     {...registerLogin('password')}
                   />
                   <button
@@ -204,7 +204,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 mt-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-base rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#A3E635]/20 active:scale-[0.99] disabled:opacity-50 font-sans"
+                className="w-full py-3 px-4 mt-2 bg-[#14B8A6] hover:bg-[#0D9488] text-black font-extrabold text-base rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#A3E635]/20 active:scale-[0.99] disabled:opacity-50 font-sans"
               >
                 {loading ? (
                   <>
@@ -229,7 +229,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                 <button
                   type="button"
                   onClick={() => setMode('login')}
-                  className="text-[#A3E635] hover:underline font-bold cursor-pointer"
+                  className="text-[#E5A117] hover:underline font-bold cursor-pointer"
                 >
                   Log in
                 </button>
@@ -244,7 +244,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                   <input
                     type="text"
                     placeholder="e.g. Venkat"
-                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
+                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
                     {...registerSignup('firstName')}
                   />
                   {signupErrors.firstName && (
@@ -257,7 +257,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                   <input
                     type="text"
                     placeholder="e.g. Kaveti"
-                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
+                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
                     {...registerSignup('lastName')}
                   />
                   {signupErrors.lastName && (
@@ -272,7 +272,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                 <input
                   type="text"
                   placeholder="e.g. venkat123"
-                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
+                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
                   {...registerSignup('labelUserName')}
                 />
                 {signupErrors.labelUserName && (
@@ -286,7 +286,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                 <input
                   type="email"
                   placeholder="e.g. venkat@mailinator.com"
-                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
+                  className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-xs text-white placeholder-gray-500 px-3 py-2 rounded-lg outline-none"
                   {...registerSignup('email')}
                 />
                 {signupErrors.email && (
@@ -301,7 +301,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Create a strong password"
-                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#A3E635] text-xs text-white placeholder-gray-500 px-3 py-2 pr-9 rounded-lg outline-none"
+                    className="w-full bg-[#090A0C] border border-white/15 focus:border-[#14B8A6] text-xs text-white placeholder-gray-500 px-3 py-2 pr-9 rounded-lg outline-none"
                     {...registerSignup('password')}
                   />
                   <button
@@ -322,7 +322,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 mt-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-sm rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#A3E635]/20 active:scale-[0.99] disabled:opacity-50 font-sans"
+                className="w-full py-2.5 px-4 mt-2 bg-[#14B8A6] hover:bg-[#0D9488] text-black font-extrabold text-sm rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#A3E635]/20 active:scale-[0.99] disabled:opacity-50 font-sans"
               >
                 {loading ? (
                   <>

@@ -29,7 +29,7 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121113] text-[#f4f4f4] flex flex-col font-sans relative">
+    <div className="min-h-screen bg-[var(--background)] text-[#f4f4f4] flex flex-col font-sans relative m-0 p-0 overflow-x-hidden">
       {/* Top Navbar */}
       <NeetCodeNavbar user={user} onLogout={handleLogout} />
 

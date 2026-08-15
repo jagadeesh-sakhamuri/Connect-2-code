@@ -1,3 +1,12 @@
+
+html, body, #root {
+  min-height: 100vh;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-color: var(--background) !important;
+  overflow-x: hidden;
+}
+
 @import "tailwindcss";
 
 :root {
@@ -5,29 +14,28 @@
   --font-heading: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Roboto Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
-  --background: #121113;
-  --theme-color: #121113;
+  --background: #0A1118;
+  --theme-color: #0A1118;
   --foreground: #f4f4f4;
   --foreground-secondary: #d4d4d4;
-  --card: #202225;
-  --card-background: #202225;
-  --card-background-hover: #2f3136;
-  --card-border-color: rgba(255, 255, 255, 0.08);
-  --muted: #2f3136;
-  --muted-foreground: #9ca3af;
-  --primary: #627eff;
-  --primary-color: #627eff;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --input: #2f3136;
-  --success-color: #4ade80;
+  --card: #14202C;
+  --card-background: #14202C;
+  --card-background-hover: #1E2E3E;
+  --card-border-color: rgba(26, 128, 140, 0.25);
+  --muted: #1E2E3E;
+  --muted-foreground: #94a3b8;
   
-  --difficulty-easy: rgba(72, 199, 142, 0.8);
-  --difficulty-medium: rgba(245, 166, 35, 0.8);
-  --difficulty-hard: rgba(248, 113, 113, 0.8);
-  --difficulty-label-easy: #48c78e;
-  --difficulty-label-medium: #f5a623;
-  --difficulty-label-hard: #f87171;
+  /* TALENT SHINE LOGO PALETTE TOKENS */
+  --brand-teal: #1A808C;
+  --brand-cyan: #14B8A6;
+  --brand-gold: #E5A117;
+  --brand-amber: #F59E0B;
+  --primary: #14B8A6;
+  --primary-color: #14B8A6;
+  --border: rgba(26, 128, 140, 0.2);
+  --border-color: rgba(26, 128, 140, 0.2);
+  --input: #14202C;
+  --success-color: #14B8A6;
 }
 
 body {
@@ -502,13 +510,103 @@ html.light span.hero-placement-word {
   -webkit-text-fill-color: #000000 !important;
 }
 
-/* HERO PLACEMENT WORD COLOR RULES FOR DARK VS LIGHT MODE */
+/* HERO PLACEMENT WORD COLOR RULES (GOLD IN DARK MODE, BLACK IN LIGHT MODE) */
 .hero-placement-word {
-  color: #A3E635;
+  color: #E5A117 !important;
 }
 
 html.light .hero-placement-word,
 html.light .hero-campus-placement-text {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
+}
+
+/* TALENT SHINE LOGO BRAND COLOR ENGINE OVERRIDES */
+.text-\[\#A3E635\] {
+  color: #14B8A6 !important;
+}
+
+.hover\:text-\[\#A3E635\]:hover {
+  color: #2DD4BF !important;
+}
+
+.bg-\[\#A3E635\] {
+  background-color: #14B8A6 !important;
+  color: #0F172A !important;
+}
+
+.hover\:bg-\[\#84CC16\]:hover,
+.hover\:bg-\[\#A3E635\]:hover {
+  background-color: #0D9488 !important;
+  color: #ffffff !important;
+}
+
+.border-\[\#A3E635\] {
+  border-color: #14B8A6 !important;
+}
+
+.hover\:border-\[\#A3E635\]\/50:hover,
+.hover\:border-\[\#A3E635\]\/40:hover {
+  border-color: rgba(20, 184, 166, 0.5) !important;
+}
+
+.bg-\[\#A3E635\]\/10 {
+  background-color: rgba(20, 184, 166, 0.12) !important;
+}
+
+.bg-\[\#A3E635\]\/15 {
+  background-color: rgba(20, 184, 166, 0.18) !important;
+}
+
+.bg-\[\#A3E635\]\/20 {
+  background-color: rgba(20, 184, 166, 0.25) !important;
+}
+
+.border-\[\#A3E635\]\/30,
+.border-\[\#A3E635\]\/40,
+.border-\[\#A3E635\]\/50 {
+  border-color: rgba(20, 184, 166, 0.4) !important;
+}
+
+.shadow-\[0_7px_0_\#65A30D\],
+.shadow-\[0_5px_0_\#65A30D\] {
+  box-shadow: 0 5px 0 #0F5B63 !important;
+}
+
+.brand-gold-text {
+  color: #E5A117 !important;
+}
+
+.brand-gold-bg {
+  background-color: #E5A117 !important;
+  color: #000000 !important;
+}
+
+.brand-gold-border {
+  border-color: #E5A117 !important;
+}
+
+/* Light Theme Talent Shine Overrides */
+html.light {
+  --background: #F0FDFA;
+  --theme-color: #F0FDFA;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-background: #FFFFFF;
+  --card-border-color: #CCFBF1;
+  --border: #CCFBF1;
+  --border-color: #CCFBF1;
+}
+
+html.light .text-\[\#A3E635\] {
+  color: #0D9488 !important;
+}
+
+html.light .bg-\[\#A3E635\] {
+  background-color: #14B8A6 !important;
+  color: #FFFFFF !important;
+}
+
+html.light .hero-campus-placement-text {
+  color: #0F172A !important;
 }
