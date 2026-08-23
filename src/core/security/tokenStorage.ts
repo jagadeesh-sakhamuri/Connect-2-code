@@ -1,60 +1,94 @@
 /**
- * Token Storage Abstraction Layer with Cookie & LocalStorage Fallbacks
- * Stores accessToken and refreshToken in HttpCookies & LocalStorage
- * Clears cookies on logout as requested
+ * Token Storage Abstraction Layer using JavaScript Cookies (document.cookie)
+ * Centralized token operations for accessToken, refreshToken, and User Profile.
+ * 
+ * Note: These cookies are set via JavaScript (document.cookie) with Path=/ and SameSite=Lax.
  */
 
-function setCookie(name: string, value: string, days = 7) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+const ACCESS_TOKEN_KEY = 'accessToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
+const USER_PROFILE_KEY = 'user_profile';
+
+function setCookie(name: string, value: string, maxAgeSeconds: number): void {
+  const encodedValue = encodeURIComponent(value);
+  document.cookie = `${name}=${encodedValue}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
 }
 
 function getCookie(name: string): string | null {
   const nameEQ = name + '=';
   const ca = document.cookie.split(';');
   for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+    let c = ca[i].trim();
+    if (c.indexOf(nameEQ) === 0) {
+      return decodeURIComponent(c.substring(nameEQ.length));
+    }
   }
   return null;
 }
 
-function eraseCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax`;
+function removeCookie(name: string): void {
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
 }
 
 export const tokenStorage = {
+  // Access Token Operations (Short-lived, 15 minutes = 900 seconds)
+  getAccessToken(): string | null {
+    return getCookie(ACCESS_TOKEN_KEY);
+  },
+
+  setAccessToken(token: string, maxAgeSeconds: number = 900): void {
+    setCookie(ACCESS_TOKEN_KEY, token, maxAgeSeconds);
+  },
+
+  removeAccessToken(): void {
+    removeCookie(ACCESS_TOKEN_KEY);
+  },
+
+  // Refresh Token Operations (Long-lived, 7 days = 604800 seconds)
+  getRefreshToken(): string | null {
+    return getCookie(REFRESH_TOKEN_KEY);
+  },
+
+  setRefreshToken(token: string, maxAgeSeconds: number = 604800): void {
+    setCookie(REFRESH_TOKEN_KEY, token, maxAgeSeconds);
+  },
+
+  removeRefreshToken(): void {
+    removeCookie(REFRESH_TOKEN_KEY);
+  },
+
+  // User Profile Operations (Persisted in cookie for session restoration)
+  getUser(): any | null {
+    const raw = getCookie(USER_PROFILE_KEY);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {}
+    }
+    return null;
+  },
+
+  setUser(user: any, maxAgeSeconds: number = 604800): void {
+    setCookie(USER_PROFILE_KEY, JSON.stringify(user), maxAgeSeconds);
+  },
+
+  removeUser(): void {
+    removeCookie(USER_PROFILE_KEY);
+  },
+
+  // Aliases for backward compatibility
   getToken(): string | null {
-    return getCookie('accessToken') || localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    return this.getAccessToken();
   },
 
   setToken(token: string): void {
-    setCookie('accessToken', token);
-    try {
-      localStorage.setItem('accessToken', token);
-    } catch {}
+    this.setAccessToken(token);
   },
 
-  getRefreshToken(): string | null {
-    return getCookie('refreshToken') || localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
-  },
-
-  setRefreshToken(token: string): void {
-    setCookie('refreshToken', token);
-    try {
-      localStorage.setItem('refreshToken', token);
-    } catch {}
-  },
-
+  // Clear all authentication tokens and user cookies
   clearTokens(): void {
-    eraseCookie('accessToken');
-    eraseCookie('refreshToken');
-    try {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      sessionStorage.removeItem('accessToken');
-      sessionStorage.removeItem('refreshToken');
-    } catch {}
+    this.removeAccessToken();
+    this.removeRefreshToken();
+    this.removeUser();
   },
 };

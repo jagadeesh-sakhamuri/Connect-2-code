@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService, LoginPayload, SignUpPayload } from '../../../services/authService';
+import { tokenStorage } from '../../../core/security/tokenStorage';
 
 export interface UserProfile {
   id?: number | string;
@@ -22,11 +23,14 @@ export interface AuthState {
   authModalMode: 'login' | 'signup';
 }
 
+const initialToken = tokenStorage.getAccessToken();
+const initialUser = tokenStorage.getUser();
+
 const initialState: AuthState = {
-  user: null,
+  user: initialUser,
   token: null,
   refreshToken: null,
-  isAuthenticated: false,
+  isAuthenticated: Boolean(initialToken),
   loading: false,
   error: null,
   isAuthModalOpen: false,
@@ -41,7 +45,7 @@ export const loginUser = createAsyncThunk(
       if (res.statusCode === 200 && res.data) {
         return res.data;
       }
-      return rejectWithValue(res.message || 'Login failed');
+      return rejectWithValue(res.message || 'Invalid Email or Password');
     } catch (err: any) {
       const errMsg = err.message || (err.errors && err.errors[0]) || 'Invalid Email or Password';
       return rejectWithValue(errMsg);
@@ -57,7 +61,7 @@ export const registerUser = createAsyncThunk(
       if (res.statusCode === 200) {
         return res.data || res.message;
       }
-      return rejectWithValue(res.message || (res.errors && res.errors[0]) || 'SignUp failed');
+      return rejectWithValue(res.message || (res.errors && res.errors[0]) || 'Error while Creating the User');
     } catch (err: any) {
       const errMsg = err.message || (err.errors && err.errors[0]) || 'Error while Creating the User';
       return rejectWithValue(errMsg);
@@ -73,6 +77,12 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    initializeAuth(state) {
+      const hasToken = Boolean(tokenStorage.getAccessToken());
+      const savedUser = tokenStorage.getUser();
+      state.isAuthenticated = hasToken;
+      state.user = hasToken ? savedUser : null;
+    },
     clearAuthError(state) {
       state.error = null;
     },
@@ -101,9 +111,9 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.isAuthModalOpen = false;
         const data = action.payload;
-        state.token = data.token;
-        state.refreshToken = data.refreshToken;
-        state.user = {
+        state.token = null;
+        state.refreshToken = null;
+        const userObj = {
           id: data.id,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -111,6 +121,8 @@ const authSlice = createSlice({
           email: data.email,
           role: data.role,
         };
+        state.user = userObj;
+        tokenStorage.setUser(userObj);
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -124,7 +136,6 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state) => {
         state.loading = false;
         state.error = null;
-        // On signup success, switch mode to login so user can log in
         state.authModalMode = 'login';
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -139,9 +150,10 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.loading = false;
         state.error = null;
+        tokenStorage.clearTokens();
       });
   },
 });
 
-export const { clearAuthError, openAuthModal, closeAuthModal, setAuthModalMode } = authSlice.actions;
+export const { initializeAuth, clearAuthError, openAuthModal, closeAuthModal, setAuthModalMode } = authSlice.actions;
 export default authSlice.reducer;

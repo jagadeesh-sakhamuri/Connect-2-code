@@ -25,6 +25,7 @@ export interface BackendApiResponse<T = any> {
 }
 
 export const authService = {
+  // SignUp: POST /api/v1/signUp (Does NOT log in user automatically)
   async signUp(payload: SignUpPayload): Promise<BackendApiResponse> {
     const requestPayload = {
       role: 'USER',
@@ -33,11 +34,12 @@ export const authService = {
     return apiClient.post(API_ENDPOINTS.AUTH.SIGNUP, requestPayload);
   },
 
+  // Login: POST /api/v1/auth/login
   async login(payload: LoginPayload): Promise<BackendApiResponse> {
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload);
     if (response && response.data) {
       if (response.data.token) {
-        tokenStorage.setToken(response.data.token);
+        tokenStorage.setAccessToken(response.data.token);
       }
       if (response.data.refreshToken) {
         tokenStorage.setRefreshToken(response.data.refreshToken);
@@ -46,6 +48,7 @@ export const authService = {
     return response;
   },
 
+  // Logout: POST /api/v1/auth/logout
   async logout(): Promise<BackendApiResponse> {
     const refreshToken = tokenStorage.getRefreshToken();
     try {
@@ -53,7 +56,7 @@ export const authService = {
         await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, { refreshToken });
       }
     } catch (e) {
-      console.warn('Logout API error:', e);
+      console.warn('Logout API warning:', e);
     } finally {
       tokenStorage.clearTokens();
     }
@@ -66,15 +69,16 @@ export const authService = {
     };
   },
 
+  // Refresh Token: POST /api/v1/auth/refresh
   async refreshToken(): Promise<BackendApiResponse> {
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) {
-      throw new Error('No refresh token available');
+      throw new Error('No refresh token available in cookie');
     }
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken });
     if (response && response.data) {
       if (response.data.accessToken) {
-        tokenStorage.setToken(response.data.accessToken);
+        tokenStorage.setAccessToken(response.data.accessToken);
       }
       if (response.data.refreshToken) {
         tokenStorage.setRefreshToken(response.data.refreshToken);

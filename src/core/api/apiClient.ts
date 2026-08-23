@@ -1,8 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../security/tokenStorage';
 
-// In development, use relative '/api/v1' (routed via Vite Proxy to bypass browser CORS preflight).
-// In production, fallback to direct VITE_API_BASE_URL or Render domain.
 const getBaseUrl = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
@@ -17,17 +15,17 @@ const BASE_URL = getBaseUrl();
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 60000, // 60s timeout to allow Render free tier cold-start spin up
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
 
-// Request Interceptor - Inject JWT Bearer Token & Cookies
+// Request Interceptor: Attach Access Token from Cookies
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = tokenStorage.getToken();
+    const token = tokenStorage.getAccessToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -36,25 +34,12 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor - Handle 401 Refresh Token Retry Loop & Validate Payload statusCode
-let isRefreshing = false;
-let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: any) => void }> = [];
-
-const processQueue = (error: any, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token!);
-    }
-  });
-  failedQueue = [];
-};
+// Shared Promise Lock for Concurrent 401 Refresh Requests
+let refreshTokenPromise: Promise<string> | null = null;
 
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     const resData = response.data;
-    // Inspect structured backend response (statusCode, message, errors)
     if (resData && typeof resData === 'object' && 'statusCode' in resData) {
       if (resData.statusCode !== 200) {
         const errorMsg = resData.message || (resData.errors && resData.errors[0]) || 'Server processing error';
@@ -72,7 +57,7 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const reqUrl = originalRequest?.url || '';
 
-    // If network error (e.g. Render cold start or CORS blocked direct request), retry once via direct URL
+    // Handle Network Error Retries for dev proxy
     if (error.message === 'Network Error' && !originalRequest._networkRetried) {
       originalRequest._networkRetried = true;
       if (!originalRequest.url.startsWith('http')) {
@@ -81,11 +66,9 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Handle 401 Unauthorized with Refresh Token
+    // Check for HTTP 401 Unauthorized
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      const refreshToken = tokenStorage.getRefreshToken();
-
-      // Skip refresh loop for login/signup/refresh endpoints
+      // Exclude auth endpoints from refresh loop
       if (reqUrl.includes('/auth/refresh') || reqUrl.includes('/auth/login') || reqUrl.includes('/signUp')) {
         tokenStorage.clearTokens();
         const errBody = error.response?.data || {};
@@ -96,61 +79,61 @@ apiClient.interceptors.response.use(
         });
       }
 
-      if (refreshToken) {
-        if (isRefreshing) {
-          return new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject });
-          })
-            .then((token) => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              return apiClient(originalRequest);
-            })
-            .catch((err) => Promise.reject(err));
-        }
+      originalRequest._retry = true;
+      const refreshToken = tokenStorage.getRefreshToken();
 
-        originalRequest._retry = true;
-        isRefreshing = true;
+      if (!refreshToken) {
+        tokenStorage.clearTokens();
+        return Promise.reject(error.response?.data || error);
+      }
 
-        try {
-          // Call Refresh API
-          const refreshRes = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken }, {
-            headers: { 'Content-Type': 'application/json' },
-          });
-          
-          const responseData = refreshRes.data;
-          const tokenData = responseData?.data || responseData;
+      // If a refresh is already in progress, wait for the shared promise
+      if (!refreshTokenPromise) {
+        refreshTokenPromise = (async () => {
+          try {
+            const refreshRes = await axios.post(
+              `${BASE_URL}/auth/refresh`,
+              { refreshToken },
+              { headers: { 'Content-Type': 'application/json' } }
+            );
 
-          if (tokenData && (tokenData.accessToken || tokenData.token)) {
+            const responseData = refreshRes.data;
+            const tokenData = responseData?.data || responseData;
             const newAccessToken = tokenData.accessToken || tokenData.token;
             const newRefreshToken = tokenData.refreshToken || refreshToken;
 
-            tokenStorage.setToken(newAccessToken);
-            tokenStorage.setRefreshToken(newRefreshToken);
-
-            apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-            processQueue(null, newAccessToken);
-            isRefreshing = false;
-
-            return apiClient(originalRequest);
-          } else {
-            throw new Error('Failed to refresh token');
+            if (newAccessToken) {
+              tokenStorage.setAccessToken(newAccessToken);
+              tokenStorage.setRefreshToken(newRefreshToken);
+              return newAccessToken;
+            } else {
+              throw new Error('No access token returned from refresh');
+            }
+          } catch (refreshErr) {
+            tokenStorage.clearTokens();
+            throw refreshErr;
+          } finally {
+            refreshTokenPromise = null;
           }
-        } catch (refreshErr: any) {
-          processQueue(refreshErr, null);
-          isRefreshing = false;
-          tokenStorage.clearTokens();
-          return Promise.reject(refreshErr?.response?.data || refreshErr);
-        }
-      } else {
-        tokenStorage.clearTokens();
+        })();
+      }
+
+      try {
+        const newAccessToken = await refreshTokenPromise;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshErr: any) {
+        return Promise.reject({
+          statusCode: 401,
+          message: 'Your session has expired. Please login again.',
+          errors: refreshErr?.response?.data?.errors || ['Refresh token invalid or expired'],
+        });
       }
     }
 
     const errorData = error.response?.data || {
       statusCode: error.response?.status || 500,
-      message: error.message || 'Network communication failure. Please check backend connection.',
+      message: error.message || 'Something went wrong. Please try again.',
       errors: error.response?.data?.errors || [error.message],
     };
 

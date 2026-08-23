@@ -22,12 +22,8 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
   const { isAuthenticated, user: reduxUser } = useAppSelector((state) => state.auth);
   const { theme, toggleTheme } = useTheme();
 
-  const isLoggedIn = user !== undefined ? user !== null : (isAuthenticated && reduxUser !== null);
-  const currentUser = user || reduxUser || {
-    fullName: 'Alex Developer',
-    email: 'alex.dev@talentshine.io',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
-  };
+  const currentUser = user !== undefined ? user : reduxUser;
+  const isLoggedIn = Boolean(isAuthenticated && currentUser && currentUser.email);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,7 +114,7 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                   <div className="relative">
                     <img
                       src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb'}
-                      alt={currentUser.fullName || 'User Profile'}
+                      alt={currentUser?.fullName || currentUser?.firstName || 'User Profile'}
                       className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-[#A3E635] group-hover:border-[#84CC16] transition-colors shadow-md shadow-[#A3E635]/20"
                     />
                     <span className="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[#A3E635] rounded-full ring-2 ring-[#090A0C]"></span>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { loginUser, registerUser, setAuthModalMode } from '../redux/authSlice';
 import { toast } from 'react-hot-toast';
@@ -14,11 +14,11 @@ const loginSchema = z.object({
 });
 type LoginFormData = z.infer<typeof loginSchema>;
 
-// Signup Validation Schema matching backend User SignUp API
+// Signup Validation Schema matching exact backend User SignUp API specifications
 const signupSchema = z.object({
-  firstName: z.string().min(1, 'First Name is required'),
-  lastName: z.string().min(1, 'Last Name is required'),
-  labelUserName: z.string().min(2, 'Username is required'),
+  firstName: z.string().min(2, 'First Name must be at least 2 characters').regex(/^[a-zA-Z\s]+$/, 'First Name must contain only letters'),
+  lastName: z.string().min(1, 'Last Name is required').regex(/^[a-zA-Z\s]+$/, 'Last Name must contain only letters'),
+  labelUserName: z.string().min(3, 'Username must be at least 3 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username must be alphanumeric'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters long'),
 });
@@ -54,8 +54,8 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'venkat@mailinator.com',
-      password: 'Venkat@123',
+      email: '',
+      password: '',
     },
   });
 
@@ -116,7 +116,6 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
     }));
     if (registerUser.fulfilled.match(result)) {
       toast.success('User Created Successfully! Please Log In with your credentials.');
-      // Switch mode to login so user can log in
       setMode('login');
       dispatch(setAuthModalMode('login'));
     } else {
