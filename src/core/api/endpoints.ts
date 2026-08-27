@@ -15,6 +15,7 @@ export const API_ENDPOINTS = {
   COMPANY: {
     BASE: '/company',
     DETAILS: (id: string | number) => `/company/${id}`,
+    PROBLEMS: (id: string | number) => `/company/${id}/problems`,
   },
   QUESTION: {
     BASE: '/question',
@@ -22,7 +23,7 @@ export const API_ENDPOINTS = {
     TEST_CASES: (id: string | number) => `/question/${id}/testCases`,
   },
   PROBLEMS: {
-    LIST: '/question',
+    LIST: '/questions',
     DETAILS: (id: string) => `/question/${id}`,
     SUBMIT: (id: string) => `/question/${id}/submit`,
     CATEGORIES: '/question/categories',

@@ -91,14 +91,21 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
       const userObj = result.payload;
       const userName = userObj?.firstName || userObj?.fullName || userObj?.labelUserName || 'User';
       toast.success(`Welcome ${userName}`);
-      handleClose();
+
+      const userRole = String(userObj?.role || '').toUpperCase();
+      const isAdmin = userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN');
+
+      if (onCloseModal) {
+        onCloseModal();
+      }
+
       const fromPath = (location.state as any)?.from?.pathname;
-      if (location.pathname === '/login' || location.pathname === '/signup') {
-        if (fromPath && fromPath !== '/login' && fromPath !== '/signup') {
-          navigate(fromPath);
-        } else {
-          navigate('/');
-        }
+      if (isAdmin) {
+        navigate('/admin/dashboard');
+      } else if (fromPath && fromPath !== '/login' && fromPath !== '/signup') {
+        navigate(fromPath);
+      } else {
+        navigate('/');
       }
     } else {
       toast.error((result.payload as string) || 'Invalid Email or Password');

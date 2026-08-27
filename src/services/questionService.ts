@@ -26,7 +26,7 @@ export interface QuestionPayload {
   id?: number;
   title: string;
   description: string;
-  constraints: string;
+  constraints?: string;
   difficultyRefGroupCode: string;
   difficultyRefCode: string;
   difficultyRefName: string;
@@ -42,6 +42,8 @@ export interface QuestionPayload {
   leetCodeUrl?: string;
   gfgUrl?: string;
   isOwnProblem?: boolean;
+  isActive?: boolean;
+  askedDate?: string | null;
   testCases?: QuestionTestCase[];
 }
 

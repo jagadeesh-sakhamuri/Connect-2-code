@@ -59,6 +59,18 @@ code, pre, .font-mono {
   font-family: var(--font-mono);
 }
 
+/* Date Input Calendar Picker Styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.8;
+  padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -522,56 +534,8 @@ html.light .hero-campus-placement-text {
 }
 
 /* TALENT SHINE LOGO BRAND COLOR ENGINE OVERRIDES */
-.text-\[\#A3E635\] {
-  color: #14B8A6 !important;
-}
+/* Admin Lime Green (#A3E635) Brand Tokens */
 
-.hover\:text-\[\#A3E635\]:hover {
-  color: #2DD4BF !important;
-}
-
-.bg-\[\#A3E635\] {
-  background-color: #14B8A6 !important;
-  color: #0F172A !important;
-}
-
-.hover\:bg-\[\#84CC16\]:hover,
-.hover\:bg-\[\#A3E635\]:hover {
-  background-color: #0D9488 !important;
-  color: #ffffff !important;
-}
-
-.border-\[\#A3E635\] {
-  border-color: #14B8A6 !important;
-}
-
-.hover\:border-\[\#A3E635\]\/50:hover,
-.hover\:border-\[\#A3E635\]\/40:hover {
-  border-color: rgba(20, 184, 166, 0.5) !important;
-}
-
-.bg-\[\#A3E635\]\/10 {
-  background-color: rgba(20, 184, 166, 0.12) !important;
-}
-
-.bg-\[\#A3E635\]\/15 {
-  background-color: rgba(20, 184, 166, 0.18) !important;
-}
-
-.bg-\[\#A3E635\]\/20 {
-  background-color: rgba(20, 184, 166, 0.25) !important;
-}
-
-.border-\[\#A3E635\]\/30,
-.border-\[\#A3E635\]\/40,
-.border-\[\#A3E635\]\/50 {
-  border-color: rgba(20, 184, 166, 0.4) !important;
-}
-
-.shadow-\[0_7px_0_\#65A30D\],
-.shadow-\[0_5px_0_\#65A30D\] {
-  box-shadow: 0 5px 0 #0F5B63 !important;
-}
 
 .brand-gold-text {
   color: #E5A117 !important;

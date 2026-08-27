@@ -4,6 +4,8 @@ import { MainLayout } from '../layouts/MainLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { ProtectedRoute } from '../core/guards/ProtectedRoute';
 import { GuestRoute } from '../core/guards/GuestRoute';
+import { AdminRoute } from '../core/guards/AdminRoute';
+import { AdminLayout } from '../features/admin/components/AdminLayout';
 import { Skeleton } from '../shared/components/ui/Skeleton';
 
 // Lazy-loaded Pages for Production Code Splitting
@@ -32,11 +34,16 @@ const BookmarksList = lazy(() => import('../features/bookmarks/pages/BookmarksLi
 const ProfileSettings = lazy(() => import('../features/profile/pages/ProfileSettings').then((m) => ({ default: m.ProfileSettings })));
 const AppSettings = lazy(() => import('../features/settings/pages/AppSettings').then((m) => ({ default: m.AppSettings })));
 
+// Admin Pages
+const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+const AdminQuestions = lazy(() => import('../features/admin/pages/AdminQuestions').then((m) => ({ default: m.AdminQuestions })));
+const AdminCompanies = lazy(() => import('../features/admin/pages/AdminCompanies').then((m) => ({ default: m.AdminCompanies })));
+
 const NotFound = lazy(() => import('../shared/components/errors/NotFound').then((m) => ({ default: m.NotFound })));
 const ServerError = lazy(() => import('../shared/components/errors/ServerError').then((m) => ({ default: m.ServerError })));
 
 const PageLoader: React.FC = () => (
-  <div className="p-8 flex flex-col gap-4 max-w-5xl mx-auto">
+  <div className="p-8 flex flex-col gap-4 max-w-5xl mx-auto font-sans">
     <Skeleton className="h-10 w-64" />
     <Skeleton className="h-48 w-full" />
     <Skeleton className="h-64 w-full" />
@@ -73,7 +80,7 @@ export const router = createBrowserRouter([
       // ONLY DSA Sheet is accessible without login!
       { path: '/dsa-sheet', element: withSuspense(ProblemList) },
 
-      // ALL other features REQUIRE LOGIN (ProtectedRoute)
+      // ALL other user features REQUIRE LOGIN (ProtectedRoute)
       {
         element: <ProtectedRoute />,
         children: [
@@ -94,6 +101,22 @@ export const router = createBrowserRouter([
           { path: '/bookmarks', element: withSuspense(BookmarksList) },
           { path: '/profile', element: withSuspense(ProfileSettings) },
           { path: '/settings', element: withSuspense(AppSettings) },
+        ],
+      },
+    ],
+  },
+  // ADMIN FRONTEND ROUTE BRANCH
+  {
+    element: <AdminRoute />,
+    children: [
+      {
+        path: '/admin',
+        element: <AdminLayout />,
+        children: [
+          { path: '', element: <Navigate to="/admin/dashboard" replace /> },
+          { path: 'dashboard', element: withSuspense(AdminDashboard) },
+          { path: 'questions', element: withSuspense(AdminQuestions) },
+          { path: 'companies', element: withSuspense(AdminCompanies) },
         ],
       },
     ],

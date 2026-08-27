@@ -22,11 +22,19 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request Interceptor: Attach Access Token from Cookies
+// Request Interceptor: Attach Access Token from Cookies (EXCLUDES Public Auth Endpoints)
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    const reqUrl = config.url || '';
+    
+    // Prevent stale Authorization headers from being attached to public auth endpoints
+    const isPublicAuthEndpoint =
+      reqUrl.includes('/auth/login') ||
+      reqUrl.includes('/signUp') ||
+      reqUrl.includes('/auth/refresh');
+
     const token = tokenStorage.getAccessToken();
-    if (token && config.headers) {
+    if (token && config.headers && !isPublicAuthEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -40,11 +48,13 @@ let refreshTokenPromise: Promise<string> | null = null;
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     const resData = response.data;
+    // Accept all 2xx HTTP and inner backend status codes (200, 201 Created, 202 Accepted, 204 No Content)
     if (resData && typeof resData === 'object' && 'statusCode' in resData) {
-      if (resData.statusCode !== 200) {
+      const code = Number(resData.statusCode);
+      if (code < 200 || code >= 300) {
         const errorMsg = resData.message || (resData.errors && resData.errors[0]) || 'Server processing error';
         return Promise.reject({
-          statusCode: resData.statusCode,
+          statusCode: code,
           message: errorMsg,
           errors: resData.errors || [errorMsg],
           data: resData.data,
@@ -64,6 +74,15 @@ apiClient.interceptors.response.use(
         originalRequest.baseURL = 'https://codingplatform-tdt0.onrender.com/api/v1';
         return apiClient(originalRequest);
       }
+    }
+
+    // Handle Timeout Errors gracefully with user-friendly cold-start explanation
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      return Promise.reject({
+        statusCode: 408,
+        message: 'The server is taking longer than expected to respond (waking up from sleep mode). Please wait a few seconds and try logging in again.',
+        errors: ['Server connection timed out due to backend cold start'],
+      });
     }
 
     // Check for HTTP 401 Unauthorized

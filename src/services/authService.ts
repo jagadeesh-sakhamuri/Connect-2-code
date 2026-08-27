@@ -26,23 +26,30 @@ export interface BackendApiResponse<T = any> {
 
 export const authService = {
   // SignUp: POST /api/v1/signUp (Does NOT log in user automatically)
+  // Configured with 120s timeout to tolerate Java backend Render cold-start delays
   async signUp(payload: SignUpPayload): Promise<BackendApiResponse> {
     const requestPayload = {
       role: 'USER',
       ...payload,
     };
-    return apiClient.post(API_ENDPOINTS.AUTH.SIGNUP, requestPayload);
+    return apiClient.post(API_ENDPOINTS.AUTH.SIGNUP, requestPayload, { timeout: 120000 });
   },
 
   // Login: POST /api/v1/auth/login
+  // Configured with 120s timeout to tolerate Java backend Render cold-start delays
   async login(payload: LoginPayload): Promise<BackendApiResponse> {
-    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload);
+    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, { timeout: 120000 });
     if (response && response.data) {
       if (response.data.token) {
         tokenStorage.setAccessToken(response.data.token);
       }
       if (response.data.refreshToken) {
         tokenStorage.setRefreshToken(response.data.refreshToken);
+      }
+      if (response.data.user) {
+        tokenStorage.setUser(response.data.user);
+      } else {
+        tokenStorage.setUser(response.data);
       }
     }
     return response;
@@ -75,7 +82,7 @@ export const authService = {
     if (!refreshToken) {
       throw new Error('No refresh token available in cookie');
     }
-    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken });
+    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }, { timeout: 60000 });
     if (response && response.data) {
       if (response.data.accessToken) {
         tokenStorage.setAccessToken(response.data.accessToken);
