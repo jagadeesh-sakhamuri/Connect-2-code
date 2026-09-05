@@ -194,7 +194,7 @@ const getRoadmapData = (slug: string | undefined): RoadmapData => {
         { q: 'Which programming language should I use for DSA?', a: 'Java, C++, or Python are the most popular choices. Pick one and stick with it consistently.' },
         { q: 'Is DSA really needed for getting a job?', a: 'Yes, almost all top product companies and startups assess DSA in coding rounds.' },
         { q: 'Should I focus on quantity or quality of problems?', a: 'Quality. Understanding 100 core pattern problems is far better than blindly solving 500 without understanding.' },
-        { q: 'What is the best resource to learn DSA?', a: 'Follow this structured roadmap, practice on Talent Shine DSA Sheet, and watch video explanations for stuck problems.' }
+        { q: 'What is the best resource to learn DSA?', a: 'Follow this structured roadmap, practice on Connect 2 Code DSA Sheet, and watch video explanations for stuck problems.' }
       ]
     };
   }
@@ -383,7 +383,7 @@ export const RoadmapDetails: React.FC = () => {
     <main className="max-w-4xl mx-auto px-5 sm:px-6 lg:px-8 pb-24 font-sans text-gray-200">
       
       {/* 1. BACK TO ROADMAPS BUTTON - DSA Sheet Aesthetics */}
-      <div className="pt-20 md:pt-24 mb-8">
+      <div className="pt-2 sm:pt-4 mb-6">
         <Link
           to="/roadmaps"
           className="inline-flex items-center gap-2 text-xs font-semibold text-gray-300 hover:text-[#A3E635] transition-all bg-[#202225] border border-white/10 hover:border-[#A3E635]/40 px-4 py-2 rounded-xl shadow-md group"

@@ -16,6 +16,11 @@ export const MainLayout: React.FC = () => {
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
   const showModal = isAuthModalOpen || isAuthRoute;
 
+  // Scroll to top on route change
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   const handleLogout = async () => {
     await dispatch(logoutUser());
     toast.success('Logged out successfully');

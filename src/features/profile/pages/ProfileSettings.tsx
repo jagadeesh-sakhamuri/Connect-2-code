@@ -71,7 +71,7 @@ export const ProfileSettings: React.FC = () => {
             <img
               src={profile.avatarUrl}
               alt={profile.fullName}
-              className="w-16 h-16 rounded-full border-2 border-[#627eff]/60 object-cover shadow-sm"
+              className="w-16 h-16 rounded-full border-2 border-[#A3E635]/60 object-cover shadow-sm"
             />
             <div>
               <h3 className="text-xl font-bold text-white font-heading tracking-tight">{profile.fullName}</h3>

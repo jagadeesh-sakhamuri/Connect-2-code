@@ -31,22 +31,8 @@ export const CompanyPatterns: React.FC = () => {
         </p>
 
         {/* DSA Sheet Page Gradient Divider */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <div className="shrink-0 bg-white/10 h-0.5 rounded-lg w-60 bg-gradient-to-r from-[#38BDF8] via-[#818CF8] to-[#C084FC]"></div>
-        </div>
-
-        {/* METRIC BADGES - DSA Sheet Theme */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-4 text-xs font-mono text-gray-300">
-          <div className="flex items-center gap-2 bg-[#202225] border border-white/10 px-3.5 py-1.5 rounded-lg shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span className="text-emerald-400 font-semibold">2026 Batch Verified</span>
-          </div>
-          <div className="flex items-center gap-2 bg-[#202225] border border-white/10 px-3.5 py-1.5 rounded-lg shadow-sm">
-            <span className="text-[#38BDF8] font-semibold">⚡ 71 Top Companies</span>
-          </div>
-          <div className="flex items-center gap-2 bg-[#202225] border border-white/10 px-3.5 py-1.5 rounded-lg shadow-sm">
-            <span className="text-[#C084FC] font-semibold">🎯 Sectional Cutoff Insights</span>
-          </div>
         </div>
       </section>
 

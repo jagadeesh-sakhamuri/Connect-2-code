@@ -17,11 +17,11 @@ export const Badge: React.FC<BadgeProps> = ({
     easy: 'badge-easy font-mono font-semibold',
     medium: 'badge-medium font-mono font-semibold',
     hard: 'badge-hard font-mono font-semibold',
-    success: 'bg-[#48c78e]/10 text-[#48c78e] border border-[#48c78e]/20',
+    success: 'bg-[#A3E635]/10 text-[#A3E635] border border-[#A3E635]/20',
     warning: 'bg-[#f5a623]/10 text-[#f5a623] border border-[#f5a623]/20',
     info: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
     neutral: 'bg-white/5 text-gray-400 border border-white/10',
-    primary: 'bg-[#627eff]/10 text-[#627eff] border border-[#627eff]/20',
+    primary: 'bg-[#A3E635]/10 text-[#A3E635] border border-[#A3E635]/20',
   };
 
   const sizeStyles = {

@@ -308,7 +308,20 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     });
   };
 
-  // Target Companies Add / Remove Handlers
+  // Target Companies Dropdown & Multiselect Handlers
+  const handleSelectCompanyFromDropdown = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (!val) return;
+    const match = allCompanies.find((c) => String(c.id) === val || c.name.toLowerCase() === val.toLowerCase());
+    if (match && !selectedCompanies.some((c) => (c.id && c.id === match.id) || c.name.toLowerCase() === match.name.toLowerCase())) {
+      setSelectedCompanies((prev) => [...prev, match]);
+    }
+  };
+
+  const handleClearAllCompanies = () => {
+    setSelectedCompanies([]);
+  };
+
   const handleAddCompanyTag = () => {
     if (!companyInput.trim()) return;
     const nameToMatch = companyInput.trim();
@@ -417,7 +430,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
             onClick={() => setActiveTab('METADATA')}
             className={`pb-3 text-xs font-bold transition-all cursor-pointer border-b-2 flex items-center gap-2 ${
               activeTab === 'METADATA'
-                ? 'border-[#14B8A6] text-[#14B8A6]'
+                ? 'border-[#A3E635] text-[#A3E635]'
                 : 'border-transparent text-gray-400 hover:text-white'
             }`}
           >
@@ -431,7 +444,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
               onClick={() => setActiveTab('TESTCASES')}
               className={`pb-3 text-xs font-bold transition-all cursor-pointer border-b-2 flex items-center gap-2 ${
                 activeTab === 'TESTCASES'
-                  ? 'border-[#14B8A6] text-[#14B8A6]'
+                  ? 'border-[#A3E635] text-[#A3E635]'
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
@@ -458,7 +471,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                 <input
                   type="text"
                   placeholder="e.g. Two Sum, Binary Search"
-                  className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] focus:ring-1 focus:ring-[#14B8A6]"
+                  className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-4 py-2.5 text-sm border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] focus:ring-1 focus:ring-[#A3E635]"
                   {...register('title')}
                 />
                 {errors.title && <p className="text-xs text-rose-400 mt-1">{errors.title.message}</p>}
@@ -472,7 +485,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="radio"
                       name="isOwnProblemRadio"
-                      className="w-4 h-4 text-[#14B8A6] focus:ring-[#14B8A6] bg-[#090A0C] border-white/20 cursor-pointer"
+                      className="w-4 h-4 text-[#A3E635] focus:ring-[#A3E635] bg-[#090A0C] border-white/20 cursor-pointer"
                       checked={isOwnProblem}
                       onChange={() => setValue('isOwnProblem', true, { shouldValidate: true, shouldDirty: true })}
                     />
@@ -482,7 +495,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="radio"
                       name="isOwnProblemRadio"
-                      className="w-4 h-4 text-[#14B8A6] focus:ring-[#14B8A6] bg-[#090A0C] border-white/20 cursor-pointer"
+                      className="w-4 h-4 text-[#A3E635] focus:ring-[#A3E635] bg-[#090A0C] border-white/20 cursor-pointer"
                       checked={!isOwnProblem}
                       onChange={() => setValue('isOwnProblem', false, { shouldValidate: true, shouldDirty: true })}
                     />
@@ -498,7 +511,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   <label className="block text-xs font-semibold text-gray-300">Difficulty Level *</label>
                   <select
                     disabled={refLoading || difficulties.length === 0}
-                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] cursor-pointer disabled:opacity-50"
+                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer disabled:opacity-50"
                     value={watch('difficultyRefCode') || ''}
                     onChange={handleDifficultySelect}
                   >
@@ -521,7 +534,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   <label className="block text-xs font-semibold text-gray-300">DSA Topic / Category *</label>
                   <select
                     disabled={refLoading || topics.length === 0}
-                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] cursor-pointer disabled:opacity-50"
+                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer disabled:opacity-50"
                     value={watch('topicRefCode') || ''}
                     onChange={handleTopicSelect}
                   >
@@ -544,7 +557,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   <label className="block text-xs font-semibold text-gray-300">Exam Platform (QPF) *</label>
                   <select
                     disabled={refLoading || qpfs.length === 0}
-                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] cursor-pointer disabled:opacity-50"
+                    className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-3.5 py-2.5 text-xs font-semibold border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer disabled:opacity-50"
                     value={watch('qpfRefCode') || ''}
                     onChange={handleQpfSelect}
                   >
@@ -569,7 +582,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                 <textarea
                   rows={4}
                   placeholder="Describe the problem statement, inputs, constraints, and expected output format..."
-                  className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl p-3.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] leading-relaxed"
+                  className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl p-3.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] leading-relaxed"
                   {...register('description')}
                 />
                 {errors.description && (
@@ -584,7 +597,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   <input
                     type="checkbox"
                     id="isActiveToggle"
-                    className="w-4 h-4 rounded bg-[#090A0C] border-white/10 text-[#14B8A6] focus:ring-[#14B8A6] cursor-pointer"
+                    className="w-4 h-4 rounded bg-[#090A0C] border-white/10 text-[#A3E635] focus:ring-[#A3E635] cursor-pointer"
                     checked={watch('isActive') !== false}
                     onChange={(e) => setValue('isActive', e.target.checked, { shouldValidate: true, shouldDirty: true })}
                   />
@@ -602,7 +615,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="date"
                       onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                      className="w-full bg-[#090A0C]/80 text-white rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] font-sans cursor-pointer"
+                      className="w-full bg-[#090A0C]/80 text-white rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] font-sans cursor-pointer"
                       style={{ colorScheme: 'dark' }}
                       {...register('askedDate')}
                     />
@@ -618,7 +631,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="text"
                       placeholder="https://leetcode.com/..."
-                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6]"
+                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635]"
                       {...register('leetCodeUrl')}
                     />
                   </div>
@@ -627,7 +640,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="text"
                       placeholder="https://geeksforgeeks.org/..."
-                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6]"
+                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635]"
                       {...register('gfgUrl')}
                     />
                   </div>
@@ -636,56 +649,73 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     <input
                       type="text"
                       placeholder="https://hackerrank.com/..."
-                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6]"
+                      className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635]"
                       {...register('hackerRankUrl')}
                     />
                   </div>
                 </div>
               )}
 
-              {/* Tagged Hiring Companies Multiselect Input */}
+              {/* Tagged Hiring Companies Multiselect Dropdown */}
               <div className="space-y-2 pt-2 border-t border-white/10">
-                <label className="block text-xs font-semibold text-gray-300">Tagged Hiring Companies</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Type company name (e.g. Amazon) and click Add..."
-                    value={companyInput}
-                    onChange={(e) => setCompanyInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddCompanyTag();
-                      }
-                    }}
-                    className="flex-1 bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-4 py-2 text-xs border border-white/10 focus:outline-none focus:border-[#14B8A6]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddCompanyTag}
-                    className="px-4 py-2 bg-[#090A0C]/80 hover:bg-white/10 text-gray-200 border border-white/10 rounded-xl text-xs font-bold transition-all cursor-pointer font-sans"
-                  >
-                    Add
-                  </button>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-gray-300">
+                    Tagged Hiring Companies <span className="text-gray-500 font-normal">(Select multiple)</span>
+                  </label>
+                  {selectedCompanies.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAllCompanies}
+                      className="text-[11px] text-gray-400 hover:text-rose-400 cursor-pointer transition-colors"
+                    >
+                      Clear All ({selectedCompanies.length})
+                    </button>
+                  )}
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {selectedCompanies.map((c) => (
-                    <span
-                      key={c.name}
-                      className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-gray-300 flex items-center gap-2 font-medium"
-                    >
-                      {c.name}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveCompany(c.name)}
-                        className="text-gray-400 hover:text-rose-400 cursor-pointer text-sm font-bold"
+                {/* Dropdown Selector containing all added companies */}
+                <select
+                  value=""
+                  onChange={handleSelectCompanyFromDropdown}
+                  className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer"
+                >
+                  <option value="" disabled>-- Select a hiring company from list --</option>
+                  {allCompanies.map((c) => {
+                    const isSelected = selectedCompanies.some(
+                      (sc) => (sc.id && sc.id === c.id) || sc.name.toLowerCase() === c.name.toLowerCase()
+                    );
+                    return (
+                      <option key={c.id || c.name} value={String(c.id || c.name)} disabled={isSelected} className="bg-[#121316] text-white">
+                        {isSelected ? `✓ ${c.name} (Tagged)` : c.name}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                {/* Tagged Companies Chips List */}
+                {selectedCompanies.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1.5">
+                    {selectedCompanies.map((c) => (
+                      <span
+                        key={c.id || c.name}
+                        className="px-3 py-1.5 rounded-xl bg-[#121316] border border-white/15 text-xs text-white flex items-center gap-2 font-medium shadow-xs"
                       >
-                        &times;
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                        <i className="fa-solid fa-building text-[10px] text-[#A3E635]"></i>
+                        <span>{c.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCompany(c.name)}
+                          className="text-gray-400 hover:text-rose-400 cursor-pointer ml-1 text-xs font-bold"
+                          title="Remove company tag"
+                        >
+                          <i className="fa-solid fa-xmark text-xs"></i>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-gray-500 italic">No companies tagged yet. Select one or more from the dropdown above.</p>
+                )}
               </div>
 
               {/* Problem Hints Section */}
@@ -711,7 +741,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                           placeholder={`Hint #${idx + 1}...`}
                           value={hint.hintText}
                           onChange={(e) => handleHintChange(idx, e.target.value)}
-                          className="flex-1 bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 focus:outline-none focus:border-[#14B8A6]"
+                          className="flex-1 bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 focus:outline-none focus:border-[#A3E635]"
                         />
                         <button
                           type="button"
@@ -753,13 +783,13 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   >
                     <div className="flex items-center justify-between pb-2 border-b border-white/10">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-extrabold text-[#14B8A6] font-mono">Case #{idx + 1}</span>
+                        <span className="text-xs font-extrabold text-[#A3E635] font-mono">Case #{idx + 1}</span>
                         <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={!tc.isHidden}
                             onChange={(e) => handleTestCaseChange(idx, 'isHidden', !e.target.checked)}
-                            className="rounded bg-[#090A0C] border-white/10 text-[#14B8A6] focus:ring-[#14B8A6] cursor-pointer"
+                            className="rounded bg-[#090A0C] border-white/10 text-[#A3E635] focus:ring-[#A3E635] cursor-pointer"
                           />
                           <span>Public Example</span>
                         </label>
@@ -807,7 +837,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                           value={tc.input}
                           onChange={(e) => handleTestCaseChange(idx, 'input', e.target.value)}
                           placeholder="Raw stdin input..."
-                          className="w-full bg-[#090A0C] font-mono text-emerald-400 text-xs p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#14B8A6]"
+                          className="w-full bg-[#090A0C] font-mono text-emerald-400 text-xs p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#A3E635]"
                         />
                       </div>
                       <div className="space-y-1">
@@ -819,7 +849,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                           value={tc.expectedOutput}
                           onChange={(e) => handleTestCaseChange(idx, 'expectedOutput', e.target.value)}
                           placeholder="Expected stdout output..."
-                          className="w-full bg-[#090A0C] font-mono text-[#14B8A6] text-xs p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#14B8A6]"
+                          className="w-full bg-[#090A0C] font-mono text-[#A3E635] text-xs p-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-[#A3E635]"
                         />
                       </div>
                     </div>
@@ -833,7 +863,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                         placeholder="Why this case is expected..."
                         value={tc.explanation || ''}
                         onChange={(e) => handleTestCaseChange(idx, 'explanation', e.target.value)}
-                        className="w-full bg-[#090A0C] text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 focus:outline-none focus:border-[#14B8A6]"
+                        className="w-full bg-[#090A0C] text-gray-100 placeholder-gray-500 rounded-xl px-3 py-2 text-xs border border-white/10 focus:outline-none focus:border-[#A3E635]"
                       />
                     </div>
                   </div>
@@ -854,7 +884,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
             <button
               type="submit"
               disabled={submitting || refLoading}
-              className="px-5 py-2 bg-[#14B8A6] hover:bg-[#0D9488] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-[#14B8A6]/20 disabled:opacity-50 font-sans"
+              className="px-5 py-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg shadow-[#A3E635]/20 disabled:opacity-50 font-sans"
             >
               {submitting ? (
                 <>

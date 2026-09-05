@@ -45,11 +45,11 @@ export const ProblemCard: React.FC<ProblemCardProps> = ({
       <div className="flex items-center gap-3.5 min-w-0">
         <button
           onClick={() => onToggleSolve && onToggleSolve(problem.id)}
-          className="text-gray-600 hover:text-[#48c78e] transition-colors shrink-0 focus:outline-none text-base"
+          className="text-gray-600 hover:text-[#A3E635] transition-colors shrink-0 focus:outline-none text-base"
           title={problem.isSolved ? 'Mark as unsolved' : 'Mark as solved'}
         >
           {problem.isSolved ? (
-            <i className="fa-solid fa-circle-check text-[#48c78e]"></i>
+            <i className="fa-solid fa-circle-check text-[#A3E635]"></i>
           ) : (
             <i className="fa-regular fa-circle text-gray-500 hover:text-gray-300"></i>
           )}
@@ -59,7 +59,7 @@ export const ProblemCard: React.FC<ProblemCardProps> = ({
           <div className="flex items-center gap-2">
             <Link
               to={`/problems/${problem.slug}`}
-              className="text-sm font-semibold text-gray-200 hover:text-[#627eff] transition-colors truncate"
+              className="text-sm font-semibold text-gray-200 hover:text-[#A3E635] transition-colors truncate"
             >
               {problem.title}
             </Link>

@@ -42,7 +42,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
           <i className="fa-solid fa-bars text-sm"></i>
         </button>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#14B8A6] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-[#A3E635] animate-pulse" />
           <span className="text-xs font-semibold text-gray-400">Live REST Engine Active</span>
         </div>
       </div>
@@ -53,10 +53,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#090A0C]/80 border border-white/10 hover:border-[#14B8A6]/40 text-gray-300 text-xs font-semibold transition-all cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#090A0C]/80 border border-white/10 hover:border-[#A3E635]/40 text-gray-300 text-xs font-semibold transition-all cursor-pointer"
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`}
         >
-          <i className={`fa-solid ${theme === 'dark' ? 'fa-sun text-[#E5A117]' : 'fa-moon text-sky-400'}`}></i>
+          <i className={`fa-solid ${theme === 'dark' ? 'fa-sun text-[#EAB308]' : 'fa-moon text-sky-400'}`}></i>
           <span className="hidden sm:inline">{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
 
@@ -70,12 +70,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
               <div className="text-xs font-bold text-white leading-tight">
                 {user?.firstName || 'Admin'} {user?.lastName || 'Administrator'}
               </div>
-              <div className="text-[10px] text-[#14B8A6] font-semibold leading-tight mt-0.5">
-                {user?.email || 'admin@talentshine.io'}
+              <div className="text-[10px] text-[#A3E635] font-semibold leading-tight mt-0.5">
+                {user?.email || 'admin@connect2code.io'}
               </div>
             </div>
 
-            <div className="w-9 h-9 rounded-xl bg-[#14B8A6]/10 border border-[#14B8A6]/30 text-[#14B8A6] flex items-center justify-center font-bold text-xs font-heading">
+            <div className="w-9 h-9 rounded-xl bg-[#A3E635]/10 border border-[#A3E635]/30 text-[#A3E635] flex items-center justify-center font-bold text-xs font-heading">
               {user?.firstName ? user.firstName.charAt(0) : 'A'}
             </div>
           </button>

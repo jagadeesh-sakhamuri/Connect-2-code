@@ -24,7 +24,7 @@ export const CompanyList: React.FC = () => {
 
   const filteredCompanies = companies.filter((company) =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (company.industry && company.industry.toLowerCase().includes(searchTerm.toLowerCase()))
+    company.industry?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -39,16 +39,16 @@ export const CompanyList: React.FC = () => {
           Get the previous year questions of all the companies
         </p>
         <div className="flex justify-center">
-          <div data-orientation="horizontal" role="none" className="shrink-0 h-0.5 rounded-lg w-60 bg-gradient-to-r from-teal-500 via-emerald-400 to-amber-500 bg-no-repeat"></div>
+          <div data-orientation="horizontal" role="none" className="shrink-0 h-0.5 rounded-lg w-60 bg-gradient-to-r from-purple-600 via-violet-500 to-pink-600 bg-no-repeat"></div>
         </div>
       </section>
 
       {/* CLEAN RECTANGULAR CONTAINER BOX (MINIMAL CONTENT) */}
       <div className="w-full max-w-2xl px-4 mt-8">
-        <div className="bg-[#121316] border border-white/10 hover:border-[#14B8A6]/40 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors shadow-md">
+        <div className="bg-[#121316] border border-white/10 hover:border-[#A3E635]/40 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 transition-colors shadow-md">
           <div className="flex items-center gap-3.5">
             <div className="w-10 h-10 rounded-lg bg-transparent border border-white/10 flex items-center justify-center shrink-0">
-              <i className="fa-solid fa-list-check text-base text-[#14B8A6]"></i>
+              <i className="fa-solid fa-list-check text-base text-[#A3E635]"></i>
             </div>
             <div>
               <h3 className="text-base font-bold text-white font-heading">
@@ -62,7 +62,7 @@ export const CompanyList: React.FC = () => {
 
           <Link
             to="/company-patterns"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#14B8A6] hover:bg-[#0D9488] text-xs font-bold text-white transition-all font-sans shrink-0 shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#A3E635] hover:bg-[#84CC16] text-xs font-bold text-black transition-all font-sans shrink-0"
           >
             <span>Explore</span>
             <i className="fa-solid fa-chevron-right text-[10px]"></i>
@@ -79,7 +79,7 @@ export const CompanyList: React.FC = () => {
             placeholder="Search companies by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#121316] border border-white/10 text-xs text-gray-200 placeholder-gray-500 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#14B8A6] transition-colors"
+            className="w-full bg-[#121316] border border-white/10 text-xs text-gray-200 placeholder-gray-500 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-[#A3E635] transition-colors"
           />
         </div>
       </div>
@@ -102,12 +102,13 @@ export const CompanyList: React.FC = () => {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 m-2 max-w-2xl mt-10 w-full px-4">
           {filteredCompanies.map((company) => {
-            const logoUrl = company.logo || fallbackLogos[company.slug] || `https://gurucodes-data.pages.dev/img/companies/${company.slug}.png`;
+            const companySlug = company.slug || (company.id ? String(company.id) : company.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+            const logoUrl = company.logo || (company as any).logoUrl || fallbackLogos[companySlug] || fallbackLogos[company.name?.toLowerCase()] || `https://gurucodes-data.pages.dev/img/companies/${companySlug}.png`;
 
             return (
               <Link
-                key={company.id}
-                to={`/companies/${company.slug}`}
+                key={company.id || company.name}
+                to={`/companies/${companySlug}`}
                 className="h-full p-2 border border-white/10 hover:border-white/30 rounded-lg bg-[#121316] hover:bg-[#1a1c22] transition-all group shadow-md"
               >
                 <div className="flex h-full flex-col w-full items-center truncate">

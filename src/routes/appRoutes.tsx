@@ -9,38 +9,38 @@ import { AdminLayout } from '../features/admin/components/AdminLayout';
 import { Skeleton } from '../shared/components/ui/Skeleton';
 
 // Lazy-loaded Pages for Production Code Splitting
-const Landing = lazy(() => import('../features/landing/pages/Landing').then((m) => ({ default: m.Landing })));
-const Login = lazy(() => import('../features/auth/pages/Login').then((m) => ({ default: m.Login })));
-const Signup = lazy(() => import('../features/auth/pages/Signup').then((m) => ({ default: m.Signup })));
-const ForgotPassword = lazy(() => import('../features/auth/pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword })));
+const Landing = lazy(() => import('../features/landing/pages/Landing').then((m) => ({ default: m.Landing || m.default })));
+const Login = lazy(() => import('../features/auth/pages/Login').then((m) => ({ default: m.Login || m.default })));
+const Signup = lazy(() => import('../features/auth/pages/Signup').then((m) => ({ default: m.Signup || m.default })));
+const ForgotPassword = lazy(() => import('../features/auth/pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword || m.default })));
 
-const PracticePage = lazy(() => import('../features/problems/pages/PracticePage').then((m) => ({ default: m.PracticePage })));
-const ProblemList = lazy(() => import('../features/problems/pages/ProblemList').then((m) => ({ default: m.ProblemList })));
-const ProblemDetails = lazy(() => import('../features/problems/pages/ProblemDetails').then((m) => ({ default: m.ProblemDetails })));
-const CompanyList = lazy(() => import('../features/companies/pages/CompanyList').then((m) => ({ default: m.CompanyList })));
-const CompanyDetails = lazy(() => import('../features/companies/pages/CompanyDetails').then((m) => ({ default: m.CompanyDetails })));
-const CompanyPatterns = lazy(() => import('../features/companies/pages/CompanyPatterns').then((m) => ({ default: m.CompanyPatterns })));
-const CompanyPatternDetails = lazy(() => import('../features/companies/pages/CompanyPatternDetails').then((m) => ({ default: m.CompanyPatternDetails })));
+const PracticePage = lazy(() => import('../features/problems/pages/PracticePage').then((m) => ({ default: m.PracticePage || m.default })));
+const ProblemList = lazy(() => import('../features/problems/pages/ProblemList').then((m) => ({ default: m.ProblemList || m.default })));
+const ProblemDetails = lazy(() => import('../features/problems/pages/ProblemDetails').then((m) => ({ default: m.ProblemDetails || m.default })));
+const CompanyList = lazy(() => import('../features/companies/pages/CompanyList').then((m) => ({ default: m.CompanyList || m.default })));
+const CompanyDetails = lazy(() => import('../features/companies/pages/CompanyDetails').then((m) => ({ default: m.CompanyDetails || m.default })));
+const CompanyPatterns = lazy(() => import('../features/companies/pages/CompanyPatterns').then((m) => ({ default: m.CompanyPatterns || m.default })));
+const CompanyPatternDetails = lazy(() => import('../features/companies/pages/CompanyPatternDetails').then((m) => ({ default: m.CompanyPatternDetails || m.default })));
 
-const RoadmapList = lazy(() => import('../features/roadmaps/pages/RoadmapList').then((m) => ({ default: m.RoadmapList })));
-const RoadmapDetails = lazy(() => import('../features/roadmaps/pages/RoadmapDetails').then((m) => ({ default: m.RoadmapDetails })));
+const RoadmapList = lazy(() => import('../features/roadmaps/pages/RoadmapList').then((m) => ({ default: m.RoadmapList || m.default })));
+const RoadmapDetails = lazy(() => import('../features/roadmaps/pages/RoadmapDetails').then((m) => ({ default: m.RoadmapDetails || m.default })));
 
-const AptitudePrep = lazy(() => import('../features/aptitude/pages/AptitudePrep').then((m) => ({ default: m.AptitudePrep })));
-const LogicalPrep = lazy(() => import('../features/logical/pages/LogicalPrep').then((m) => ({ default: m.LogicalPrep })));
-const VerbalPrep = lazy(() => import('../features/verbal/pages/VerbalPrep').then((m) => ({ default: m.VerbalPrep })));
-const InterviewPrep = lazy(() => import('../features/interviews/pages/InterviewPrep').then((m) => ({ default: m.InterviewPrep })));
+const AptitudePrep = lazy(() => import('../features/aptitude/pages/AptitudePrep').then((m) => ({ default: m.AptitudePrep || m.default })));
+const LogicalPrep = lazy(() => import('../features/logical/pages/LogicalPrep').then((m) => ({ default: m.LogicalPrep || m.default })));
+const VerbalPrep = lazy(() => import('../features/verbal/pages/VerbalPrep').then((m) => ({ default: m.VerbalPrep || m.default })));
+const InterviewPrep = lazy(() => import('../features/interviews/pages/InterviewPrep').then((m) => ({ default: m.InterviewPrep || m.default })));
 
-const BookmarksList = lazy(() => import('../features/bookmarks/pages/BookmarksList').then((m) => ({ default: m.BookmarksList })));
-const ProfileSettings = lazy(() => import('../features/profile/pages/ProfileSettings').then((m) => ({ default: m.ProfileSettings })));
-const AppSettings = lazy(() => import('../features/settings/pages/AppSettings').then((m) => ({ default: m.AppSettings })));
+const BookmarksList = lazy(() => import('../features/bookmarks/pages/BookmarksList').then((m) => ({ default: m.BookmarksList || m.default })));
+const ProfileSettings = lazy(() => import('../features/profile/pages/ProfileSettings').then((m) => ({ default: m.ProfileSettings || m.default })));
+const AppSettings = lazy(() => import('../features/settings/pages/AppSettings').then((m) => ({ default: m.AppSettings || m.default })));
 
 // Admin Pages
-const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
-const AdminQuestions = lazy(() => import('../features/admin/pages/AdminQuestions').then((m) => ({ default: m.AdminQuestions })));
-const AdminCompanies = lazy(() => import('../features/admin/pages/AdminCompanies').then((m) => ({ default: m.AdminCompanies })));
+const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard || m.default })));
+const AdminQuestions = lazy(() => import('../features/admin/pages/AdminQuestions').then((m) => ({ default: m.AdminQuestions || m.default })));
+const AdminCompanies = lazy(() => import('../features/admin/pages/AdminCompanies').then((m) => ({ default: m.AdminCompanies || m.default })));
 
-const NotFound = lazy(() => import('../shared/components/errors/NotFound').then((m) => ({ default: m.NotFound })));
-const ServerError = lazy(() => import('../shared/components/errors/ServerError').then((m) => ({ default: m.ServerError })));
+const NotFound = lazy(() => import('../shared/components/errors/NotFound').then((m) => ({ default: m.NotFound || m.default })));
+const ServerError = lazy(() => import('../shared/components/errors/ServerError').then((m) => ({ default: m.ServerError || m.default })));
 
 const PageLoader: React.FC = () => (
   <div className="p-8 flex flex-col gap-4 max-w-5xl mx-auto font-sans">

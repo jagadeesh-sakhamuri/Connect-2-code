@@ -14,12 +14,12 @@ export const AdminBadge: React.FC<AdminBadgeProps> = ({
   className = '',
 }) => {
   const variantStyles: Record<BadgeVariant, string> = {
-    primary: 'bg-[#14B8A6]/15 text-[#14B8A6] border-[#14B8A6]/30',
-    accent: 'bg-[#14B8A6]/15 text-[#14B8A6] border-[#14B8A6]/30',
+    primary: 'bg-[#A3E635]/15 text-[#A3E635] border-[#A3E635]/30',
+    accent: 'bg-[#A3E635]/15 text-[#A3E635] border-[#A3E635]/30',
     success: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
     easy: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-    warning: 'bg-[#E5A117]/15 text-[#E5A117] border-[#E5A117]/30',
-    medium: 'bg-[#E5A117]/15 text-[#E5A117] border-[#E5A117]/30',
+    warning: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    medium: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
     danger: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
     hard: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
     info: 'bg-sky-500/15 text-sky-400 border-sky-500/30',

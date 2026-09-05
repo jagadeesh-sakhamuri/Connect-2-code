@@ -1,30 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import { interviewService } from '../../../services/interviewService';
-import interviewData from '../../../mock/data/interviews.json';
+import React, { useState } from 'react';
 import { Badge } from '../../../shared/components/ui/Badge';
 
+export interface InterviewQuestionItem {
+  id: string;
+  category: string;
+  question: string;
+  answer: string;
+  frequency: string;
+  companies: string[];
+  codeExample?: string;
+}
+
+const CORE_CS_QUESTIONS: InterviewQuestionItem[] = [
+  {
+    id: 'dbms-1',
+    category: 'DBMS',
+    question: 'What are ACID properties in a Database Management System?',
+    answer: 'ACID stands for Atomicity, Consistency, Isolation, and Durability.\n• Atomicity: Entire transaction happens at once or doesn’t happen at all.\n• Consistency: Database must remain in a consistent state before and after the transaction.\n• Isolation: Multiple transactions occur independently without interference.\n• Durability: Changes of a successful transaction are permanently saved even in case of system failure.',
+    frequency: 'High',
+    companies: ['Amazon', 'Microsoft', 'TCS', 'Infosys'],
+    codeExample: 'START TRANSACTION;\nUPDATE Accounts SET balance = balance - 100 WHERE id = 1;\nUPDATE Accounts SET balance = balance + 100 WHERE id = 2;\nCOMMIT;',
+  },
+  {
+    id: 'dbms-2',
+    category: 'DBMS',
+    question: 'What is the difference between Primary Key, Unique Key, and Foreign Key?',
+    answer: '• Primary Key: Uniquely identifies each record in a table. Does not allow NULL values.\n• Unique Key: Uniquely identifies each record, but allows one NULL value.\n• Foreign Key: A field in one table that uniquely identifies a row of another table, maintaining referential integrity.',
+    frequency: 'Very High',
+    companies: ['Accenture', 'Cognizant', 'Capgemini', 'Wipro'],
+  },
+  {
+    id: 'os-1',
+    category: 'Operating Systems',
+    question: 'What is the difference between Process and Thread?',
+    answer: '• Process: An executing instance of a program with its own dedicated memory space (address space).\n• Thread: A lightweight unit of execution within a process sharing the process memory and resources, with faster context switching.',
+    frequency: 'High',
+    companies: ['Google', 'Adobe', 'Oracle', 'Samsung'],
+  },
+  {
+    id: 'os-2',
+    category: 'Operating Systems',
+    question: 'What is Deadlock and what are the 4 Coffman conditions required for Deadlock to occur?',
+    answer: 'A Deadlock is a situation where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process.\n1. Mutual Exclusion: At least one resource must be held in a non-shareable mode.\n2. Hold and Wait: A process is holding at least one resource and requesting additional resources.\n3. No Preemption: Resources cannot be forcibly taken from a process.\n4. Circular Wait: A set of processes waiting for each other in a circular chain.',
+    frequency: 'Very High',
+    companies: ['Amazon', 'Cisco', 'Qualcomm', 'Intel'],
+  },
+  {
+    id: 'cn-1',
+    category: 'Computer Networks',
+    question: 'What is the difference between TCP and UDP?',
+    answer: '• TCP (Transmission Control Protocol): Connection-oriented, reliable (guarantees delivery via ACKs), error-checking, flow control, slower. Used in HTTP/HTTPS, FTP, SMTP.\n• UDP (User Datagram Protocol): Connectionless, unreliable (no ACK/guarantee), fast, lightweight. Used in Video streaming, VoIP, DNS queries, Online gaming.',
+    frequency: 'Very High',
+    companies: ['Cisco', 'Paytm', 'Swiggy', 'Zomato'],
+  },
+  {
+    id: 'oops-1',
+    category: 'OOPS',
+    question: 'Explain the 4 Pillars of Object-Oriented Programming with real-world examples.',
+    answer: '1. Encapsulation: Wrapping data (variables) and code (methods) together into a single unit (class) and restricting direct access (private fields with getters/setters).\n2. Abstraction: Hiding internal implementation details and showing only necessary features to the user (interfaces, abstract classes).\n3. Inheritance: Mechanism where a child class acquires properties and behaviors of a parent class (code reusability).\n4. Polymorphism: Ability to take more than one form — Compile-time (Method Overloading) and Runtime (Method Overriding).',
+    frequency: 'Top Asked',
+    companies: ['TCS', 'Infosys', 'Wipro', 'Accenture', 'Cognizant', 'Amazon'],
+    codeExample: '// Polymorphism (Method Overriding)\nclass Animal {\n  void sound() { System.out.println("Animal sound"); }\n}\nclass Dog extends Animal {\n  @Override\n  void sound() { System.out.println("Bark"); }\n}',
+  },
+];
+
 export const InterviewPrep: React.FC = () => {
-  const [questions, setQuestions] = useState<typeof interviewData>([]);
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [expandedAnswers, setExpandedAnswers] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    interviewService.getQuestions(activeCategory).then((res) => {
-      setQuestions(res.data);
-    });
-  }, [activeCategory]);
-
   const categories = ['All', 'DBMS', 'Operating Systems', 'Computer Networks', 'OOPS'];
+
+  const filteredQuestions = activeCategory === 'All'
+    ? CORE_CS_QUESTIONS
+    : CORE_CS_QUESTIONS.filter((q) => q.category === activeCategory);
 
   const toggleExpand = (id: string) => {
     setExpandedAnswers((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 font-sans">
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight font-heading">Core Computer Science Interview Questions</h1>
-        <p className="text-xs text-gray-400 mt-1 font-sans">
+        <h1 className="text-2xl font-bold text-white tracking-tight font-heading">
+          Core Computer Science Interview Questions
+        </h1>
+        <p className="text-xs text-gray-400 mt-1">
           Frequently asked technical interview questions for DBMS, Operating Systems, Networks, and OOPS.
         </p>
       </div>
@@ -35,9 +95,9 @@ export const InterviewPrep: React.FC = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all ${
+            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
               activeCategory === cat
-                ? 'bg-[#627eff]/20 text-[#627eff] border-[#627eff]/40 font-semibold'
+                ? 'bg-[#A3E635] text-black border-[#A3E635] font-bold shadow-sm'
                 : 'bg-[#202225] text-gray-400 border-white/10 hover:text-white'
             }`}
           >
@@ -48,21 +108,21 @@ export const InterviewPrep: React.FC = () => {
 
       {/* Questions Accordion List */}
       <div className="flex flex-col gap-3.5">
-        {questions.map((q) => {
+        {filteredQuestions.map((q) => {
           const isExpanded = expandedAnswers[q.id];
           return (
             <div
               key={q.id}
-              className="bg-[#202225] border border-white/10 hover:border-white/20 rounded-2xl overflow-hidden transition-colors"
+              className="bg-[#202225] border border-white/10 hover:border-[#A3E635]/30 rounded-2xl overflow-hidden transition-colors"
             >
               <button
                 onClick={() => toggleExpand(q.id)}
-                className="w-full p-5 text-left flex items-center justify-between gap-4 focus:outline-none"
+                className="w-full p-5 text-left flex items-center justify-between gap-4 focus:outline-none cursor-pointer"
               >
                 <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="primary">{q.category}</Badge>
-                    <span className="text-[11px] font-mono font-semibold text-[#f5a623] bg-[#f5a623]/10 px-2 py-0.5 rounded border border-[#f5a623]/20">
+                    <span className="text-[11px] font-mono font-semibold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
                       Freq: {q.frequency}
                     </span>
                   </div>
@@ -70,7 +130,7 @@ export const InterviewPrep: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
-                  <i className={`fa-solid ${isExpanded ? 'fa-chevron-up text-[#627eff]' : 'fa-chevron-down text-gray-500'} text-sm`}></i>
+                  <i className={`fa-solid ${isExpanded ? 'fa-chevron-up text-[#A3E635]' : 'fa-chevron-down text-gray-500'} text-sm`}></i>
                 </div>
               </button>
 
@@ -85,7 +145,7 @@ export const InterviewPrep: React.FC = () => {
                       <span className="text-[11px] font-mono font-semibold text-gray-400 block mb-1.5">
                         Code / Implementation Example:
                       </span>
-                      <pre className="p-3 bg-[#121113] border border-white/10 rounded-lg text-xs font-mono text-[#48c78e] overflow-x-auto">
+                      <pre className="p-3 bg-[#121113] border border-white/10 rounded-lg text-xs font-mono text-[#A3E635] overflow-x-auto">
                         <code>{q.codeExample}</code>
                       </pre>
                     </div>
@@ -116,3 +176,5 @@ export const InterviewPrep: React.FC = () => {
     </div>
   );
 };
+
+export default InterviewPrep;

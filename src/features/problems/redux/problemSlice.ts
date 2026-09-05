@@ -1,10 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { problemService, ProblemFilterParams } from '../../../services/problemService';
-import problemsData from '../../../mock/data/problems.json';
+import { problemService, ProblemFilterParams, ProblemItem } from '../../../services/problemService';
 
 export interface ProblemState {
-  problems: typeof problemsData;
-  selectedProblem: (typeof problemsData)[0] | null;
+  problems: ProblemItem[];
+  selectedProblem: ProblemItem | null;
   loading: boolean;
   error: string | null;
   filters: ProblemFilterParams;
@@ -12,6 +11,7 @@ export interface ProblemState {
     page: number;
     total: number;
     limit: number;
+    totalPages: number;
   };
 }
 
@@ -29,7 +29,8 @@ const initialState: ProblemState = {
   pagination: {
     page: 1,
     total: 0,
-    limit: 10,
+    limit: 20,
+    totalPages: 1,
   },
 };
 
@@ -107,6 +108,9 @@ const problemSlice = createSlice({
     resetFilters(state) {
       state.filters = initialState.filters;
     },
+    setPaginationPage(state, action) {
+      state.pagination.page = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -119,15 +123,23 @@ const problemSlice = createSlice({
         const solvedMap = getSolvedStorage();
         const bookmarks = getBookmarksStorage();
 
-        state.problems = action.payload.data.map((p: any) => ({
+        const rawList = Array.isArray(action.payload?.data)
+          ? action.payload.data
+          : (Array.isArray(action.payload?.data?.content) ? action.payload.data.content : []);
+
+        state.problems = rawList.map((p: any) => ({
           ...p,
-          isSolved: !!solvedMap[p.id],
-          isBookmarked: bookmarks.some((b: any) => b.itemId === p.id),
+          isSolved: !!solvedMap[p.id] || !!p.isSolved,
+          isBookmarked: bookmarks.some((b: any) => b.itemId === p.id) || !!p.isBookmarked,
         }));
 
-        if (action.payload.meta) {
-          state.pagination.total = action.payload.meta.total;
-          state.pagination.page = action.payload.meta.page;
+        if (action.payload?.meta) {
+          const metaTotal = action.payload.meta.total !== undefined ? action.payload.meta.total : rawList.length;
+          const metaLimit = action.payload.meta.limit || state.pagination.limit || 20;
+          state.pagination.total = metaTotal;
+          state.pagination.page = action.payload.meta.page || 1;
+          state.pagination.limit = metaLimit;
+          state.pagination.totalPages = action.payload.meta.totalPages || Math.ceil(metaTotal / metaLimit) || 1;
         }
       })
       .addCase(fetchProblems.rejected, (state, action) => {
@@ -164,5 +176,5 @@ const problemSlice = createSlice({
   },
 });
 
-export const { setFilter, resetFilters } = problemSlice.actions;
+export const { setFilter, resetFilters, setPaginationPage } = problemSlice.actions;
 export default problemSlice.reducer;

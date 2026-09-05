@@ -41,12 +41,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen, onClos
         <div>
           <div className="h-16 px-6 border-b border-white/10 flex items-center justify-between shrink-0">
             <Link to="/admin/dashboard" className="flex items-center gap-2.5 group">
-              <img src="/logo-mark-transparent.png" alt="Talent Shine Logo" className="h-8 w-auto shrink-0" />
+              <img src="/logo.png" alt="Connect 2 Code Logo" className="h-8 w-auto shrink-0" />
               <div className="flex flex-col">
                 <h1 className="font-extrabold text-white tracking-tight font-heading text-sm">
-                  Talent <span className="text-[#E5A117]">Shine</span>
+                  Connect 2 <span className="text-[#A3E635]">Code</span>
                 </h1>
-                <span className="text-[10px] text-[#14B8A6] font-bold tracking-wider uppercase">
+                <span className="text-[10px] text-[#A3E635] font-bold tracking-wider uppercase">
                   Admin Console
                 </span>
               </div>
@@ -69,7 +69,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen, onClos
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-[#14B8A6] text-black shadow-md shadow-[#14B8A6]/20 font-extrabold'
+                      ? 'bg-[#A3E635] text-black shadow-md shadow-[#A3E635]/20 font-extrabold'
                       : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`
                 }
@@ -87,9 +87,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen, onClos
         <div className="p-4 border-t border-white/10 bg-[#090A0C]/80 backdrop-blur-md">
           <Link
             to="/practice"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl border border-white/10 text-xs font-bold text-gray-300 hover:text-white hover:border-[#14B8A6] hover:bg-white/5 transition-all"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl border border-white/10 text-xs font-bold text-gray-300 hover:text-white hover:border-[#A3E635] hover:bg-white/5 transition-all"
           >
-            <i className="fa-solid fa-arrow-left text-xs text-[#14B8A6]"></i>
+            <i className="fa-solid fa-arrow-left text-xs text-[#A3E635]"></i>
             <span>Switch to User View</span>
           </Link>
         </div>

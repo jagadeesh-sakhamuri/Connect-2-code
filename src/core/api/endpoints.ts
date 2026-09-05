@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
     LOGIN: '/auth/login',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    GENERATE_PASSWORD_RESET_OTP: '/auth/generatePasswordResetOtp',
+    VERIFY_PASSWORD_RESET_OTP: '/auth/verifyPasswordResetOtp',
   },
   REFERENCE: {
     GROUP: (refGroupCode: string) => `/referenceLibrary/refGroupCode/${refGroupCode}`,
@@ -36,5 +38,28 @@ export const API_ENDPOINTS = {
   BOOKMARKS: {
     LIST: '/bookmarks',
     TOGGLE: (id: string) => `/bookmarks/toggle/${id}`,
+  },
+  USER: {
+    PROFILE: '/user/profile',
+    UPDATE: '/user/profile',
+  },
+  DASHBOARD: {
+    STATS: '/dashboard/stats',
+  },
+  APTITUDE: {
+    LIST: '/aptitude',
+    TOPICS: '/aptitude/topics',
+  },
+  LOGICAL: {
+    LIST: '/logical',
+    TOPICS: '/logical/topics',
+  },
+  VERBAL: {
+    LIST: '/verbal',
+    TOPICS: '/verbal/topics',
+  },
+  INTERVIEW: {
+    LIST: '/interviews',
+    DETAILS: (id: string | number) => `/interviews/${id}`,
   },
 } as const;

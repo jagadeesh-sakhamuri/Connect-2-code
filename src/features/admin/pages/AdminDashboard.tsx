@@ -27,7 +27,18 @@ export const AdminDashboard: React.FC = () => {
     setLoading(true);
     try {
       const [probRes, compRes] = await Promise.allSettled([
-        adminQuestionService.getQuestions({ pageRequest: { pageNumber: 0, pageSize: 100 } }),
+        adminQuestionService.getQuestions({
+          level: null,
+          companies: null,
+          topic: null,
+          searchText: null,
+          pageRequest: {
+            pageNumber: 0,
+            pageSize: 1000,
+            sortBy: 'id',
+            sortDirection: 'ASC',
+          },
+        }),
         adminCompanyService.getCompanies(),
       ]);
 
@@ -38,23 +49,36 @@ export const AdminDashboard: React.FC = () => {
       let totalCompanies = 0;
 
       if (probRes.status === 'fulfilled' && probRes.value) {
-        const questionsList = probRes.value.content || (Array.isArray(probRes.value) ? probRes.value : []);
-        if (Array.isArray(questionsList)) {
-          totalProblems = probRes.value.totalElements || questionsList.length;
-          questionsList.forEach((q: any) => {
-            const diff = String(q.difficultyRefName || q.difficultyName || q.difficultyRefCode || q.difficulty || '').toUpperCase();
-            if (diff.includes('EASY') || diff.includes('BASIC')) easyCount++;
-            else if (diff.includes('MEDIUM')) mediumCount++;
-            else if (diff.includes('HARD')) hardCount++;
-          });
-        }
+        const rawData = probRes.value?.data || probRes.value;
+        const questionsList = Array.isArray(rawData?.content)
+          ? rawData.content
+          : (Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []));
+
+        totalProblems = rawData?.totalElements !== undefined ? rawData.totalElements : questionsList.length;
+
+        questionsList.forEach((q: any) => {
+          const diffName = String(q.difficultyName || q.difficultyRefName || q.difficulty || q.level || '').toUpperCase();
+          const diffId = q.difficultyId || q.levelId;
+
+          if (diffId === 1 || diffName.includes('EASY') || diffName.includes('BASIC')) {
+            easyCount++;
+          } else if (diffId === 2 || diffName.includes('MEDIUM') || diffName.includes('MED')) {
+            mediumCount++;
+          } else if (diffId === 3 || diffName.includes('HARD')) {
+            hardCount++;
+          } else {
+            mediumCount++;
+          }
+        });
       }
 
       if (compRes.status === 'fulfilled' && compRes.value) {
-        const compList = compRes.value.data || (Array.isArray(compRes.value) ? compRes.value : []);
-        if (Array.isArray(compList)) {
-          totalCompanies = compList.length;
-        }
+        const rawCompData = compRes.value?.data || compRes.value;
+        const compList = Array.isArray(rawCompData?.content)
+          ? rawCompData.content
+          : (Array.isArray(rawCompData) ? rawCompData : (Array.isArray(rawCompData?.data) ? rawCompData.data : []));
+
+        totalCompanies = rawCompData?.totalElements !== undefined ? rawCompData.totalElements : compList.length;
       }
 
       setStats({
@@ -64,7 +88,8 @@ export const AdminDashboard: React.FC = () => {
         hardCount,
         totalCompanies,
       });
-    } catch {
+    } catch (err) {
+      console.warn('Dashboard fetch error:', err);
       setStats({
         totalProblems: 0,
         easyCount: 0,
@@ -94,7 +119,7 @@ export const AdminDashboard: React.FC = () => {
             className="px-4 py-2 bg-[#121316] hover:bg-[#1a1c22] text-gray-300 border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
             title="Refresh Data"
           >
-            <i className={`fa-solid fa-rotate-right text-xs ${loading ? 'animate-spin text-[#14B8A6]' : ''}`}></i>
+            <i className={`fa-solid fa-rotate-right text-xs ${loading ? 'animate-spin text-[#A3E635]' : ''}`}></i>
             <span>Refresh</span>
           </button>
         }
@@ -114,3 +139,5 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
+
+export default AdminDashboard;

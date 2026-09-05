@@ -34,10 +34,10 @@ export const Landing: React.FC = () => {
       title: 'Aptitude & Verbal Mastery',
       subtitle: 'Build speed and accuracy',
       duration: '4–6 weeks',
-      iconClass: 'fa-solid fa-chart-simple text-[#E5A117]',
-      badgeBg: 'bg-[#14B8A6]/15 text-[#E5A117] border border-[#14B8A6]/30',
-      checkColor: 'text-[#E5A117]',
-      btnHover: 'hover:border-[#14B8A6] hover:text-[#E5A117]',
+      iconClass: 'fa-solid fa-chart-simple text-[#A3E635]',
+      badgeBg: 'bg-[#A3E635]/15 text-[#A3E635] border border-[#A3E635]/30',
+      checkColor: 'text-[#A3E635]',
+      btnHover: 'hover:border-[#A3E635] hover:text-[#A3E635]',
       description: 'Master quantitative math, logical reasoning, data interpretation, and verbal comprehension with bite-sized lessons and shortcut tricks.',
       features: [
         'Speed math shortcuts & formulas',
@@ -116,7 +116,7 @@ export const Landing: React.FC = () => {
   ];
 
   return (
-    <div className="w-full flex flex-col items-center bg-[#090A0C] text-[#f4f4f4] font-sans selection:bg-[#14B8A6]/30 selection:text-white overflow-x-hidden min-h-screen">
+    <div className="w-full flex flex-col items-center bg-[#090A0C] text-[#f4f4f4] font-sans selection:bg-[#A3E635]/30 selection:text-white overflow-x-hidden min-h-screen">
       {/* 1. Header Navbar */}
       <NeetCodeNavbar user={user} onLogout={handleLogout} />
       
@@ -128,7 +128,7 @@ export const Landing: React.FC = () => {
           <div className="mx-auto max-w-3xl px-5 text-center flex flex-col items-center">
             
             <h1 className="hero-font mx-auto max-w-[15ch] text-[34px] font-extrabold leading-[1.02] tracking-[-.02em] text-white sm:text-[58px] sm:leading-[1] lg:text-[68px] font-heading">
-              <span className="block min-h-[1.12em] text-[#E5A117] font-black overflow-hidden">
+              <span className="block min-h-[1.12em] text-[#A3E635] font-black overflow-hidden">
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={heroWords[heroWordIndex]}
@@ -142,7 +142,7 @@ export const Landing: React.FC = () => {
                   </motion.span>
                 </AnimatePresence>
               </span>
-              <span className="block hero-campus-placement-text text-white">your campus <span className="hero-placement-word text-[#E5A117]">placement.</span></span>
+              <span className="block hero-campus-placement-text text-white">your campus <span className="hero-placement-word">placement.</span></span>
             </h1>
 
             <p className="hero-font mx-auto mt-4 max-w-[48ch] text-[14px] font-normal leading-[1.55] text-gray-400 sm:text-[18px] sm:leading-[1.7] font-sans">
@@ -153,7 +153,7 @@ export const Landing: React.FC = () => {
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3 sm:mt-7 w-full sm:w-auto">
               <Link
                 to="/company-patterns"
-                className="inline-flex min-h-[56px] w-full sm:w-auto items-center justify-center gap-2 rounded-[14px] bg-[#14B8A6] hover:bg-[#0D9488] px-8 text-[16px] font-black text-black shadow-[0_5px_0_#0F5B63] active:translate-y-1 transition-all cursor-pointer font-sans"
+                className="inline-flex min-h-[56px] w-full sm:w-auto items-center justify-center gap-2 rounded-[14px] bg-[#A3E635] hover:bg-[#84CC16] px-8 text-[16px] font-black text-black shadow-[0_7px_0_#65A30D] active:translate-y-1 transition-all cursor-pointer font-sans"
               >
                 <span>Explore company patterns</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-right" aria-hidden="true">
@@ -186,7 +186,7 @@ export const Landing: React.FC = () => {
               {companyLogos.map((logo, idx) => (
                 <div
                   key={`logo-set1-${idx}`}
-                  className="inline-flex h-12 min-w-[120px] items-center justify-center rounded-xl bg-white border border-white/20 px-4 py-2 hover:border-[#14B8A6] hover:shadow-[0_0_14px_rgba(163,230,53,0.4)] transition-all shrink-0 shadow-sm"
+                  className="inline-flex h-12 min-w-[120px] items-center justify-center rounded-xl bg-white border border-white/20 px-4 py-2 hover:border-[#A3E635] hover:shadow-[0_0_14px_rgba(163,230,53,0.4)] transition-all shrink-0 shadow-sm"
                 >
                   <img
                     src={logo.src}
@@ -200,7 +200,7 @@ export const Landing: React.FC = () => {
               {companyLogos.map((logo, idx) => (
                 <div
                   key={`logo-set2-${idx}`}
-                  className="inline-flex h-12 min-w-[120px] items-center justify-center rounded-xl bg-white border border-white/20 px-4 py-2 hover:border-[#14B8A6] hover:shadow-[0_0_14px_rgba(163,230,53,0.4)] transition-all shrink-0 shadow-sm"
+                  className="inline-flex h-12 min-w-[120px] items-center justify-center rounded-xl bg-white border border-white/20 px-4 py-2 hover:border-[#A3E635] hover:shadow-[0_0_14px_rgba(163,230,53,0.4)] transition-all shrink-0 shadow-sm"
                 >
                   <img
                     src={logo.src}
@@ -220,7 +220,7 @@ export const Landing: React.FC = () => {
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight font-heading">
-              Pick your <span className="text-[#E5A117]">placement path</span>.
+              Pick your <span className="text-[#A3E635]">placement path</span>.
             </h2>
             <p className="mt-2 text-sm sm:text-base text-gray-400 font-sans">
               Start wherever you feel weakest — we'll guide the rest.
@@ -317,7 +317,7 @@ export const Landing: React.FC = () => {
           <div className="mt-8 grid gap-3.5 rounded-xl border border-white/10 bg-[#121316] p-5 sm:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center gap-3 p-2">
               <div className="w-10 h-10 rounded-lg bg-[#090A0C] border border-white/10 flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-compass text-[#E5A117] text-sm"></i>
+                <i className="fa-solid fa-compass text-[#A3E635] text-sm"></i>
               </div>
               <div>
                 <p className="text-sm font-bold text-white font-sans">Choose your target</p>
@@ -358,16 +358,16 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. SECTION 3: "WHY Talent Shine IS DIFFERENT?" BENTO GRID SECTION (Exact Requested Alignment & Spacing) */}
+      {/* 4. SECTION 3: "WHY Connect 2 Code IS DIFFERENT?" BENTO GRID SECTION (Exact Requested Alignment & Spacing) */}
       <section className="bg-[#090A0C] w-full pt-10 pb-16 border-t border-white/10">
         <div className="relative max-w-7xl px-6 pt-5 pb-10 mx-auto md:px-12 lg:px-24">
           <div className="flex flex-col w-full items-center justify-center text-center">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[#E5A117] mb-2 font-mono">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-[#A3E635] mb-2 font-mono">
               Real Skills, Real Outcomes
             </h2>
             <div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight font-heading mb-3 text-center">
-                Why <span className="text-[#E5A117]">Talent Shine</span> <span className="block sm:inline">is different?</span>
+                Why <span className="text-[#A3E635]">Connect 2 Code</span> <span className="block sm:inline">is different?</span>
               </h2>
               <p className="mt-2 text-gray-400 text-base sm:text-lg font-medium font-sans max-w-2xl mx-auto">
                 From topic-wise practice to company-pattern mocks — we teach what actually gets you hired in campus drives.
@@ -379,7 +379,7 @@ export const Landing: React.FC = () => {
             {/* Card 1 - Action-Oriented Placement Prep (Spans 2 cols, 2 rows) */}
             <div className="md:col-span-2 md:row-span-2 rounded-3xl bg-[#121316] border border-white/10 hover:border-white/30 p-6 sm:p-8 flex flex-col justify-between shadow-md transition-all group">
               <div className="flex items-center mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-check-big text-[#E5A117] w-10 mr-2 shrink-0 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-check-big text-[#A3E635] w-10 mr-2 shrink-0 group-hover:scale-110 transition-transform">
                   <path d="M21.801 10A10 10 0 1 1 17 3.335"></path>
                   <path d="m9 11 3 3L22 4"></path>
                 </svg>
@@ -458,7 +458,7 @@ export const Landing: React.FC = () => {
       <section className="scroll-mt-24 bg-[#090A0C] w-full py-12 md:py-16 border-t border-white/10" id="stories">
         <div className="mx-auto max-w-6xl px-4 text-center">
           <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight font-heading mb-2">
-            Students understand <span className="text-[#E5A117]">what to fix next.</span>
+            Students understand <span className="text-[#A3E635]">what to fix next.</span>
           </h2>
           <p className="mx-auto mt-2 max-w-[38ch] text-sm text-gray-400 font-sans mb-10">
             No big claims. Just clearer prep after every attempt.

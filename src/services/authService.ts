@@ -10,10 +10,15 @@ export interface LoginPayload {
 export interface SignUpPayload {
   firstName: string;
   lastName: string;
-  labelUserName: string;
   email: string;
   password: string;
   role?: string;
+}
+
+export interface VerifyOtpPayload {
+  email: string;
+  otp: string;
+  password?: string;
 }
 
 export interface BackendApiResponse<T = any> {
@@ -92,5 +97,20 @@ export const authService = {
       }
     }
     return response;
+  },
+
+  // Generate Password Reset / Verification OTP: POST /api/v1/auth/generatePasswordResetOtp
+  async generatePasswordResetOtp(email: string): Promise<BackendApiResponse> {
+    return apiClient.post(API_ENDPOINTS.AUTH.GENERATE_PASSWORD_RESET_OTP, { email }, { timeout: 60000 });
+  },
+
+  // Verify OTP and Reset Password: POST /api/v1/auth/verifyPasswordResetOtp
+  async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<BackendApiResponse> {
+    return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
+  },
+
+  // Alias for backward compatibility
+  async forgotPassword(email: string): Promise<BackendApiResponse> {
+    return this.generatePasswordResetOtp(email);
   },
 };

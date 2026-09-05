@@ -145,13 +145,13 @@ export const AdminCompanies: React.FC = () => {
               />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-white hover:text-[#14B8A6] transition-colors font-heading text-sm">{row.name}</span>
+              <span className="font-bold text-white hover:text-[#A3E635] transition-colors font-heading text-sm">{row.name}</span>
               {row.websiteUrl && (
                 <a
                   href={row.websiteUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs text-[#14B8A6] hover:underline font-mono"
+                  className="text-xs text-[#A3E635] hover:underline font-mono"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {row.websiteUrl}
@@ -184,7 +184,7 @@ export const AdminCompanies: React.FC = () => {
           </button>
           <button
             onClick={() => handleEditClick(row)}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#14B8A6]/20 text-gray-400 hover:text-[#14B8A6] transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-white/5 hover:bg-[#A3E635]/20 text-gray-400 hover:text-[#A3E635] transition-colors cursor-pointer"
             title="Edit Company Details"
           >
             <i className="fa-solid fa-pen-to-square text-xs"></i>
@@ -203,7 +203,7 @@ export const AdminCompanies: React.FC = () => {
         actions={
           <button
             onClick={handleCreateClick}
-            className="px-4 py-2.5 bg-[#14B8A6] hover:bg-[#0D9488] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-[#14B8A6]/20 font-sans"
+            className="px-4 py-2.5 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-[#A3E635]/20 font-sans"
           >
             <i className="fa-solid fa-plus text-xs"></i>
             <span>Add Target Company</span>
@@ -222,7 +222,7 @@ export const AdminCompanies: React.FC = () => {
               placeholder="Search target companies by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6]"
+              className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635]"
             />
           </div>
         </div>

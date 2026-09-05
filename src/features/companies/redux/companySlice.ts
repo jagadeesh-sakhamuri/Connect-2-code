@@ -1,12 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { companyService } from '../../../services/companyService';
-import companiesData from '../../../mock/data/companies.json';
-import problemsData from '../../../mock/data/problems.json';
+
+export interface CompanyItem {
+  id: string | number;
+  name: string;
+  slug: string;
+  logo?: string;
+  industry?: string;
+  problemCount?: number;
+  description?: string;
+  websiteUrl?: string;
+  difficultyBreakdown?: {
+    easy: number;
+    medium: number;
+    hard: number;
+  };
+}
 
 export interface CompanyState {
-  companies: typeof companiesData;
-  selectedCompany: (typeof companiesData)[0] | null;
-  companyProblems: typeof problemsData;
+  companies: CompanyItem[];
+  selectedCompany: CompanyItem | null;
+  companyProblems: any[];
   loading: boolean;
   error: string | null;
 }

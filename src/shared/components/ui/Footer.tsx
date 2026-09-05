@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full bg-[#0A1118] text-[#98A2B3] border-t border-[#1C1F26] font-sans relative overflow-hidden m-0 p-0">
+    <footer className="w-full bg-[#050607] text-[#98A2B3] border-t border-[#1C1F26] font-sans relative overflow-hidden">
       {/* Top subtle glow line */}
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#A3E635]/50 to-transparent"></div>
 
@@ -13,16 +13,14 @@ export const Footer: React.FC = () => {
           {/* Column 1: Brand & Tagline */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             <Link to="/" className="flex items-center gap-2.5 w-fit group">
-              <span className="flex shrink-0 items-center justify-center w-9 h-9 rounded-xl bg-[#A3E635] text-black shadow-[0_4px_16px_rgba(163,230,53,0.35)] transition-transform group-hover:scale-105">
-                <svg width="20" height="20" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M 64 152 L 64 92 L 100 128 L 136 92 L 136 152" stroke="#000000" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="100" y1="66" x2="100" y2="112" stroke="#000000" strokeWidth="20" strokeLinecap="round" />
-                  <circle cx="100" cy="115" r="10" fill="#000000" />
-                </svg>
-              </span>
+              <img
+                src="/logo-mark-transparent.png"
+                alt="Connect 2 Code Logo"
+                className="h-9 w-auto object-contain shrink-0 transition-transform group-hover:scale-105"
+              />
               <div className="flex flex-col">
-                <span className="hero-font text-[20px] font-extrabold text-white leading-none">Talent Shine</span>
-                <span className="text-[9.5px] font-black uppercase tracking-[.2em] text-[#14B8A6] mt-0.5">
+                <span className="hero-font text-[20px] font-extrabold text-white leading-none">Connect 2 Code</span>
+                <span className="text-[9.5px] font-black uppercase tracking-[.2em] text-[#A3E635] mt-0.5">
                   YOUR CAREER STARTS HERE
                 </span>
               </div>
@@ -119,7 +117,7 @@ export const Footer: React.FC = () => {
             </h3>
             <ul className="flex flex-col gap-2.5 text-[13.5px]">
               <li>
-                <Link to="/company-patterns" className="text-[#14B8A6] font-bold hover:underline transition-colors flex items-center gap-1.5">
+                <Link to="/company-patterns" className="text-[#A3E635] font-bold hover:underline transition-colors flex items-center gap-1.5">
                   <span>Explore All Patterns</span>
                   <i className="fa-solid fa-arrow-right text-[10px]"></i>
                 </Link>
@@ -160,7 +158,7 @@ export const Footer: React.FC = () => {
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#A3E635]/10 border border-[#A3E635]/25 w-fit">
               <span className="w-2 h-2 rounded-full bg-[#A3E635] animate-pulse"></span>
-              <span className="text-[11.5px] font-bold text-[#14B8A6]">Drive Season 2026 Active</span>
+              <span className="text-[11.5px] font-bold text-[#A3E635]">Drive Season 2026 Active</span>
             </div>
 
             <p className="text-[12.5px] text-[#98A2B3] leading-relaxed">
@@ -184,7 +182,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar: Copyright & Terms */}
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-[#667085]">
           <p className="font-mono text-center sm:text-left">
-            © {new Date().getFullYear()} Talent Shine — Campus Placement Preparation. All rights reserved.
+            © {new Date().getFullYear()} Connect 2 Code — Campus Placement Preparation. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-[#98A2B3]">

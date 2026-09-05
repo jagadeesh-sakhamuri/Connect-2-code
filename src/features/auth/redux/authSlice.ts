@@ -20,7 +20,7 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
   isAuthModalOpen: boolean;
-  authModalMode: 'login' | 'signup';
+  authModalMode: 'login' | 'signup' | 'forgot';
 }
 
 const initialToken = tokenStorage.getAccessToken();
@@ -69,6 +69,32 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+export const generatePasswordResetOtpThunk = createAsyncThunk(
+  'auth/generateOtp',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      const res = await authService.generatePasswordResetOtp(email);
+      return res?.message || 'Password Reset OTP Sent Successfully';
+    } catch (err: any) {
+      const errMsg = err.message || (err.errors && err.errors[0]) || 'Failed to send OTP. Please try again.';
+      return rejectWithValue(errMsg);
+    }
+  }
+);
+
+export const verifyPasswordResetOtpThunk = createAsyncThunk(
+  'auth/verifyOtp',
+  async (payload: { email: string; otp: string; password?: string }, { rejectWithValue }) => {
+    try {
+      const res = await authService.verifyPasswordResetOtp(payload);
+      return res?.message || 'Password Reset Successfully';
+    } catch (err: any) {
+      const errMsg = err.message || (err.errors && err.errors[0]) || 'Failed to verify OTP. Please try again.';
+      return rejectWithValue(errMsg);
+    }
+  }
+);
+
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   await authService.logout();
 });
@@ -86,7 +112,7 @@ const authSlice = createSlice({
     clearAuthError(state) {
       state.error = null;
     },
-    openAuthModal(state, action: PayloadAction<{ mode?: 'login' | 'signup' } | undefined>) {
+    openAuthModal(state, action: PayloadAction<{ mode?: 'login' | 'signup' | 'forgot' } | undefined>) {
       state.isAuthModalOpen = true;
       if (action?.payload?.mode) {
         state.authModalMode = action.payload.mode;
@@ -95,7 +121,7 @@ const authSlice = createSlice({
     closeAuthModal(state) {
       state.isAuthModalOpen = false;
     },
-    setAuthModalMode(state, action: PayloadAction<'login' | 'signup'>) {
+    setAuthModalMode(state, action: PayloadAction<'login' | 'signup' | 'forgot'>) {
       state.authModalMode = action.payload;
     },
   },

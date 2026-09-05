@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { examPatternsData } from '../data/examPatternsData';
 
 export const CompanyPatternDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [activeTab, setActiveTab] = useState<'breakdown' | 'syllabus' | 'stages' | 'strategy'>('breakdown');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   const defaultPattern = {
     id: 'default',

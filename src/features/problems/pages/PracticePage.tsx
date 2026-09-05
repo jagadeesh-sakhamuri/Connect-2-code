@@ -1,44 +1,116 @@
-import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { fetchProblems, toggleSolveProblem, setFilter, resetFilters } from '../redux/problemSlice';
+import { fetchProblems, toggleSolveProblem, resetFilters } from '../redux/problemSlice';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Pagination } from '../../../shared/components/ui/Pagination';
+import { referenceService, ReferenceItem } from '../../../services/referenceService';
+import { companyService } from '../../../services/companyService';
 import { toast } from 'react-hot-toast';
 
 export const PracticePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { problems, loading, filters, pagination } = useAppSelector((state) => state.problems);
+  const { problems, loading, pagination } = useAppSelector((state) => state.problems);
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [activeSheetTab, setActiveSheetTab] = useState<'all' | 'answered' | 'bookmarked'>('all');
-  const [searchInput, setSearchInput] = useState(filters.search || '');
-  const [selectedTopic, setSelectedTopic] = useState<string>('All');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All');
+  const [searchInput, setSearchInput] = useState<string>('');
+  const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 20;
 
+  // Reference Library Filter Data from Backend API with Basic, Easy, Medium, Hard
+  const [difficulties, setDifficulties] = useState<ReferenceItem[]>([
+    { id: 1, refGroupCode: 'DIFF', refCode: 'DIFF_BASIC', refName: 'Basic', isActive: true },
+    { id: 2, refGroupCode: 'DIFF', refCode: 'DIFF_EASY', refName: 'Easy', isActive: true },
+    { id: 3, refGroupCode: 'DIFF', refCode: 'DIFF_MED', refName: 'Medium', isActive: true },
+    { id: 4, refGroupCode: 'DIFF', refCode: 'DIFF_HARD', refName: 'Hard', isActive: true },
+  ]);
+  const [topics, setTopics] = useState<ReferenceItem[]>([]);
+  const [companies, setCompanies] = useState<Array<{ id: number; name: string }>>([]);
+
+  // 1. Fetch Reference Library & Companies for Filter Dropdowns
   useEffect(() => {
+    const fetchFilterData = async () => {
+      try {
+        const [diffRes, topicRes, compRes] = await Promise.all([
+          referenceService.getByGroupCode('DIFF'),
+          referenceService.getByGroupCode('TOPIC'),
+          companyService.getCompanies(),
+        ]);
+        const diffList = diffRes?.data || (Array.isArray(diffRes) ? diffRes : []);
+        const topicList = topicRes?.data || (Array.isArray(topicRes) ? topicRes : []);
+        const compList = compRes?.data || (Array.isArray(compRes) ? compRes : []);
+
+        if (Array.isArray(diffList) && diffList.length > 0) setDifficulties(diffList);
+        if (Array.isArray(topicList) && topicList.length > 0) setTopics(topicList);
+        if (Array.isArray(compList) && compList.length > 0) setCompanies(compList);
+      } catch (err) {
+        console.warn('Filter API fetch fallback:', err);
+      }
+    };
+    fetchFilterData();
+  }, []);
+
+  // 2. Fetch Questions with Filter Parameters from Java Spring Boot Backend API
+  const loadQuestions = useCallback((targetPage?: number) => {
+    const pageToLoad = targetPage !== undefined ? targetPage : currentPage;
+    const diffArr = selectedDifficulty ? [Number(selectedDifficulty)] : undefined;
+    const topArr = selectedTopic ? [Number(selectedTopic)] : undefined;
+    const compArr = selectedCompany ? [Number(selectedCompany)] : undefined;
+
     dispatch(
       fetchProblems({
-        search: searchInput,
-        topic: selectedTopic,
-        difficulty: selectedDifficulty,
-        page: pagination.page,
-        limit: 20,
+        search: searchInput.trim() || undefined,
+        topic: topArr,
+        difficulty: diffArr,
+        level: diffArr,
+        companies: compArr,
+        company: compArr,
+        page: pageToLoad,
+        limit: pageSize,
       })
     );
+  }, [dispatch, searchInput, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize]);
+
+  useEffect(() => {
+    loadQuestions();
     if (isAuthenticated) {
       dispatch(fetchBookmarks());
     }
-  }, [dispatch, searchInput, selectedTopic, selectedDifficulty, pagination.page, isAuthenticated]);
+  }, [loadQuestions, isAuthenticated, dispatch]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(setFilter({ search: searchInput }));
+    setCurrentPage(1);
+    loadQuestions(1);
+  };
+
+  const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedTopic(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCompany(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleDifficultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedDifficulty(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    loadQuestions(newPage);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
@@ -71,27 +143,17 @@ export const PracticePage: React.FC = () => {
     toast.success('Bookmark updated');
   };
 
-  const topicsList = [
-    'All',
-    'Arrays & Hashing',
-    'Two Pointers',
-    'Sliding Window',
-    'Stack',
-    'Binary Search',
-    'Linked List',
-    'Trees',
-    'Tries',
-    'Backtracking',
-    'Heap',
-    'Graphs',
-    '1-D Dynamic Programming',
-    '2-D Dynamic Programming',
-    'Bit Manipulation',
-    'Math & Geometry',
-  ];
+  const handleResetFilters = () => {
+    setSearchInput('');
+    setSelectedTopic('');
+    setSelectedDifficulty('');
+    setSelectedCompany('');
+    setActiveSheetTab('all');
+    setCurrentPage(1);
+    dispatch(resetFilters());
+  };
 
-  const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
-
+  // Client-side Tab Filtering for Answered / Bookmarked
   const displayedProblems = problems.filter((p) => {
     if (activeSheetTab === 'answered') return p.isSolved;
     if (activeSheetTab === 'bookmarked') return p.isBookmarked || bookmarks.some((b) => b.itemId === p.id);
@@ -148,79 +210,86 @@ export const PracticePage: React.FC = () => {
                   : 'text-gray-400 hover:text-white'
               }`}
             >
-              Bookmarked
+              Bookmarked ★
             </button>
           </div>
 
-          {/* Solved Progress Counter */}
-          <div className="flex items-center gap-3 bg-[#202225] border border-white/10 px-4 py-2 rounded-lg shadow-md">
-            <span className="text-xs text-gray-400 font-sans">Solved Progress:</span>
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              {solvedCount} / {problems.length} ({progressPercent}%)
-            </span>
-            <div className="w-20 h-1.5 bg-[#121113] rounded-full overflow-hidden border border-white/5">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              ></div>
+          {/* Quick Stats Progress */}
+          <div className="flex items-center gap-4 text-xs font-sans">
+            <div className="flex items-center gap-2 bg-[#202225] px-3 py-1.5 rounded-lg border border-white/10">
+              <span className="text-gray-400">Solved:</span>
+              <span className="font-bold text-[#A3E635]">
+                {solvedCount} / {problems.length}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 bg-[#202225] px-3 py-1.5 rounded-lg border border-white/10">
+              <span className="text-gray-400">Progress:</span>
+              <span className="font-bold text-white">{progressPercent}%</span>
             </div>
           </div>
         </div>
 
-        {/* Filter Controls Bar - Companies Page Styling */}
-        <div className="bg-[#202225] border border-white/10 p-4 rounded-lg shadow-md flex flex-col md:flex-row gap-4 justify-between items-center">
+        {/* Filter Controls Bar - Dropdowns for Topic, Company, and Difficulty (Basic, Easy, Medium, Hard) */}
+        <div className="bg-[#202225] border border-white/10 p-4 rounded-lg shadow-md flex flex-col md:flex-row gap-3.5 justify-between items-center">
           {/* Search Box */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
+          <form onSubmit={handleSearchSubmit} className="relative w-full md:w-64">
             <i className="fa-solid fa-magnifying-glass text-xs absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500"></i>
             <input
               type="text"
-              placeholder="Search problem title or topic..."
+              placeholder="Search problem title..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full bg-[#121113] border border-white/10 text-sm text-gray-200 placeholder-gray-500 rounded-lg pl-10 pr-4 py-2 outline-none focus:border-white/30 transition-colors font-sans"
+              className="w-full bg-[#121113] border border-white/10 text-xs sm:text-sm text-gray-200 placeholder-gray-500 rounded-lg pl-10 pr-4 py-2 outline-none focus:border-white/30 transition-colors font-sans"
             />
           </form>
 
-          {/* Topic & Difficulty Filters */}
-          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap">
+          {/* Topic, Company & Difficulty Dropdown Filters */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap">
             {/* Topic Dropdown Selector */}
             <select
               value={selectedTopic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
-              className="bg-[#121113] border border-white/10 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-white/30 font-sans"
+              onChange={handleTopicChange}
+              className="bg-[#121113] border border-white/10 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-white/30 font-sans cursor-pointer"
             >
-              {topicsList.map((t) => (
-                <option key={t} value={t} className="bg-[#202225] text-white">
-                  {t === 'All' ? 'All Topics' : t}
+              <option value="" className="bg-[#202225] text-white">All Topics</option>
+              {topics.map((t) => (
+                <option key={t.id || t.refCode} value={String(t.id)} className="bg-[#202225] text-white">
+                  {t.refName}
                 </option>
               ))}
             </select>
 
-            {/* Difficulty Pills */}
-            <div className="flex items-center gap-1 bg-[#121113] p-1 rounded-lg border border-white/10">
-              {difficulties.map((diff) => (
-                <button
-                  key={diff}
-                  onClick={() => setSelectedDifficulty(diff)}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all font-sans cursor-pointer ${
-                    selectedDifficulty === diff
-                      ? 'bg-white/10 text-white border border-white/20 shadow-xs'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {diff}
-                </button>
+            {/* Company Dropdown Selector */}
+            <select
+              value={selectedCompany}
+              onChange={handleCompanyChange}
+              className="bg-[#121113] border border-white/10 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-white/30 font-sans cursor-pointer"
+            >
+              <option value="" className="bg-[#202225] text-white">All Companies</option>
+              {companies.map((c) => (
+                <option key={c.id || c.name} value={String(c.id)} className="bg-[#202225] text-white">
+                  {c.name}
+                </option>
               ))}
-            </div>
+            </select>
 
-            {(searchInput || selectedTopic !== 'All' || selectedDifficulty !== 'All') && (
+            {/* Difficulty Dropdown Selector: All, Basic, Easy, Medium, Hard */}
+            <select
+              value={selectedDifficulty}
+              onChange={handleDifficultyChange}
+              className="bg-[#121113] border border-white/10 text-xs text-gray-200 rounded-lg px-3 py-2 outline-none focus:border-white/30 font-sans cursor-pointer"
+            >
+              <option value="" className="bg-[#202225] text-white">All Difficulties</option>
+              {difficulties.map((diff) => (
+                <option key={diff.id || diff.refCode} value={String(diff.id)} className="bg-[#202225] text-white">
+                  {diff.refName}
+                </option>
+              ))}
+            </select>
+
+            {(searchInput || selectedTopic || selectedCompany || selectedDifficulty) && (
               <button
-                onClick={() => {
-                  setSearchInput('');
-                  setSelectedTopic('All');
-                  setSelectedDifficulty('All');
-                  dispatch(resetFilters());
-                }}
+                onClick={handleResetFilters}
                 className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
                 title="Reset Filters"
               >
@@ -242,20 +311,14 @@ export const PracticePage: React.FC = () => {
             title="No practice problems found"
             description="No problem matches your search criteria or filter options."
             actionText="Reset All Filters"
-            onAction={() => {
-              setSearchInput('');
-              setSelectedTopic('All');
-              setSelectedDifficulty('All');
-              setActiveSheetTab('all');
-              dispatch(resetFilters());
-            }}
+            onAction={handleResetFilters}
             icon={<i className="fa-solid fa-code text-2xl text-gray-500"></i>}
           />
         ) : (
           <div className="flex flex-col gap-2.5">
             {displayedProblems.map((problem) => {
               const isBookmarked = problem.isBookmarked || bookmarks.some((b) => b.itemId === problem.id);
-              const companyList = problem.companies || problem.companyTags || ['Amazon', 'Microsoft', 'TCS'];
+              const companyList = problem.companies || [];
 
               return (
                 <div
@@ -296,24 +359,31 @@ export const PracticePage: React.FC = () => {
                         {problem.title}
                       </Link>
 
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {/* Level and Tagged Companies Displayed Side-by-Side */}
+                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                        {/* Difficulty Level Tag */}
                         <span
-                          className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md ${
-                            problem.difficulty === 'Easy'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : problem.difficulty === 'Medium'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                            problem.difficulty?.toLowerCase().includes('easy') || problem.difficulty?.toLowerCase().includes('basic')
+                              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              : problem.difficulty?.toLowerCase().includes('hard')
+                              ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                           }`}
                         >
-                          {problem.difficulty}
+                          {problem.difficulty || 'Medium'}
                         </span>
 
+                        {/* Companies Displayed Beside Level */}
                         {companyList && companyList.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            {companyList.slice(0, 3).map((comp: string) => (
-                              <span key={comp} className="text-[10px] font-mono text-gray-400 bg-[#121113] px-1.5 py-0.5 rounded border border-white/5">
-                                {comp}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {companyList.map((comp: string, idx: number) => (
+                              <span
+                                key={`${comp}-${idx}`}
+                                className="text-[10px] font-sans font-medium text-gray-300 bg-[#121113] px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1 shadow-xs"
+                              >
+                                <i className="fa-solid fa-building text-[9px] text-[#A3E635]"></i>
+                                <span>{comp}</span>
                               </span>
                             ))}
                           </div>
@@ -322,51 +392,14 @@ export const PracticePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Solve Problem Action Button or 3 External Platform Icons */}
-                  {problem.isOwnProblem !== false ? (
-                    <Link
-                      to={`/problems/${problem.slug}`}
-                      className="shrink-0 px-4 py-2 text-xs font-semibold bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-lg transition-all border border-[#A3E635]/50 flex items-center justify-center gap-1.5 font-sans shadow-md"
-                    >
-                      <span>Solve Problem</span>
-                      <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                    </Link>
-                  ) : (
-                    <div className="shrink-0 flex items-center gap-2">
-                      {/* GeeksforGeeks Circle Logo Icon */}
-                      <a
-                        href={problem.gfgUrl || `https://www.geeksforgeeks.org/${problem.slug}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Solve on GeeksforGeeks"
-                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-emerald-500/25 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                      >
-                        <GfgLogoIcon className="w-4.5 h-4.5" />
-                      </a>
-
-                      {/* LeetCode Circle Logo Icon */}
-                      <a
-                        href={problem.leetCodeUrl || `https://leetcode.com/problems/${problem.slug}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Solve on LeetCode"
-                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 text-amber-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                      >
-                        <LeetCodeLogoIcon className="w-4.5 h-4.5" />
-                      </a>
-
-                      {/* HackerRank Circle Logo Icon */}
-                      <a
-                        href={problem.hackerRankUrl || `https://www.hackerrank.com/challenges/${problem.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Solve on HackerRank"
-                        className="w-8.5 h-8.5 rounded-full bg-[#121113] hover:bg-teal-500/25 border border-teal-500/40 hover:border-teal-400 text-teal-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                      >
-                        <HackerRankLogoIcon className="w-4.5 h-4.5" />
-                      </a>
-                    </div>
-                  )}
+                  {/* Solve Problem Action Button */}
+                  <Link
+                    to={`/problems/${problem.slug}`}
+                    className="shrink-0 px-4 py-2 text-xs font-semibold bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-lg transition-all border border-[#A3E635]/50 flex items-center justify-center gap-1.5 font-sans shadow-md"
+                  >
+                    <span>Solve Problem</span>
+                    <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                  </Link>
                 </div>
               );
             })}
@@ -376,12 +409,16 @@ export const PracticePage: React.FC = () => {
         {/* Pagination Controls */}
         <div className="mt-8">
           <Pagination
-            currentPage={pagination.page}
-            totalPages={Math.ceil(pagination.total / pagination.limit) || 1}
-            onPageChange={(page) => dispatch(setFilter({ page }))}
+            currentPage={currentPage}
+            totalPages={pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1}
+            totalElements={pagination.total}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
           />
         </div>
       </div>
     </div>
   );
 };
+
+export default PracticePage;

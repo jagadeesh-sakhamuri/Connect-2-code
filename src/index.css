@@ -1,41 +1,34 @@
-
-html, body, #root {
-  min-height: 100vh;
-  margin: 0 !important;
-  padding: 0 !important;
-  background-color: var(--background) !important;
-  overflow-x: hidden;
-}
-
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --font-sans: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-heading: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Roboto Mono", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
-  --background: #0A1118;
-  --theme-color: #0A1118;
+  --background: #121113;
+  --theme-color: #121113;
   --foreground: #f4f4f4;
   --foreground-secondary: #d4d4d4;
-  --card: #14202C;
-  --card-background: #14202C;
-  --card-background-hover: #1E2E3E;
-  --card-border-color: rgba(26, 128, 140, 0.25);
-  --muted: #1E2E3E;
-  --muted-foreground: #94a3b8;
+  --card: #202225;
+  --card-background: #202225;
+  --card-background-hover: #2f3136;
+  --card-border-color: rgba(255, 255, 255, 0.08);
+  --muted: #2f3136;
+  --muted-foreground: #9ca3af;
+  --primary: #627eff;
+  --primary-color: #627eff;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --input: #2f3136;
+  --success-color: #4ade80;
   
-  /* TALENT SHINE LOGO PALETTE TOKENS */
-  --brand-teal: #1A808C;
-  --brand-cyan: #14B8A6;
-  --brand-gold: #E5A117;
-  --brand-amber: #F59E0B;
-  --primary: #14B8A6;
-  --primary-color: #14B8A6;
-  --border: rgba(26, 128, 140, 0.2);
-  --border-color: rgba(26, 128, 140, 0.2);
-  --input: #14202C;
-  --success-color: #14B8A6;
+  --difficulty-easy: rgba(72, 199, 142, 0.8);
+  --difficulty-medium: rgba(245, 166, 35, 0.8);
+  --difficulty-hard: rgba(248, 113, 113, 0.8);
+  --difficulty-label-easy: #48c78e;
+  --difficulty-label-medium: #f5a623;
+  --difficulty-label-hard: #f87171;
 }
 
 body {
@@ -57,18 +50,6 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 
 code, pre, .font-mono {
   font-family: var(--font-mono);
-}
-
-/* Date Input Calendar Picker Styling */
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  cursor: pointer;
-  opacity: 0.8;
-  padding: 2px;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
 }
 
 /* Custom Scrollbar */
@@ -393,6 +374,316 @@ html.light nav a:hover {
   color: #0f172a !important;
 }
 
+/* ==========================================================================
+   ADMIN CONSOLE COMPREHENSIVE THEME OVERRIDES (LIGHT MODE)
+   ========================================================================== */
+
+/* 1. Admin Layout & Main Shell */
+html.light .admin-layout-container,
+html.light .min-h-screen.bg-\[\#090A0C\],
+html.light main.bg-\[\#090A0C\],
+html.light .bg-\[\#090A0C\] {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* 2. Admin Sidebar */
+html.light aside {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 1px 0 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light aside .border-b,
+html.light aside .border-t,
+html.light aside .border-r,
+html.light aside .border-white\/10 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside h1.text-white,
+html.light aside .text-white {
+  color: #0f172a !important;
+}
+
+html.light aside a:not(.bg-\[\#A3E635\]) {
+  color: #475569 !important;
+}
+
+html.light aside a:not(.bg-\[\#A3E635\]):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light aside .bg-\[\#090A0C\]\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Admin Header */
+html.light header.h-16 {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+html.light header.h-16 .text-white {
+  color: #0f172a !important;
+}
+
+html.light header.h-16 .text-gray-300,
+html.light header.h-16 .text-gray-400 {
+  color: #475569 !important;
+}
+
+html.light header.h-16 button.bg-\[\#090A0C\]\/80 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.light header.h-16 button.bg-\[\#090A0C\]\/80:hover {
+  background-color: #e2e8f0 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+/* 4. Admin Header Profile Dropdown */
+html.light header .bg-\[\#121316\]\/95 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light header .bg-\[\#121316\]\/95 .bg-\[\#090A0C\]\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light header .bg-\[\#121316\]\/95 .text-white {
+  color: #0f172a !important;
+}
+
+/* 5. Admin Cards & Containers */
+html.light [class*="bg-[#14202C]"],
+html.light [class*="bg-[#181A20]"],
+html.light [class*="bg-[#1a1c22]"],
+html.light [class*="bg-[#22252D]"],
+html.light [class*="bg-[#121317]"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light [class*="bg-[#14202C]"] h3,
+html.light [class*="bg-[#14202C]"] h2,
+html.light [class*="bg-[#14202C]"] .text-white {
+  color: #0f172a !important;
+}
+
+html.light [class*="bg-[#14202C]"] .border-b {
+  border-color: #e2e8f0 !important;
+}
+
+html.light [class*="bg-[#14202C]"] .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* 6. Dashboard Metrics Grid & Overview */
+html.light [class*="bg-[#181A20]"] .text-white {
+  color: #0f172a !important;
+}
+
+html.light [class*="bg-[#181A20]"] .text-gray-400 {
+  color: #64748b !important;
+}
+
+html.light [class*="bg-[#181A20]"] .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+html.light .from-\[\#121316\].via-\[\#161920\].to-\[\#121316\] {
+  background: linear-gradient(to right, #f8fafc, #ffffff, #f8fafc) !important;
+  border-color: rgba(163, 230, 53, 0.4) !important;
+}
+
+html.light .p-3\.5.bg-\[\#090A0C\]\/80,
+html.light a.bg-\[\#090A0C\]\/80,
+html.light div.bg-\[\#090A0C\]\/80 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light a.bg-\[\#090A0C\]\/80:hover {
+  background-color: #f1f5f9 !important;
+  border-color: #A3E635 !important;
+}
+
+html.light a.bg-\[\#090A0C\]\/80 .text-white {
+  color: #0f172a !important;
+}
+
+html.light a.bg-\[\#090A0C\]\/80 .text-gray-500 {
+  color: #64748b !important;
+}
+
+/* 7. Admin Tables */
+html.light .overflow-x-auto[class*="bg-[#14202C]"] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light table tr[class*="bg-[#090A0C]"],
+html.light table thead tr {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light table th {
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+  background-color: #f8fafc !important;
+}
+
+html.light table tbody {
+  border-color: #e2e8f0 !important;
+}
+
+html.light table tbody tr {
+  border-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light table td {
+  border-color: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+html.light table td .text-white {
+  color: #0f172a !important;
+}
+
+html.light table td .text-gray-200,
+html.light table td .text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light table td .text-gray-400,
+html.light table td .text-gray-500 {
+  color: #64748b !important;
+}
+
+/* 8. Filter Bars, Selects, Inputs */
+html.light select,
+html.light input[type="text"],
+html.light input[type="password"],
+html.light input[type="email"],
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.light label.text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light .placeholder-gray-500::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 9. Modals (AdminModal, QuestionFormModal, TestCaseModal, etc.) */
+html.light .bg-\[\#121316\]\/95 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15) !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#121316\]\/95 .bg-\[\#090A0C\]\/90,
+html.light .bg-\[\#121316\]\/95 .bg-\[\#090A0C\]\/80,
+html.light .bg-\[\#121316\]\/95 .bg-\[\#121317\],
+html.light .bg-\[\#121316\]\/95 .bg-\[\#1a1c22\],
+html.light .bg-\[\#121316\]\/95 .bg-\[\#22252D\] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#121316\]\/95 .text-white {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#121316\]\/95 .text-gray-200,
+html.light .bg-\[\#121316\]\/95 .text-gray-300 {
+  color: #334155 !important;
+}
+
+html.light .bg-\[\#121316\]\/95 .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* 10. Pagination Bar */
+html.light .bg-\[\#14202C\]\/75.backdrop-blur-xl {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+html.light .bg-\[\#14202C\]\/75 button.bg-\[\#090A0C\]\/80 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.light .bg-\[\#14202C\]\/75 button.bg-\[\#090A0C\]\/80:hover:not(:disabled) {
+  background-color: #e2e8f0 !important;
+}
+
+/* 11. Page Header & Breadcrumbs */
+html.light .text-2xl.text-white {
+  color: #0f172a !important;
+}
+
+html.light nav[aria-label="Breadcrumb"] {
+  color: #64748b !important;
+}
+
+html.light nav[aria-label="Breadcrumb"] .text-white {
+  color: #0f172a !important;
+}
+
+html.light nav[aria-label="Breadcrumb"] .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+/* 12. Empty States & Error States */
+html.light .bg-\[\#121316\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#121316\] h4.text-white {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#121316\] p.text-gray-400 {
+  color: #64748b !important;
+}
+
 /* 9. FORM INPUTS & SELECTS */
 html.light input,
 html.light select,
@@ -522,9 +813,9 @@ html.light span.hero-placement-word {
   -webkit-text-fill-color: #000000 !important;
 }
 
-/* HERO PLACEMENT WORD COLOR RULES (GOLD IN DARK MODE, BLACK IN LIGHT MODE) */
+/* HERO PLACEMENT WORD COLOR RULES FOR DARK VS LIGHT MODE */
 .hero-placement-word {
-  color: #E5A117 !important;
+  color: #A3E635;
 }
 
 html.light .hero-placement-word,
@@ -533,44 +824,24 @@ html.light .hero-campus-placement-text {
   -webkit-text-fill-color: #000000 !important;
 }
 
-/* TALENT SHINE LOGO BRAND COLOR ENGINE OVERRIDES */
-/* Admin Lime Green (#A3E635) Brand Tokens */
-
-
-.brand-gold-text {
-  color: #E5A117 !important;
+/* LIGHT MODE STYLING FOR PAGINATION CONTROLS */
+html.light .bg-\[\#111827\]\/90,
+html.light .bg-\[\#14202C\]\/75 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #334155 !important;
 }
 
-.brand-gold-bg {
-  background-color: #E5A117 !important;
-  color: #000000 !important;
+html.light .bg-\[\#090A0C\]\/80 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
 
-.brand-gold-border {
-  border-color: #E5A117 !important;
+html.light select.bg-\[\#090A0C\]\/80,
+html.light input.bg-\[\#090A0C\]\/80 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }
 
-/* Light Theme Talent Shine Overrides */
-html.light {
-  --background: #F0FDFA;
-  --theme-color: #F0FDFA;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-background: #FFFFFF;
-  --card-border-color: #CCFBF1;
-  --border: #CCFBF1;
-  --border-color: #CCFBF1;
-}
-
-html.light .text-\[\#A3E635\] {
-  color: #0D9488 !important;
-}
-
-html.light .bg-\[\#A3E635\] {
-  background-color: #14B8A6 !important;
-  color: #FFFFFF !important;
-}
-
-html.light .hero-campus-placement-text {
-  color: #0F172A !important;
-}

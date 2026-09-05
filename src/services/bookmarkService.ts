@@ -1,23 +1,34 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { mockDelay } from '../mock/mockAdapter';
-import bookmarksData from '../mock/data/bookmarks.json';
 import { ApiResponse } from '../core/types/api';
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+export interface BookmarkItem {
+  id: string;
+  itemId: string;
+  type: 'PROBLEM' | 'APTITUDE' | 'COMPANY';
+  title: string;
+  difficulty?: string;
+  category?: string;
+  createdAt?: string;
+}
 
 export const bookmarkService = {
-  async getBookmarks(): Promise<ApiResponse<typeof bookmarksData>> {
-    if (USE_MOCK) {
-      return mockDelay(bookmarksData, 'Bookmarks list retrieved');
-    }
-    return apiClient.get(API_ENDPOINTS.BOOKMARKS.LIST);
+  async getBookmarks(): Promise<ApiResponse<BookmarkItem[]>> {
+    const res: any = await apiClient.get(API_ENDPOINTS.BOOKMARKS.LIST);
+    const data = res?.data || res || [];
+    return {
+      statusCode: 200,
+      message: 'Bookmarks list retrieved',
+      data: Array.isArray(data) ? data : [],
+    };
   },
 
-  async toggleBookmark(itemId: string, type: 'PROBLEM' | 'COMPANY' = 'PROBLEM'): Promise<ApiResponse<any>> {
-    if (USE_MOCK) {
-      return mockDelay({ itemId, type, isBookmarked: true }, 'Bookmark toggled');
-    }
-    return apiClient.post(API_ENDPOINTS.BOOKMARKS.TOGGLE(itemId), { type });
+  async toggleBookmark(itemId: string, type: 'PROBLEM' | 'APTITUDE' | 'COMPANY' = 'PROBLEM'): Promise<ApiResponse<any>> {
+    const res: any = await apiClient.post(API_ENDPOINTS.BOOKMARKS.TOGGLE(itemId), { type });
+    return {
+      statusCode: 200,
+      message: 'Bookmark toggled',
+      data: res?.data || { itemId, type, isBookmarked: true },
+    };
   },
 };

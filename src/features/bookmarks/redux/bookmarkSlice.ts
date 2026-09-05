@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import bookmarksData from '../../../mock/data/bookmarks.json';
 
 export interface BookmarkItem {
   id: string;
@@ -28,7 +27,7 @@ const loadBookmarksFromStorage = (): BookmarkItem[] => {
   } catch (e) {
     console.error('Failed to load bookmarks from storage', e);
   }
-  return bookmarksData as BookmarkItem[];
+  return [];
 };
 
 const saveBookmarksToStorage = (bookmarks: BookmarkItem[]) => {

@@ -9,6 +9,7 @@ import { QuestionDetailsModal } from '../components/questions/QuestionDetailsMod
 import { TestCaseModal } from '../components/questions/TestCaseModal';
 import { QuestionPayload, QuestionTestCase } from '../../../services/questionService';
 import { adminQuestionService } from '../../../services/admin/adminQuestionService';
+import { adminCompanyService } from '../../../services/admin/adminCompanyService';
 import { referenceService, ReferenceItem } from '../../../services/referenceService';
 import { toast } from 'react-hot-toast';
 
@@ -19,18 +20,20 @@ export const AdminQuestions: React.FC = () => {
 
   // Pagination State
   const [pageNumber, setPageNumber] = useState<number>(0);
-  const [pageSize] = useState<number>(10);
+  const [pageSize, setPageSize] = useState<number>(10);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalElements, setTotalElements] = useState<number>(0);
 
   // Filter States
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
   const [selectedTopic, setSelectedTopic] = useState<string>('');
+  const [selectedCompany, setSelectedCompany] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Reference Library Data for Filters
+  // Reference Library & Companies Data for Filters
   const [difficulties, setDifficulties] = useState<ReferenceItem[]>([]);
   const [topics, setTopics] = useState<ReferenceItem[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
 
   // Modals State
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
@@ -44,18 +47,21 @@ export const AdminQuestions: React.FC = () => {
   // State to track if question was saved but test cases failed during retry flow
   const [createdQuestionIdForRetry, setCreatedQuestionIdForRetry] = useState<number | string | null>(null);
 
-  // Load Filter References from Backend API
+  // Load Filter References and Companies from Backend API
   useEffect(() => {
     const fetchFilterReferences = async () => {
       try {
-        const [diffRes, topicRes] = await Promise.all([
+        const [diffRes, topicRes, compRes] = await Promise.all([
           referenceService.getByGroupCode('DIFF'),
           referenceService.getByGroupCode('TOPIC'),
+          adminCompanyService.getCompanies(),
         ]);
         const diffList = diffRes?.data || (Array.isArray(diffRes) ? diffRes : []);
         const topicList = topicRes?.data || (Array.isArray(topicRes) ? topicRes : []);
+        const compList = compRes?.data || (Array.isArray(compRes) ? compRes : []);
         setDifficulties(Array.isArray(diffList) ? diffList : []);
         setTopics(Array.isArray(topicList) ? topicList : []);
+        setCompanies(Array.isArray(compList) ? compList : []);
       } catch (err) {
         console.warn('Failed to load filter reference data:', err);
       }
@@ -71,10 +77,14 @@ export const AdminQuestions: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      const levelArr: number[] | null = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? [Number(selectedDifficulty)] : null;
+      const topicArr: number[] | null = selectedTopic && !isNaN(Number(selectedTopic)) ? [Number(selectedTopic)] : null;
+      const compArr: number[] | null = selectedCompany && !isNaN(Number(selectedCompany)) ? [Number(selectedCompany)] : null;
+
       const res = await adminQuestionService.getQuestions({
-        level: selectedDifficulty || null,
-        companies: null,
-        topic: selectedTopic || null,
+        level: levelArr,
+        companies: compArr,
+        topic: topicArr,
         searchText: searchTerm.trim() ? searchTerm.trim() : null,
         pageRequest: {
           pageNumber,
@@ -84,20 +94,28 @@ export const AdminQuestions: React.FC = () => {
         },
       });
 
-      const data = res?.data || res;
-      if (data && Array.isArray(data.content)) {
-        setQuestions(data.content);
-        setTotalPages(data.totalPages || 1);
-        setTotalElements(data.totalElements || data.content.length);
-      } else if (Array.isArray(data)) {
-        setQuestions(data);
-        setTotalPages(1);
-        setTotalElements(data.length);
-      } else {
-        setQuestions([]);
-        setTotalPages(1);
-        setTotalElements(0);
-      }
+      const rawData = res?.data?.data || res?.data || res;
+      const contentList = Array.isArray(rawData?.content)
+        ? rawData.content
+        : Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.data)
+        ? rawData.data
+        : [];
+
+      const total = typeof rawData?.totalElements === 'number'
+        ? rawData.totalElements
+        : typeof rawData?.total === 'number'
+        ? rawData.total
+        : contentList.length;
+
+      const computedPages = typeof rawData?.totalPages === 'number' && rawData.totalPages > 0
+        ? rawData.totalPages
+        : Math.ceil(total / pageSize) || 1;
+
+      setQuestions(contentList);
+      setTotalPages(computedPages);
+      setTotalElements(total);
     } catch (err: any) {
       const msg = err?.message || (err?.errors && err?.errors[0]) || 'Failed to fetch questions list from backend API';
       setError(msg);
@@ -105,7 +123,7 @@ export const AdminQuestions: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [pageNumber, pageSize, selectedDifficulty, selectedTopic, searchTerm]);
+  }, [pageNumber, pageSize, selectedDifficulty, selectedTopic, selectedCompany, searchTerm]);
 
   useEffect(() => {
     fetchQuestions();
@@ -118,6 +136,21 @@ export const AdminQuestions: React.FC = () => {
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedTopic(e.target.value);
+    setPageNumber(0);
+  };
+
+  const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCompany(e.target.value);
+    setPageNumber(0);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPageNumber(0);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
     setPageNumber(0);
   };
 
@@ -269,16 +302,42 @@ export const AdminQuestions: React.FC = () => {
     }
   };
 
-  // Client-side search filtering on current page
-  const filteredQuestions = questions.filter((q) => {
-    if (!searchTerm.trim()) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      q.title.toLowerCase().includes(term) ||
-      (q.topicRefName && q.topicRefName.toLowerCase().includes(term)) ||
-      (q.difficultyRefName && q.difficultyRefName.toLowerCase().includes(term))
-    );
-  });
+  // Questions list returned by Java backend (backend handles searchText and filters)
+  const displayQuestions = questions;
+
+  // Smart page numbers array generator with ellipsis support
+  const getPageNumbers = (): (number | 'ellipsis')[] => {
+    const current = pageNumber + 1;
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | 'ellipsis')[] = [1];
+    let start = Math.max(2, current - 1);
+    let end = Math.min(totalPages - 1, current + 1);
+
+    if (current <= 3) {
+      start = 2;
+      end = 4;
+    } else if (current >= totalPages - 2) {
+      start = totalPages - 3;
+      end = totalPages - 1;
+    }
+
+    if (start > 2) {
+      pages.push('ellipsis');
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (end < totalPages - 1) {
+      pages.push('ellipsis');
+    }
+
+    pages.push(totalPages);
+    return pages;
+  };
 
   const columns: Column<QuestionPayload>[] = [
     {
@@ -291,13 +350,13 @@ export const AdminQuestions: React.FC = () => {
       header: 'Question Title',
       cell: (row: any) => (
         <div className="flex flex-col gap-1">
-          <span className="font-bold text-white hover:text-[#14B8A6] transition-colors font-heading text-sm">{row.title}</span>
+          <span className="font-bold text-white hover:text-[#A3E635] transition-colors font-heading text-sm">{row.title}</span>
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <span className="font-mono text-[11px] text-gray-500">
               QPF: {row.qpfRefName || row.qpfRefCode || row.qpfName || 'Platform'}
             </span>
             {row.isOwnProblem && (
-              <span className="text-[11px] text-[#14B8A6] font-semibold">
+              <span className="text-[11px] text-[#A3E635] font-semibold">
                 &bull; Original Problem
               </span>
             )}
@@ -343,7 +402,7 @@ export const AdminQuestions: React.FC = () => {
           {row.isOwnProblem && (
             <button
               onClick={() => handleOpenTestCasesForQuestion(row)}
-              className="p-2 rounded-xl bg-white/5 hover:bg-[#14B8A6]/20 text-gray-400 hover:text-[#14B8A6] transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-white/5 hover:bg-[#A3E635]/20 text-gray-400 hover:text-[#A3E635] transition-colors cursor-pointer"
               title="Manage Test Cases"
             >
               <i className="fa-solid fa-vial text-xs"></i>
@@ -358,7 +417,7 @@ export const AdminQuestions: React.FC = () => {
           </button>
           <button
             onClick={() => handleEditClick(row)}
-            className="p-2 rounded-xl bg-white/5 hover:bg-[#14B8A6]/20 text-gray-400 hover:text-[#14B8A6] transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-white/5 hover:bg-[#A3E635]/20 text-gray-400 hover:text-[#A3E635] transition-colors cursor-pointer"
             title="Edit Question"
           >
             <i className="fa-solid fa-pen-to-square text-xs"></i>
@@ -377,7 +436,7 @@ export const AdminQuestions: React.FC = () => {
         actions={
           <button
             onClick={handleCreateClick}
-            className="px-4 py-2.5 bg-[#14B8A6] hover:bg-[#0D9488] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-[#14B8A6]/20 font-sans"
+            className="px-4 py-2.5 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-sm rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-[#A3E635]/20 font-sans"
           >
             <i className="fa-solid fa-plus text-xs"></i>
             <span>Add New Question</span>
@@ -387,17 +446,17 @@ export const AdminQuestions: React.FC = () => {
 
       {/* Filter Bar Controls with Glassmorphism */}
       <AdminCard className="p-4 bg-[#14202C]/75 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-sans text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-sans text-xs">
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-gray-300">Filter Difficulty</label>
             <select
               value={selectedDifficulty}
               onChange={handleDifficultyChange}
-              className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] cursor-pointer"
+              className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer"
             >
               <option value="">All Difficulties</option>
               {difficulties.map((d) => (
-                <option key={d.id || d.refCode} value={d.refCode}>
+                <option key={d.id || d.refCode} value={String(d.id)}>
                   {d.refName}
                 </option>
               ))}
@@ -409,12 +468,28 @@ export const AdminQuestions: React.FC = () => {
             <select
               value={selectedTopic}
               onChange={handleTopicChange}
-              className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6] cursor-pointer"
+              className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer"
             >
               <option value="">All Topics</option>
               {topics.map((t) => (
-                <option key={t.id || t.refCode} value={t.refCode}>
+                <option key={t.id || t.refCode} value={String(t.id)}>
                   {t.refName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-gray-300">Filter Company</label>
+            <select
+              value={selectedCompany}
+              onChange={handleCompanyChange}
+              className="w-full bg-[#090A0C]/80 text-gray-100 rounded-xl px-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635] cursor-pointer"
+            >
+              <option value="">All Companies</option>
+              {companies.map((c) => (
+                <option key={c.id || c.name} value={String(c.id)}>
+                  {c.name}
                 </option>
               ))}
             </select>
@@ -428,8 +503,8 @@ export const AdminQuestions: React.FC = () => {
                 type="text"
                 placeholder="Search practice problems..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#14B8A6]"
+                onChange={handleSearchChange}
+                className="w-full bg-[#090A0C]/80 text-gray-100 placeholder-gray-500 rounded-xl pl-9 pr-4 py-2.5 text-xs border border-white/10 transition-all focus:outline-none focus:border-[#A3E635]"
               />
             </div>
           </div>
@@ -447,38 +522,112 @@ export const AdminQuestions: React.FC = () => {
         <div className="space-y-4">
           <AdminTable
             columns={columns}
-            data={filteredQuestions}
+            data={displayQuestions}
             loading={loading}
             emptyTitle="No Questions Found"
             emptyDescription="No practice problems match your filter parameters in the database."
             keyExtractor={(item) => item.id || item.title}
           />
 
-          {/* Pagination Footer */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 bg-[#14202C]/75 backdrop-blur-xl border border-white/10 rounded-2xl text-xs font-sans text-gray-300 shadow-2xl">
+          {/* Full-Featured Admin Pagination Footer */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#14202C]/75 backdrop-blur-xl border border-white/10 rounded-2xl text-xs font-sans text-gray-300 shadow-2xl">
+            <div className="flex items-center gap-3 flex-wrap">
               <span>
-                Showing page <strong className="text-white">{pageNumber + 1}</strong> of{' '}
-                <strong className="text-white">{totalPages}</strong> ({totalElements} total items)
+                Showing{' '}
+                <strong className="text-white">
+                  {totalElements === 0 ? 0 : pageNumber * pageSize + 1}
+                </strong>{' '}
+                to{' '}
+                <strong className="text-white">
+                  {Math.min((pageNumber + 1) * pageSize, totalElements)}
+                </strong>{' '}
+                of <strong className="text-white">{totalElements}</strong> questions
               </span>
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={pageNumber === 0 || loading}
-                  onClick={() => setPageNumber((p) => Math.max(0, p - 1))}
-                  className="px-4 py-2 bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-40 border border-white/10 rounded-xl text-white font-semibold transition-all cursor-pointer"
+              <div className="flex items-center gap-1.5 ml-2">
+                <span className="text-gray-400">Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  className="bg-[#090A0C]/80 text-gray-100 rounded-lg px-2.5 py-1 border border-white/10 text-xs focus:outline-none focus:border-[#A3E635] cursor-pointer"
                 >
-                  Previous
-                </button>
-                <button
-                  disabled={pageNumber >= totalPages - 1 || loading}
-                  onClick={() => setPageNumber((p) => p + 1)}
-                  className="px-4 py-2 bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-40 border border-white/10 rounded-xl text-white font-semibold transition-all cursor-pointer"
-                >
-                  Next
-                </button>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
             </div>
-          )}
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* First Page */}
+              <button
+                disabled={pageNumber === 0 || loading}
+                onClick={() => setPageNumber(0)}
+                className="p-1.5 px-2 rounded-xl bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-30 border border-white/10 text-white font-semibold transition-all cursor-pointer"
+                title="First Page"
+              >
+                <i className="fa-solid fa-angles-left text-[10px]"></i>
+              </button>
+
+              {/* Previous Page */}
+              <button
+                disabled={pageNumber === 0 || loading}
+                onClick={() => setPageNumber((p) => Math.max(0, p - 1))}
+                className="px-3 py-1.5 rounded-xl bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-30 border border-white/10 text-white font-semibold transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <i className="fa-solid fa-angle-left text-[10px]"></i>
+                <span className="hidden sm:inline">Prev</span>
+              </button>
+
+              {/* Page Number Buttons */}
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((p, idx) => {
+                  if (p === 'ellipsis') {
+                    return (
+                      <span key={`ell-${idx}`} className="px-1 text-gray-500 font-bold select-none">
+                        •••
+                      </span>
+                    );
+                  }
+                  const isActive = p === pageNumber + 1;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setPageNumber(p - 1)}
+                      disabled={loading}
+                      className={`min-w-8 h-8 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                        isActive
+                          ? 'bg-[#A3E635] text-black shadow-md shadow-[#A3E635]/20 font-extrabold'
+                          : 'border border-white/10 bg-[#090A0C]/80 text-gray-300 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Next Page */}
+              <button
+                disabled={pageNumber >= totalPages - 1 || loading}
+                onClick={() => setPageNumber((p) => p + 1)}
+                className="px-3 py-1.5 rounded-xl bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-30 border border-white/10 text-white font-semibold transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <i className="fa-solid fa-angle-right text-[10px]"></i>
+              </button>
+
+              {/* Last Page */}
+              <button
+                disabled={pageNumber >= totalPages - 1 || loading}
+                onClick={() => setPageNumber(Math.max(0, totalPages - 1))}
+                className="p-1.5 px-2 rounded-xl bg-[#090A0C]/80 hover:bg-white/10 disabled:opacity-30 border border-white/10 text-white font-semibold transition-all cursor-pointer"
+                title="Last Page"
+              >
+                <i className="fa-solid fa-angles-right text-[10px]"></i>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,15 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { dashboardService } from '../../../services/dashboardService';
-import dashboardData from '../../../mock/data/dashboard.json';
 
 export interface DashboardState {
-  data: typeof dashboardData | null;
+  data: any | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: DashboardState = {
-  data: dashboardData,
+  data: null,
   loading: false,
   error: null,
 };

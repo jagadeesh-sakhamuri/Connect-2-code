@@ -464,7 +464,7 @@ export const examPatternsData: CompanyExamPattern[] = [
     "syllabus": [
       {
         "title": "Pseudo Code & Algorithm Tracing",
-        "icon": "fa-solid fa-[#627eff] fa-code",
+        "icon": "fa-solid fa-[#A3E635] fa-code",
         "importance": "Must Master",
         "topics": [
           {
@@ -487,7 +487,7 @@ export const examPatternsData: CompanyExamPattern[] = [
       },
       {
         "title": "Grid Puzzles",
-        "icon": "fa-solid fa-[#627eff] fa-puzzle-piece",
+        "icon": "fa-solid fa-[#A3E635] fa-puzzle-piece",
         "importance": "High Priority",
         "topics": [
           {
@@ -679,7 +679,7 @@ export const examPatternsData: CompanyExamPattern[] = [
     "syllabus": [
       {
         "title": "Cognitive & Critical Reasoning",
-        "icon": "fa-solid fa-[#627eff] fa-brain",
+        "icon": "fa-solid fa-[#A3E635] fa-brain",
         "importance": "Must Master",
         "topics": [
           {
@@ -698,7 +698,7 @@ export const examPatternsData: CompanyExamPattern[] = [
       },
       {
         "title": "Technical MCQs & Cloud",
-        "icon": "fa-solid fa-[#627eff] fa-cloud",
+        "icon": "fa-solid fa-[#A3E635] fa-cloud",
         "importance": "High Priority",
         "topics": [
           {

@@ -35,7 +35,7 @@ export const Dashboard: React.FC = () => {
             Welcome back, {user?.fullName || 'Developer'}! 👋
           </h1>
           <p className="text-xs text-gray-400 mt-1 max-w-xl font-sans">
-            You've solved <span className="text-[#627eff] font-semibold font-mono">{dashboard.totalSolved} problems</span> across DSA and company question sets. Keep up the momentum!
+            You've solved <span className="text-[#A3E635] font-semibold font-mono">{dashboard.totalSolved} problems</span> across DSA and company question sets. Keep up the momentum!
           </p>
         </div>
         <Link to="/problems" className="btn-neetcode-primary text-xs">
@@ -54,7 +54,7 @@ export const Dashboard: React.FC = () => {
               <span className="text-xs text-gray-500 font-mono">/ {dashboard.totalProblems}</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-[#627eff]/10 border border-[#627eff]/20 flex items-center justify-center text-[#627eff]">
+          <div className="w-10 h-10 rounded-lg bg-[#A3E635]/10 border border-[#A3E635]/20 flex items-center justify-center text-[#A3E635]">
             <i className="fa-solid fa-circle-check text-lg"></i>
           </div>
         </div>
@@ -76,10 +76,10 @@ export const Dashboard: React.FC = () => {
           <div>
             <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Global Rank</span>
             <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-2xl font-bold text-[#627eff] font-mono">#{dashboard.globalRank}</span>
+              <span className="text-2xl font-bold text-[#A3E635] font-mono">#{dashboard.globalRank}</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-[#627eff]/10 border border-[#627eff]/20 flex items-center justify-center text-[#627eff]">
+          <div className="w-10 h-10 rounded-lg bg-[#A3E635]/10 border border-[#A3E635]/20 flex items-center justify-center text-[#A3E635]">
             <i className="fa-solid fa-trophy text-lg"></i>
           </div>
         </div>
@@ -88,10 +88,10 @@ export const Dashboard: React.FC = () => {
           <div>
             <span className="text-xs font-mono uppercase tracking-wider text-gray-400">Completion</span>
             <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-2xl font-bold text-[#48c78e] font-mono">{dashboard.completionPercentage}%</span>
+              <span className="text-2xl font-bold text-[#A3E635] font-mono">{dashboard.completionPercentage}%</span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-[#48c78e]">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-[#A3E635]">
             <i className="fa-solid fa-bullseye text-lg"></i>
           </div>
         </div>
@@ -106,11 +106,11 @@ export const Dashboard: React.FC = () => {
             <div className="flex flex-col gap-4">
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-[#48c78e]">Easy</span>
+                  <span className="text-[#A3E635]">Easy</span>
                   <span className="text-gray-400">{dashboard.easySolved} Solved</span>
                 </div>
                 <div className="w-full h-2 bg-[#121113] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#48c78e]" style={{ width: `${(dashboard.easySolved / 50) * 100}%` }} />
+                  <div className="h-full bg-[#A3E635]" style={{ width: `${(dashboard.easySolved / 50) * 100}%` }} />
                 </div>
               </div>
 
@@ -146,20 +146,20 @@ export const Dashboard: React.FC = () => {
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link
             to="/problems"
-            className="p-6 bg-[#202225] hover:bg-[#2f3136] border border-white/10 hover:border-[#627eff]/40 rounded-2xl transition-all duration-200 group flex flex-col justify-between"
+            className="p-6 bg-[#202225] hover:bg-[#2f3136] border border-white/10 hover:border-[#A3E635]/40 rounded-2xl transition-all duration-200 group flex flex-col justify-between"
           >
             <div>
-              <div className="w-10 h-10 rounded-xl bg-[#627eff]/10 border border-[#627eff]/20 text-[#627eff] flex items-center justify-center mb-4 text-base">
+              <div className="w-10 h-10 rounded-xl bg-[#A3E635]/10 border border-[#A3E635]/20 text-[#A3E635] flex items-center justify-center mb-4 text-base">
                 <i className="fa-solid fa-code"></i>
               </div>
-              <h4 className="text-base font-bold text-gray-100 group-hover:text-[#627eff] transition-colors font-heading">
+              <h4 className="text-base font-bold text-gray-100 group-hover:text-[#A3E635] transition-colors font-heading">
                 DSA Problem Roadmap
               </h4>
               <p className="text-xs text-gray-400 mt-1">
                 Filter by Arrays, Sliding Window, Trees, and DP.
               </p>
             </div>
-            <div className="mt-6 inline-flex items-center gap-1.5 text-xs text-[#627eff] font-semibold font-mono">
+            <div className="mt-6 inline-flex items-center gap-1.5 text-xs text-[#A3E635] font-semibold font-mono">
               <span>Open Roadmap</span>
               <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
             </div>
@@ -167,20 +167,20 @@ export const Dashboard: React.FC = () => {
 
           <Link
             to="/companies"
-            className="p-6 bg-[#202225] hover:bg-[#2f3136] border border-white/10 hover:border-[#627eff]/40 rounded-2xl transition-all duration-200 group flex flex-col justify-between"
+            className="p-6 bg-[#202225] hover:bg-[#2f3136] border border-white/10 hover:border-[#A3E635]/40 rounded-2xl transition-all duration-200 group flex flex-col justify-between"
           >
             <div>
-              <div className="w-10 h-10 rounded-xl bg-[#627eff]/10 border border-[#627eff]/20 text-[#627eff] flex items-center justify-center mb-4 text-base">
+              <div className="w-10 h-10 rounded-xl bg-[#A3E635]/10 border border-[#A3E635]/20 text-[#A3E635] flex items-center justify-center mb-4 text-base">
                 <i className="fa-solid fa-building"></i>
               </div>
-              <h4 className="text-base font-bold text-gray-100 group-hover:text-[#627eff] transition-colors font-heading">
+              <h4 className="text-base font-bold text-gray-100 group-hover:text-[#A3E635] transition-colors font-heading">
                 Company Hiring Guides
               </h4>
               <p className="text-xs text-gray-400 mt-1">
                 Google, Amazon, Meta & Microsoft targeted questions.
               </p>
             </div>
-            <div className="mt-6 inline-flex items-center gap-1.5 text-xs text-[#627eff] font-semibold font-mono">
+            <div className="mt-6 inline-flex items-center gap-1.5 text-xs text-[#A3E635] font-semibold font-mono">
               <span>Explore Companies</span>
               <i className="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
             </div>
@@ -192,10 +192,10 @@ export const Dashboard: React.FC = () => {
       <div className="p-6 bg-[#202225] border border-white/10 rounded-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <i className="fa-solid fa-clock-rotate-left text-[#627eff]"></i>
+            <i className="fa-solid fa-clock-rotate-left text-[#A3E635]"></i>
             <h3 className="text-sm font-semibold text-gray-100 font-mono">Recent Activity</h3>
           </div>
-          <Link to="/problems" className="text-xs text-[#627eff] hover:underline font-mono">
+          <Link to="/problems" className="text-xs text-[#A3E635] hover:underline font-mono">
             View All
           </Link>
         </div>
@@ -214,7 +214,7 @@ export const Dashboard: React.FC = () => {
               {dashboard.recentActivities.map((act) => (
                 <tr key={act.id} className="hover:bg-white/5 transition-colors">
                   <td className="py-3 font-semibold text-gray-200">
-                    <Link to={`/problems/${act.problemId}`} className="hover:text-[#627eff]">
+                    <Link to={`/problems/${act.problemId}`} className="hover:text-[#A3E635]">
                       {act.problemTitle}
                     </Link>
                   </td>

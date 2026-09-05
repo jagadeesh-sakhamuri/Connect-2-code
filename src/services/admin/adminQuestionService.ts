@@ -10,9 +10,9 @@ export interface PageRequestPayload {
 }
 
 export interface QuestionListRequestPayload {
-  level: string | number | null;
-  companies: string[] | number[] | null;
-  topic: string | number | null;
+  level: number[] | null;
+  companies: number[] | null;
+  topic: number[] | null;
   searchText: string | null;
   pageRequest: PageRequestPayload;
 }

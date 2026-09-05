@@ -48,6 +48,18 @@ let refreshTokenPromise: Promise<string> | null = null;
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     const resData = response.data;
+
+    // Reject HTML responses from Spring Security OAuth redirects when unauthenticated
+    if (typeof resData === 'string' && (resData.includes('<!doctype') || resData.includes('<html') || resData.includes('accounts.google.com'))) {
+      const errorMsg = 'Authentication required. Please log in.';
+      return Promise.reject({
+        statusCode: 401,
+        message: errorMsg,
+        errors: [errorMsg],
+        data: null,
+      });
+    }
+
     // Accept all 2xx HTTP and inner backend status codes (200, 201 Created, 202 Accepted, 204 No Content)
     if (resData && typeof resData === 'object' && 'statusCode' in resData) {
       const code = Number(resData.statusCode);
