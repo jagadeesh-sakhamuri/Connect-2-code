@@ -14,38 +14,43 @@ import { useGoogleOAuthHandler } from '../../auth/hooks/useGoogleOAuthHandler';
 import { toast } from 'react-hot-toast';
 
 const DEFAULT_TOPICS: ReferenceItem[] = [
-  { id: 1, refGroupCode: 'TOPIC', refCode: 'TOPIC_ARRAYS', refName: 'Arrays & Hashing', isActive: true },
-  { id: 2, refGroupCode: 'TOPIC', refCode: 'TOPIC_TWOPTR', refName: 'Two Pointers', isActive: true },
-  { id: 3, refGroupCode: 'TOPIC', refCode: 'TOPIC_SLIDE', refName: 'Sliding Window', isActive: true },
-  { id: 4, refGroupCode: 'TOPIC', refCode: 'TOPIC_STACK', refName: 'Stack', isActive: true },
-  { id: 5, refGroupCode: 'TOPIC', refCode: 'TOPIC_BINSRCH', refName: 'Binary Search', isActive: true },
-  { id: 6, refGroupCode: 'TOPIC', refCode: 'TOPIC_LL', refName: 'Linked List', isActive: true },
-  { id: 7, refGroupCode: 'TOPIC', refCode: 'TOPIC_TREES', refName: 'Trees', isActive: true },
-  { id: 8, refGroupCode: 'TOPIC', refCode: 'TOPIC_TRIES', refName: 'Tries', isActive: true },
-  { id: 9, refGroupCode: 'TOPIC', refCode: 'TOPIC_BACKTRACK', refName: 'Backtracking', isActive: true },
-  { id: 10, refGroupCode: 'TOPIC', refCode: 'TOPIC_HEAP', refName: 'Heap', isActive: true },
-  { id: 11, refGroupCode: 'TOPIC', refCode: 'TOPIC_GRAPHS', refName: 'Graphs', isActive: true },
-  { id: 12, refGroupCode: 'TOPIC', refCode: 'TOPIC_1DDP', refName: '1-D Dynamic Programming', isActive: true },
-  { id: 13, refGroupCode: 'TOPIC', refCode: 'TOPIC_2DDP', refName: '2-D Dynamic Programming', isActive: true },
-  { id: 14, refGroupCode: 'TOPIC', refCode: 'TOPIC_BIT', refName: 'Bit Manipulation', isActive: true },
-  { id: 15, refGroupCode: 'TOPIC', refCode: 'TOPIC_MATH', refName: 'Math & Geometry', isActive: true },
-  { id: 16, refGroupCode: 'TOPIC', refCode: 'TOPIC_PREREQ', refName: 'Prerequisites', isActive: true },
+  { id: 9, refGroupCode: 'TOPIC', refCode: 'ARRAY', refName: 'Arrays', isActive: true },
+  { id: 10, refGroupCode: 'TOPIC', refCode: 'STRING', refName: 'Strings', isActive: true },
+  { id: 11, refGroupCode: 'TOPIC', refCode: 'LINKEDLIST', refName: 'Linked List', isActive: true },
+  { id: 12, refGroupCode: 'TOPIC', refCode: 'STACK', refName: 'Stack', isActive: true },
+  { id: 13, refGroupCode: 'TOPIC', refCode: 'QUEUE', refName: 'Queue', isActive: true },
+  { id: 14, refGroupCode: 'TOPIC', refCode: 'TREE', refName: 'Tree', isActive: true },
+  { id: 15, refGroupCode: 'TOPIC', refCode: 'GRAPH', refName: 'Graph', isActive: true },
+  { id: 16, refGroupCode: 'TOPIC', refCode: 'DYNAMICPROGRAMMING', refName: 'Dynamic Programming', isActive: true },
+  { id: 17, refGroupCode: 'TOPIC', refCode: 'HASHING', refName: 'Hashing', isActive: true },
+  { id: 18, refGroupCode: 'TOPIC', refCode: 'SORTING', refName: 'Sorting', isActive: true },
+  { id: 19, refGroupCode: 'TOPIC', refCode: 'SEARCHING', refName: 'Searching', isActive: true },
 ];
 
 const DEFAULT_COMPANIES = [
-  { id: 1, name: 'Amazon' },
-  { id: 2, name: 'Google' },
-  { id: 3, name: 'Microsoft' },
-  { id: 4, name: 'Meta' },
-  { id: 5, name: 'TCS' },
-  { id: 6, name: 'Infosys' },
-  { id: 7, name: 'Wipro' },
-  { id: 8, name: 'Accenture' },
-  { id: 9, name: 'Cognizant' },
-  { id: 10, name: 'Capgemini' },
-  { id: 11, name: 'Uber' },
-  { id: 12, name: 'Netflix' },
-  { id: 13, name: 'Adobe' },
+  { id: 1, name: 'TCS' },
+  { id: 2, name: 'Infosys' },
+  { id: 3, name: 'Wipro' },
+  { id: 4, name: 'Accenture' },
+  { id: 5, name: 'Cognizant' },
+  { id: 6, name: 'Capgemini' },
+  { id: 7, name: 'Tech Mahindra' },
+  { id: 8, name: 'HCLTech' },
+  { id: 9, name: 'IBM' },
+  { id: 10, name: 'Microsoft' },
+  { id: 11, name: 'Amazon' },
+  { id: 12, name: 'Google' },
+  { id: 13, name: 'Meta' },
+  { id: 14, name: 'Oracle' },
+  { id: 15, name: 'Deloitte' },
+  { id: 16, name: 'EY' },
+  { id: 17, name: 'KPMG' },
+  { id: 18, name: 'PwC' },
+  { id: 19, name: 'Zoho' },
+  { id: 20, name: 'Freshworks' },
+  { id: 21, name: 'ServiceNow' },
+  { id: 22, name: 'Salesforce' },
+  { id: 23, name: 'Adobe' },
 ];
 
 export const PracticePage: React.FC = () => {
@@ -59,6 +64,7 @@ export const PracticePage: React.FC = () => {
 
   const [activeSheetTab, setActiveSheetTab] = useState<'all' | 'answered' | 'bookmarked'>('all');
   const [searchInput, setSearchInput] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
   const [selectedTopic, setSelectedTopic] = useState<string>('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
   const [selectedCompany, setSelectedCompany] = useState<string>('');
@@ -74,6 +80,15 @@ export const PracticePage: React.FC = () => {
   ]);
   const [topics, setTopics] = useState<ReferenceItem[]>(DEFAULT_TOPICS);
   const [companies, setCompanies] = useState<Array<{ id: number; name: string }>>(DEFAULT_COMPANIES);
+
+  // Debounce search input by 300ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // 1. Fetch Reference Library & Companies for Filter Dropdowns
   useEffect(() => {
@@ -107,32 +122,34 @@ export const PracticePage: React.FC = () => {
   }, []);
 
   // 2. Fetch Questions with Filter Parameters
-  const loadQuestions = useCallback((targetPage?: number) => {
-    const pageToLoad = targetPage !== undefined ? targetPage : currentPage;
+  const loadQuestions = useCallback(
+    (targetPage?: number) => {
+      const pageToLoad = targetPage !== undefined ? targetPage : currentPage;
 
-    // Resolve human-readable name or numeric ID
-    const topicItem = topics.find((t) => String(t.id) === selectedTopic || t.refName === selectedTopic);
-    const topVal = topicItem?.refName || (selectedTopic || undefined);
+      const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;
+      const diffId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;
+      const compId = selectedCompany && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : undefined;
 
-    const diffItem = difficulties.find((d) => String(d.id) === selectedDifficulty || d.refName === selectedDifficulty);
-    const diffVal = diffItem?.refName || (selectedDifficulty || undefined);
+      const topicItem = topics.find((t) => String(t.id) === selectedTopic || t.refName === selectedTopic);
+      const diffItem = difficulties.find((d) => String(d.id) === selectedDifficulty || d.refName === selectedDifficulty);
+      const compItem = companies.find((c) => String(c.id) === selectedCompany || c.name === selectedCompany);
 
-    const compItem = companies.find((c) => String(c.id) === selectedCompany || c.name === selectedCompany);
-    const compVal = compItem?.name || (selectedCompany || undefined);
-
-    dispatch(
-      fetchProblems({
-        search: searchInput.trim() || undefined,
-        topic: topVal,
-        difficulty: diffVal,
-        level: selectedDifficulty ? [Number(selectedDifficulty)].filter((n) => !isNaN(n)) : undefined,
-        company: compVal,
-        companies: compVal ? [compVal] : undefined,
-        page: pageToLoad,
-        limit: pageSize,
-      })
-    );
-  }, [dispatch, searchInput, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize, topics, difficulties, companies]);
+      dispatch(
+        fetchProblems({
+          search: debouncedSearch.trim() || undefined,
+          searchText: debouncedSearch.trim() || undefined,
+          topic: topicId ? [topicId] : topicItem?.id ? [topicItem.id] : (selectedTopic || undefined),
+          difficulty: diffId ? [diffId] : diffItem?.id ? [diffItem.id] : (selectedDifficulty || undefined),
+          level: diffId ? [diffId] : diffItem?.id ? [diffItem.id] : undefined,
+          company: compId ? [compId] : compItem?.id ? [compItem.id] : (selectedCompany || undefined),
+          companies: compId ? [compId] : compItem?.id ? [compItem.id] : undefined,
+          page: pageToLoad,
+          limit: pageSize,
+        })
+      );
+    },
+    [dispatch, debouncedSearch, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize, topics, difficulties, companies]
+  );
 
   useEffect(() => {
     loadQuestions();
@@ -143,8 +160,8 @@ export const PracticePage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setDebouncedSearch(searchInput);
     setCurrentPage(1);
-    loadQuestions(1);
   };
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -200,6 +217,7 @@ export const PracticePage: React.FC = () => {
 
   const handleResetFilters = () => {
     setSearchInput('');
+    setDebouncedSearch('');
     setSelectedTopic('');
     setSelectedDifficulty('');
     setSelectedCompany('');
@@ -308,7 +326,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Topics</option>
               {topics.map((t) => (
-                <option key={t.id || t.refCode} value={String(t.refName || t.id)} className="bg-[#202225] text-white">
+                <option key={t.id || t.refCode} value={String(t.id)} className="bg-[#202225] text-white">
                   {t.refName}
                 </option>
               ))}
@@ -322,7 +340,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Companies</option>
               {companies.map((c) => (
-                <option key={c.id || c.name} value={String(c.name || c.id)} className="bg-[#202225] text-white">
+                <option key={c.id || c.name} value={String(c.id)} className="bg-[#202225] text-white">
                   {c.name}
                 </option>
               ))}
@@ -336,7 +354,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Difficulties</option>
               {difficulties.map((diff) => (
-                <option key={diff.id || diff.refCode} value={String(diff.refName || diff.id)} className="bg-[#202225] text-white">
+                <option key={diff.id || diff.refCode} value={String(diff.id)} className="bg-[#202225] text-white">
                   {diff.refName}
                 </option>
               ))}
@@ -511,8 +529,12 @@ export const PracticePage: React.FC = () => {
         <div className="mt-8">
           <Pagination
             currentPage={currentPage}
-            totalPages={pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1}
-            totalElements={pagination.total}
+            totalPages={
+              activeSheetTab === 'all'
+                ? pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1
+                : Math.ceil((displayedProblems.length || 0) / pageSize) || 1
+            }
+            totalElements={activeSheetTab === 'all' ? pagination.total : displayedProblems.length}
             pageSize={pageSize}
             onPageChange={handlePageChange}
           />

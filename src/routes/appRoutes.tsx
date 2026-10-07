@@ -95,11 +95,13 @@ export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-      // Practice / DSA Problems (Restored)
+      // Practice & Companies Pages (Publicly accessible with in-app tracking for logged-in users)
       { path: '/dsa-sheet', element: withSuspense(ProblemList) },
       { path: '/practice', element: withSuspense(PracticePage) },
       { path: '/problems', element: <Navigate to="/practice" replace /> },
       { path: '/problems/:slug', element: withSuspense(ProblemDetails) },
+      { path: '/companies', element: withSuspense(CompanyList) },
+      { path: '/companies/:slug', element: withSuspense(CompanyDetails) },
 
       // Temporarily Hidden Feature Pages -> Reusable Coming Soon UI
       { path: '/roadmaps', element: renderFeature(RoadmapList, 'Roadmaps') },
@@ -116,8 +118,6 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: '/dashboard', element: <Navigate to="/practice" replace /> },
-          { path: '/companies', element: withSuspense(CompanyList) },
-          { path: '/companies/:slug', element: withSuspense(CompanyDetails) },
           { path: '/bookmarks', element: withSuspense(BookmarksList) },
           { path: '/profile', element: withSuspense(ProfileSettings) },
           { path: '/settings', element: withSuspense(AppSettings) },

@@ -201,7 +201,7 @@ export const DashboardCodeRunner: React.FC = () => {
     try {
       const res = await adminQuestionService.adminTestCode({
         questionId: qId,
-        languageId: selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
         sourceCode,
       });
 
@@ -248,7 +248,7 @@ export const DashboardCodeRunner: React.FC = () => {
     try {
       const res = await adminQuestionService.adminSubmitCode({
         questionId: qId,
-        languageId: selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
         sourceCode,
       });
 

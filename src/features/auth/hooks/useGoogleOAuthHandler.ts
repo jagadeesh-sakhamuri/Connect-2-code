@@ -42,6 +42,8 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
 
           if (isAdmin) {
             navigate('/admin/dashboard', { replace: true });
+          } else if (window.location.pathname && window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+            navigate(window.location.pathname, { replace: true });
           } else {
             navigate('/practice', { replace: true });
           }

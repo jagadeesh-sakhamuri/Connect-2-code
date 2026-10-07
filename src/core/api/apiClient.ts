@@ -22,9 +22,12 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request Interceptor: Attach Access Token from Cookies (EXCLUDES Public Auth Endpoints)
+// Shared Promise Lock for Concurrent 401 Refresh Requests
+let refreshTokenPromise: Promise<string> | null = null;
+
+// Request Interceptor: Attach Access Token from Storage (EXCLUDES Public Auth Endpoints)
 apiClient.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
+  async (config: InternalAxiosRequestConfig) => {
     const reqUrl = config.url || '';
     
     const isPublicAuthEndpoint =
@@ -34,7 +37,46 @@ apiClient.interceptors.request.use(
       reqUrl.includes('/auth/generatePasswordResetOtp') ||
       reqUrl.includes('/auth/verifyPasswordResetOtp');
 
-    const token = tokenStorage.getAccessToken();
+    let token = tokenStorage.getAccessToken();
+    const refreshToken = tokenStorage.getRefreshToken();
+
+    // Proactively refresh expired access token if a valid refresh token exists
+    if (!token && refreshToken && !isPublicAuthEndpoint) {
+      if (!refreshTokenPromise) {
+        refreshTokenPromise = (async () => {
+          try {
+            const refreshRes = await axios.post(
+              `${BASE_URL}/auth/refresh`,
+              { refreshToken },
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+
+            const responseData = refreshRes.data;
+            const tokenData = responseData?.data || responseData;
+            const newAccessToken = tokenData.accessToken || tokenData.token;
+            const newRefreshToken = tokenData.refreshToken || refreshToken;
+
+            if (newAccessToken) {
+              tokenStorage.setAccessToken(newAccessToken);
+              tokenStorage.setRefreshToken(newRefreshToken);
+              return newAccessToken;
+            } else {
+              throw new Error('No access token returned from refresh');
+            }
+          } catch (refreshErr) {
+            tokenStorage.clearTokens();
+            throw refreshErr;
+          } finally {
+            refreshTokenPromise = null;
+          }
+        })();
+      }
+
+      try {
+        token = await refreshTokenPromise;
+      } catch {}
+    }
+
     if (token && config.headers && !isPublicAuthEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -42,9 +84,6 @@ apiClient.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
-// Shared Promise Lock for Concurrent 401 Refresh Requests
-let refreshTokenPromise: Promise<string> | null = null;
 
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {

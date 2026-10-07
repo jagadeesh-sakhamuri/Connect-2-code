@@ -1,5 +1,6 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
+import { executionService } from '../executionService';
 
 export interface AdminLanguageItem {
   id?: number;
@@ -13,6 +14,7 @@ export interface AdminLanguageItem {
 export interface LanguageDropdownItem {
   id: number;
   name: string;
+  referenceId?: number;
 }
 
 export interface LanguageApiResponse<T = any> {
@@ -30,29 +32,11 @@ export interface LanguageApiResponse<T = any> {
  */
 export const adminLanguageService = {
   /**
-   * GET /api/v1/language/dropdown
-   * Fetches active languages with database table IDs for code execution.
-   * Send this `id` for /admin/testCode and /admin/submitCode.
+   * GET /api/v1/language/dropdown & /language
+   * Fetches active languages with table IDs and reference IDs for code execution.
    */
   async getLanguageDropdown(): Promise<LanguageDropdownItem[]> {
-    try {
-      const res: any = await apiClient.get(API_ENDPOINTS.LANGUAGE.DROPDOWN);
-      const data = res?.data || res;
-      if (Array.isArray(data)) {
-        return data;
-      }
-      if (data && Array.isArray(data.data)) {
-        return data.data;
-      }
-    } catch (err) {
-      console.warn('Failed to fetch languages dropdown from backend, using default list:', err);
-    }
-    return [
-      { id: 1, name: 'Java' },
-      { id: 2, name: 'Python' },
-      { id: 3, name: 'C++' },
-      { id: 4, name: 'JavaScript' },
-    ];
+    return executionService.getLanguageDropdown();
   },
 
   /**

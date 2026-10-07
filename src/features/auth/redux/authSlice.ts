@@ -24,18 +24,38 @@ export interface AuthState {
 }
 
 const initialToken = tokenStorage.getAccessToken();
+const initialRefreshToken = tokenStorage.getRefreshToken();
 const initialUser = tokenStorage.getUser();
+
+// User is authenticated if they have an active access token, a valid refresh token, or a persisted user profile
+const initialIsAuthenticated = Boolean(
+  initialToken || initialRefreshToken || (initialUser && initialUser.email)
+);
 
 const initialState: AuthState = {
   user: initialUser,
-  token: null,
-  refreshToken: null,
-  isAuthenticated: Boolean(initialToken),
+  token: initialToken,
+  refreshToken: initialRefreshToken,
+  isAuthenticated: initialIsAuthenticated,
   loading: false,
   error: null,
   isAuthModalOpen: false,
   authModalMode: 'login',
 };
+
+export const silentRefreshSession = createAsyncThunk(
+  'auth/silentRefresh',
+  async (_, { rejectWithValue }) => {
+    try {
+      const refreshToken = tokenStorage.getRefreshToken();
+      if (!refreshToken) return null;
+      const res = await authService.refreshToken();
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message || 'Session refresh failed');
+    }
+  }
+);
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -101,10 +121,14 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     initializeAuth(state) {
-      const hasToken = Boolean(tokenStorage.getAccessToken());
+      const token = tokenStorage.getAccessToken();
+      const refreshToken = tokenStorage.getRefreshToken();
       const savedUser = tokenStorage.getUser();
-      state.isAuthenticated = hasToken;
-      state.user = hasToken ? savedUser : null;
+      const hasAuth = Boolean(token || refreshToken || (savedUser && savedUser.email));
+      state.isAuthenticated = hasAuth;
+      state.user = hasAuth ? savedUser : null;
+      state.token = token;
+      state.refreshToken = refreshToken;
     },
     clearAuthError(state) {
       state.error = null;
@@ -124,6 +148,26 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // Silent Refresh
+      .addCase(silentRefreshSession.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.isAuthenticated = true;
+          const data = action.payload;
+          if (data.user || data.email) {
+            const u = data.user || data;
+            const userObj = {
+              id: u.id,
+              firstName: u.firstName,
+              lastName: u.lastName,
+              fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
+              email: u.email,
+              role: u.role,
+            };
+            state.user = userObj;
+            tokenStorage.setUser(userObj);
+          }
+        }
+      })
       // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;

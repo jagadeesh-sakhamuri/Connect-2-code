@@ -41,6 +41,214 @@ export interface ProblemFilterParams {
   limit?: number;
 }
 
+export const DIFF_NAME_TO_ID: Record<string, number> = {
+  basic: 1,
+  easy: 2,
+  medium: 3,
+  med: 3,
+  hard: 4,
+};
+
+export const DIFF_ID_TO_NAME: Record<number, string> = {
+  1: 'Basic',
+  2: 'Easy',
+  3: 'Medium',
+  4: 'Hard',
+};
+
+export const TOPIC_NAME_TO_ID: Record<string, number> = {
+  arrays: 9,
+  array: 9,
+  'arrays & hashing': 9,
+  strings: 10,
+  string: 10,
+  'linked list': 11,
+  linkedlist: 11,
+  stack: 12,
+  stacks: 12,
+  queue: 13,
+  queues: 13,
+  tree: 14,
+  trees: 14,
+  bst: 14,
+  graph: 15,
+  graphs: 15,
+  'dynamic programming': 16,
+  '1-d dynamic programming': 16,
+  '2-d dynamic programming': 16,
+  dp: 16,
+  hashing: 17,
+  hash: 17,
+  sorting: 18,
+  sort: 18,
+  searching: 19,
+  search: 19,
+  'binary search': 19,
+  prerequisites: 9,
+  'two pointers': 9,
+  'sliding window': 9,
+  heap: 14,
+  tries: 10,
+  backtracking: 16,
+  'bit manipulation': 9,
+};
+
+export const TOPIC_ID_TO_NAME: Record<number, string> = {
+  9: 'Arrays',
+  10: 'Strings',
+  11: 'Linked List',
+  12: 'Stack',
+  13: 'Queue',
+  14: 'Tree',
+  15: 'Graph',
+  16: 'Dynamic Programming',
+  17: 'Hashing',
+  18: 'Sorting',
+  19: 'Searching',
+};
+
+export const COMPANY_NAME_TO_ID: Record<string, number> = {
+  tcs: 1,
+  infosys: 2,
+  wipro: 3,
+  accenture: 4,
+  cognizant: 5,
+  capgemini: 6,
+  'tech mahindra': 7,
+  techmahindra: 7,
+  hcltech: 8,
+  hcl: 8,
+  ibm: 9,
+  microsoft: 10,
+  amazon: 11,
+  google: 12,
+  meta: 13,
+  oracle: 14,
+  deloitte: 15,
+  ey: 16,
+  kpmg: 17,
+  pwc: 18,
+  zoho: 19,
+  freshworks: 20,
+  servicenow: 21,
+  salesforce: 22,
+  adobe: 23,
+  cisco: 24,
+  dell: 25,
+  intel: 26,
+  nvidia: 27,
+  paypal: 28,
+  'jpmorgan chase': 29,
+  jpmorgan: 29,
+  'goldman sachs': 30,
+  'morgan stanley': 31,
+  'wells fargo': 32,
+  atlassian: 33,
+  uber: 34,
+  ola: 35,
+  swiggy: 36,
+  zomato: 37,
+  razorpay: 38,
+  phonepe: 39,
+  paytm: 40,
+  myntra: 41,
+  flipkart: 42,
+  'walmart global tech': 43,
+  walmart: 43,
+  linkedin: 44,
+  samsung: 45,
+  accolite: 46,
+  thoughtworks: 47,
+  ltimindtree: 48,
+  'persistent systems': 49,
+  mindtree: 50,
+  databeat: 51,
+  mouritech: 52,
+};
+
+export const COMPANY_ID_TO_NAME: Record<number, string> = {
+  1: 'TCS',
+  2: 'Infosys',
+  3: 'Wipro',
+  4: 'Accenture',
+  5: 'Cognizant',
+  6: 'Capgemini',
+  7: 'Tech Mahindra',
+  8: 'HCLTech',
+  9: 'IBM',
+  10: 'Microsoft',
+  11: 'Amazon',
+  12: 'Google',
+  13: 'Meta',
+  14: 'Oracle',
+  15: 'Deloitte',
+  16: 'EY',
+  17: 'KPMG',
+  18: 'PwC',
+  19: 'Zoho',
+  20: 'Freshworks',
+  21: 'ServiceNow',
+  22: 'Salesforce',
+  23: 'Adobe',
+  24: 'Cisco',
+  25: 'Dell',
+  26: 'Intel',
+  27: 'NVIDIA',
+  28: 'PayPal',
+  29: 'JPMorgan Chase',
+  30: 'Goldman Sachs',
+  31: 'Morgan Stanley',
+  32: 'Wells Fargo',
+  33: 'Atlassian',
+  34: 'Uber',
+  35: 'Ola',
+  36: 'Swiggy',
+  37: 'Zomato',
+  38: 'Razorpay',
+  39: 'PhonePe',
+  40: 'Paytm',
+  41: 'Myntra',
+  42: 'Flipkart',
+  43: 'Walmart Global Tech',
+  44: 'LinkedIn',
+  45: 'Samsung',
+  46: 'Accolite',
+  47: 'Thoughtworks',
+  48: 'LTIMindtree',
+  49: 'Persistent Systems',
+  50: 'Mindtree',
+  51: 'DataBeat',
+  52: 'Mouritech',
+};
+
+/**
+ * Universal parser converting single IDs, ID arrays, or human-readable names to number[] | null
+ */
+export function parseToIdList(raw: any, nameToId: Record<string, number>): number[] | null {
+  if (raw === undefined || raw === null || raw === '' || raw === 'All' || raw === 'all') {
+    return null;
+  }
+  const items = Array.isArray(raw) ? raw : [raw];
+  const ids: number[] = [];
+
+  for (const item of items) {
+    if (item === undefined || item === null || item === '' || item === 'All' || item === 'all') {
+      continue;
+    }
+    const num = Number(item);
+    if (!isNaN(num) && num > 0) {
+      ids.push(num);
+    } else {
+      const normalized = String(item).trim().toLowerCase();
+      if (nameToId[normalized] !== undefined) {
+        ids.push(nameToId[normalized]);
+      }
+    }
+  }
+
+  return ids.length > 0 ? Array.from(new Set(ids)) : null;
+}
+
 /**
  * Filter the rich curated fallback problems dataset
  */
@@ -60,73 +268,51 @@ function filterFallbackProblems(params: ProblemFilterParams = {}): ApiResponse<P
   }
 
   // 2. Difficulty / Level filter
-  const diffVal =
-    params.level !== undefined && params.level !== null && params.level !== '' && params.level !== 'All'
-      ? params.level
-      : params.difficulty !== undefined && params.difficulty !== null && params.difficulty !== '' && params.difficulty !== 'All'
-      ? params.difficulty
-      : null;
-
-  if (diffVal !== null) {
-    const diffMap: Record<number, string> = {
-      1: 'basic',
-      2: 'easy',
-      3: 'medium',
-      4: 'hard',
-    };
-
-    let targetDiffs: string[] = [];
-    if (Array.isArray(diffVal)) {
-      targetDiffs = diffVal.map((v) => {
-        const num = Number(v);
-        return !isNaN(num) && diffMap[num] ? diffMap[num] : String(v).toLowerCase();
-      });
-    } else {
-      const num = Number(diffVal);
-      targetDiffs = [!isNaN(num) && diffMap[num] ? diffMap[num] : String(diffVal).toLowerCase()];
-    }
-
+  const levelIds = parseToIdList(params.level ?? params.difficulty, DIFF_NAME_TO_ID);
+  if (levelIds && levelIds.length > 0) {
+    const allowedDiffNames = levelIds.map((id) => (DIFF_ID_TO_NAME[id] || '').toLowerCase()).filter(Boolean);
     list = list.filter((p) => {
       const pDiff = (p.difficulty || '').toLowerCase();
-      return targetDiffs.some((td) => pDiff.includes(td) || td.includes(pDiff));
+      return allowedDiffNames.some((d) => pDiff.includes(d) || d.includes(pDiff));
+    });
+  } else if (params.difficulty && typeof params.difficulty === 'string' && params.difficulty !== 'All' && params.difficulty.trim()) {
+    const dLower = params.difficulty.trim().toLowerCase();
+    list = list.filter((p) => {
+      const pDiff = (p.difficulty || '').toLowerCase();
+      return pDiff.includes(dLower) || dLower.includes(pDiff);
     });
   }
 
   // 3. Topic filter
-  const topicVal = params.topic;
-  if (topicVal && topicVal !== 'All' && topicVal !== '') {
-    let topicStrs: string[] = [];
-    if (Array.isArray(topicVal)) {
-      topicStrs = topicVal.map((t) => String(t).toLowerCase());
-    } else {
-      topicStrs = [String(topicVal).toLowerCase()];
-    }
+  const topicIds = parseToIdList(params.topic, TOPIC_NAME_TO_ID);
+  if (topicIds && topicIds.length > 0) {
+    const allowedTopicNames = topicIds.map((id) => (TOPIC_ID_TO_NAME[id] || '').toLowerCase()).filter(Boolean);
     list = list.filter((p) => {
       const pTopic = (p.topic || p.category || '').toLowerCase();
-      return topicStrs.some((ts) => pTopic.includes(ts) || ts.includes(pTopic));
+      return allowedTopicNames.some((t) => pTopic.includes(t) || t.includes(pTopic));
+    });
+  } else if (typeof params.topic === 'string' && params.topic !== 'All' && params.topic.trim()) {
+    const tLower = params.topic.trim().toLowerCase();
+    list = list.filter((p) => {
+      const pTopic = (p.topic || p.category || '').toLowerCase();
+      return pTopic.includes(tLower) || tLower.includes(pTopic);
     });
   }
 
   // 4. Company filter
-  const compVal =
-    params.companies && Array.isArray(params.companies) && params.companies.length > 0
-      ? params.companies
-      : params.company && params.company !== 'All' && params.company !== ''
-      ? params.company
-      : null;
-
-  if (compVal) {
-    let compStrs: string[] = [];
-    if (Array.isArray(compVal)) {
-      compStrs = compVal.map((c) => String(c).toLowerCase());
-    } else {
-      compStrs = [String(compVal).toLowerCase()];
-    }
+  const compIds = parseToIdList(params.companies ?? params.company, COMPANY_NAME_TO_ID);
+  if (compIds && compIds.length > 0) {
+    const allowedCompNames = compIds.map((id) => (COMPANY_ID_TO_NAME[id] || '').toLowerCase()).filter(Boolean);
     list = list.filter((p) => {
       return (p.companies || []).some((c) =>
-        compStrs.some((cs) => c.toLowerCase().includes(cs) || cs.includes(c.toLowerCase()))
+        allowedCompNames.some((ac) => c.toLowerCase().includes(ac) || ac.includes(c.toLowerCase()))
       );
     });
+  } else if (params.company && typeof params.company === 'string' && params.company !== 'All' && params.company.trim()) {
+    const cLower = params.company.trim().toLowerCase();
+    list = list.filter((p) =>
+      (p.companies || []).some((c) => c.toLowerCase().includes(cLower) || cLower.includes(c.toLowerCase()))
+    );
   }
 
   const page = params.page ? Math.max(1, Number(params.page)) : 1;
@@ -155,48 +341,13 @@ export const problemService = {
     const pageSize = params.limit || 20;
 
     // Convert level / difficulty to array of IDs: number[] | null
-    let levelArr: number[] | null = null;
-    const rawLevel =
-      params.level !== undefined && params.level !== null && params.level !== '' && params.level !== 'All'
-        ? params.level
-        : params.difficulty !== undefined && params.difficulty !== null && params.difficulty !== '' && params.difficulty !== 'All'
-        ? params.difficulty
-        : null;
-
-    if (rawLevel !== null) {
-      if (Array.isArray(rawLevel)) {
-        levelArr = rawLevel.map((v) => Number(v)).filter((n) => !isNaN(n));
-      } else if (!isNaN(Number(rawLevel))) {
-        levelArr = [Number(rawLevel)];
-      }
-    }
+    const levelArr = parseToIdList(params.level ?? params.difficulty, DIFF_NAME_TO_ID);
 
     // Convert topic to array of IDs: number[] | null
-    let topicArr: number[] | null = null;
-    const rawTopic =
-      params.topic !== undefined && params.topic !== null && params.topic !== '' && params.topic !== 'All'
-        ? params.topic
-        : null;
-
-    if (rawTopic !== null) {
-      if (Array.isArray(rawTopic)) {
-        topicArr = rawTopic.map((v) => Number(v)).filter((n) => !isNaN(n));
-      } else if (!isNaN(Number(rawTopic))) {
-        topicArr = [Number(rawTopic)];
-      }
-    }
+    const topicArr = parseToIdList(params.topic, TOPIC_NAME_TO_ID);
 
     // Convert companies to array of IDs: number[] | null
-    let companiesArr: number[] | null = null;
-    if (params.companies && Array.isArray(params.companies) && params.companies.length > 0) {
-      companiesArr = params.companies.map((v) => Number(v)).filter((n) => !isNaN(n));
-    } else if (params.company && params.company !== 'All') {
-      if (Array.isArray(params.company)) {
-        companiesArr = params.company.map((v) => Number(v)).filter((n) => !isNaN(n));
-      } else if (!isNaN(Number(params.company))) {
-        companiesArr = [Number(params.company)];
-      }
-    }
+    const companiesArr = parseToIdList(params.companies ?? params.company, COMPANY_NAME_TO_ID);
 
     const rawSearch = params.searchText?.trim()
       ? params.searchText.trim()
@@ -205,9 +356,9 @@ export const problemService = {
       : null;
 
     const payload = {
-      level: levelArr && levelArr.length > 0 ? levelArr : null,
-      companies: companiesArr && companiesArr.length > 0 ? companiesArr : null,
-      topic: topicArr && topicArr.length > 0 ? topicArr : null,
+      level: levelArr,
+      companies: companiesArr,
+      topic: topicArr,
       searchText: rawSearch,
       pageRequest: {
         pageNumber: pageNum,
@@ -222,19 +373,23 @@ export const problemService = {
       const rawData = res?.data || res;
       let list: any[] = [];
       let total = 0;
+      let isBackendResponse = false;
 
       if (rawData && Array.isArray(rawData.content)) {
         list = rawData.content;
-        total = rawData.totalElements || list.length;
+        total = typeof rawData.totalElements === 'number' ? rawData.totalElements : list.length;
+        isBackendResponse = true;
       } else if (Array.isArray(rawData)) {
         list = rawData;
-        total = rawData.length;
+        total = list.length;
+        isBackendResponse = true;
       } else if (rawData && typeof rawData === 'object' && Array.isArray(rawData.data)) {
         list = rawData.data;
-        total = rawData.total || list.length;
+        total = typeof rawData.total === 'number' ? rawData.total : list.length;
+        isBackendResponse = true;
       }
 
-      if (list.length > 0) {
+      if (isBackendResponse) {
         const mappedList: ProblemItem[] = list.map((item: any) => ({
           id: String(item.id || item._id),
           title: item.title || item.name || '',
@@ -276,7 +431,7 @@ export const problemService = {
       console.warn('Backend questions API unavailable, loading curated practice dataset:', err);
     }
 
-    // Graceful fallback to rich curated problems dataset
+    // Graceful fallback to rich curated problems dataset when backend API is unavailable
     return filterFallbackProblems(params);
   },
 

@@ -25,3 +25,6 @@ dist-ssr
 
 # PDF Documentation
 *.pdf
+
+# Agent and AI IDE configuration
+.agent/

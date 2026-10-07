@@ -6,6 +6,7 @@ import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { toggleSolveProblem } from '../../problems/redux/problemSlice';
 import { toggleBookmarkItem } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
+import { tokenStorage } from '../../../core/security/tokenStorage';
 import { toast } from 'react-hot-toast';
 
 const fallbackLogos: Record<string, string> = {
@@ -22,6 +23,7 @@ export const CompanyDetails: React.FC = () => {
   const { selectedCompany: company, companyProblems, loading } = useAppSelector((state) => state.companies);
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isUserAuth = isAuthenticated || Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
   const location = useLocation();
   const fromPatterns = (location.state as any)?.from === 'company-patterns';
 
@@ -41,7 +43,7 @@ export const CompanyDetails: React.FC = () => {
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isAuthenticated) {
+    if (!isUserAuth) {
       toast.error('Please log in to track your solved problems');
       dispatch(openAuthModal({ mode: 'login' }));
       return;
@@ -52,7 +54,7 @@ export const CompanyDetails: React.FC = () => {
 
   const handleBookmarkToggle = (q: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isAuthenticated) {
+    if (!isUserAuth) {
       toast.error('Please log in to bookmark questions');
       dispatch(openAuthModal({ mode: 'login' }));
       return;

@@ -19,7 +19,7 @@ interface AdminCodeTestModalProps {
 const STARTER_CODES: Record<string, string> = {
   Java: `import java.util.*;
 
-public class Solution {
+public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         if (sc.hasNext()) {
@@ -143,7 +143,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
     try {
       const res = await adminQuestionService.adminTestCode({
         questionId: Number(question.id),
-        languageId: selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
         sourceCode,
       });
       const data = res?.data || res;
@@ -178,7 +178,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
     try {
       const res = await adminQuestionService.adminSubmitCode({
         questionId: Number(question.id),
-        languageId: selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
         sourceCode,
       });
       const data = res?.data || res;

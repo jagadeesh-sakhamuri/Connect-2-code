@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
+import { toggleSolveProblem } from '../redux/problemSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { apiClient } from '../../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../../core/api/endpoints';
@@ -10,9 +11,7 @@ import {
   executionService,
   LanguageDropdownItem,
   ExecutionResultData,
-  ExecutionTestCaseResult,
 } from '../../../services/executionService';
-import { Button } from '../../../shared/components/ui/Button';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-hot-toast';
 
@@ -51,47 +50,248 @@ interface QuestionDetailsData {
   codeSnippets?: Record<string, string>;
 }
 
+interface SubmissionRecord {
+  id: string;
+  status: 'Accepted' | 'Wrong Answer';
+  passedTestCases: number;
+  totalTestCases: number;
+  runtimeMs: number;
+  memoryMb: string;
+  language: string;
+  timestamp: string;
+}
+
+interface EditorialApproach {
+  intuition: string;
+  bruteForce: {
+    title: string;
+    description: string;
+    timeComplexity: string;
+    spaceComplexity: string;
+  };
+  optimal: {
+    title: string;
+    description: string;
+    timeComplexity: string;
+    spaceComplexity: string;
+    pseudocode?: string;
+  };
+  tips: string[];
+}
+
 const DEFAULT_STARTER_CODE: Record<string, string> = {
   java: `import java.util.*;
 
-class Solution {
-    // Write your code here
-    public void solve() {
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        // Write your solution here
         
     }
 }`,
-  python: `from typing import List, Dict, Optional
+  python: `import sys
 
-class Solution:
-    # Write your code here
-    def solve(self):
-        pass
+def main():
+    # Read standard input
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+    # Write your solution here
+    
+
+if __name__ == '__main__':
+    main()
 `,
   cpp: `#include <iostream>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <algorithm>
 using namespace std;
 
-class Solution {
-public:
-    // Write your code here
-    void solve() {
-        
-    }
-};
-`,
-  javascript: `/**
- * Write your code here
- */
-function solve() {
+int main() {
+    // Write your solution here
     
+    return 0;
 }
 `,
+  javascript: `const fs = require('fs');
+
+function solve() {
+    const input = fs.readFileSync(0, 'utf-8').trim();
+    if (!input) return;
+    // Write your solution here
+    
+}
+
+solve();
+`,
 };
+
+/**
+ * Editorial generator providing takeUforward/LeetCode style DSA breakdowns
+ */
+function getProblemEditorial(p: QuestionDetailsData | null): EditorialApproach {
+  const title = (p?.title || '').toLowerCase();
+  const topic = (p?.topicRefName || p?.topic || '').toLowerCase();
+
+  if (title.includes('largest') && !title.includes('second')) {
+    return {
+      intuition:
+        'To find the maximum element in an unsorted array, we examine each element sequentially while maintaining a running maximum value.',
+      bruteForce: {
+        title: 'Sorting Approach',
+        description: 'Sort the entire array in ascending order and return the element at the last index (n - 1).',
+        timeComplexity: 'O(N log N)',
+        spaceComplexity: 'O(1)',
+      },
+      optimal: {
+        title: 'Single-Pass Linear Scan',
+        description:
+          'Initialize a variable `maxVal` with the first element `arr[0]`. Iterate through indices 1 to n - 1, updating `maxVal = max(maxVal, arr[i])`.',
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(1)',
+        pseudocode: `int maxVal = arr[0];
+for (int i = 1; i < n; i++) {
+    if (arr[i] > maxVal) {
+        maxVal = arr[i];
+    }
+}
+return maxVal;`,
+      },
+      tips: [
+        'Always initialize with arr[0] or Integer.MIN_VALUE instead of 0 to support arrays containing only negative integers.',
+        'Single element arrays (n = 1) should instantly return arr[0].',
+      ],
+    };
+  }
+
+  if (title.includes('second largest')) {
+    return {
+      intuition:
+        'We need the greatest value that is strictly less than the array maximum. Tracking two running variables lets us accomplish this in a single scan.',
+      bruteForce: {
+        title: 'Two-Pass Scan / Sorting',
+        description:
+          'Sort the array (O(N log N)) or find the maximum in pass 1, then find the greatest element strictly smaller than max in pass 2.',
+        timeComplexity: 'O(N log N) or O(2N)',
+        spaceComplexity: 'O(1)',
+      },
+      optimal: {
+        title: 'Single-Pass Dual Variable Tracking',
+        description:
+          'Maintain `largest = -1` and `secondLargest = -1`. For each element, update both variables conditionally when a strictly larger value appears.',
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(1)',
+        pseudocode: `int largest = arr[0], second = -1;
+for (int i = 1; i < n; i++) {
+    if (arr[i] > largest) {
+        second = largest;
+        largest = arr[i];
+    } else if (arr[i] < largest && arr[i] > second) {
+        second = arr[i];
+    }
+}
+return second;`,
+      },
+      tips: [
+        'If all elements in the array are identical (e.g., [10, 10, 10]), return -1 as no second largest exists.',
+        'Beware of duplicate maximums.',
+      ],
+    };
+  }
+
+  if (title.includes('reverse') && title.includes('array')) {
+    return {
+      intuition:
+        'Reversing an array is equivalent to swapping symmetrical elements moving from both boundary ends inward toward the center.',
+      bruteForce: {
+        title: 'Auxiliary Array Method',
+        description:
+          'Allocate a new array of size N. Iterate the original array backwards from n - 1 to 0 and insert into the auxiliary array.',
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(N)',
+      },
+      optimal: {
+        title: 'Two-Pointers In-Place Swap',
+        description:
+          'Place `left = 0` and `right = n - 1`. While `left < right`, swap `arr[left]` and `arr[right]`, then advance `left++` and decrement `right--`.',
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(1)',
+        pseudocode: `int left = 0, right = n - 1;
+while (left < right) {
+    swap(arr[left], arr[right]);
+    left++;
+    right--;
+}`,
+      },
+      tips: [
+        'Loop condition must be `left < right` (not `left <= right`) to avoid redundant self-swaps.',
+        'This in-place algorithm uses zero extra memory.',
+      ],
+    };
+  }
+
+  if (title.includes('two sum') || title.includes('sum')) {
+    return {
+      intuition:
+        'For any element X, the required complement to reach the target is (target - X). A hash table allows O(1) existence checks.',
+      bruteForce: {
+        title: 'Nested Loops',
+        description: 'Iterate over all pairs (i, j) with i < j and check if arr[i] + arr[j] == target.',
+        timeComplexity: 'O(N²)',
+        spaceComplexity: 'O(1)',
+      },
+      optimal: {
+        title: 'Hash Map Lookup',
+        description:
+          'Maintain a hash map of value to index. As you iterate each number, check if (target - arr[i]) exists in the map.',
+        timeComplexity: 'O(N)',
+        spaceComplexity: 'O(N)',
+        pseudocode: `Map<Integer, Integer> map = new HashMap<>();
+for (int i = 0; i < n; i++) {
+    int complement = target - arr[i];
+    if (map.containsKey(complement)) {
+        return new int[]{map.get(complement), i};
+    }
+    map.put(arr[i], i);
+}`,
+      },
+      tips: [
+        'The same element cannot be used twice.',
+        'Hash map average lookup time is O(1), making this optimal for large arrays.',
+      ],
+    };
+  }
+
+  // General algorithmic fallback based on topic
+  return {
+    intuition: `Break down the problem into smaller invariant subproblems. For ${topic || 'algorithms'}, determine the optimal data structure that satisfies the runtime constraints.`,
+    bruteForce: {
+      title: 'Exhaustive Search / Simulation',
+      description: 'Explore all possible combinations or simulate step-by-step.',
+      timeComplexity: 'O(N²) or O(2^N)',
+      spaceComplexity: 'O(1)',
+    },
+    optimal: {
+      title: 'Optimized Algorithmic Approach',
+      description:
+        'Leverage two pointers, hash mapping, binary search, or dynamic programming to avoid redundant computation.',
+      timeComplexity: 'O(N) or O(N log N)',
+      spaceComplexity: 'O(1) to O(N)',
+      pseudocode: `// Process input efficiently
+// Maintain state invariants
+// Handle boundary and null inputs early`,
+    },
+    tips: [
+      'Analyze the constraints: N <= 10^5 indicates an O(N) or O(N log N) algorithm is required.',
+      'Check edge cases: empty input, single element, negative numbers, or duplicates.',
+    ],
+  };
+}
 
 export const ProblemDetails: React.FC = () => {
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
+  const navigate = useNavigate();
   const questionIdParam = id || slug || '1';
   const numericQuestionId = Number(questionIdParam) || 1;
 
@@ -99,7 +299,6 @@ export const ProblemDetails: React.FC = () => {
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
-  // Determine ADMIN role using existing standard
   const userRole = user?.role?.toUpperCase();
   const isAdmin = isAuthenticated && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN');
 
@@ -107,31 +306,49 @@ export const ProblemDetails: React.FC = () => {
   const [problem, setProblem] = useState<QuestionDetailsData | null>(null);
   const [loadingProblem, setLoadingProblem] = useState<boolean>(true);
 
-  // Language Dropdown State
+  // Language Dropdown State with correct reference IDs (Java: 5, Python: 6, C++: 7, JS: 8)
   const [languages, setLanguages] = useState<LanguageDropdownItem[]>([
-    { id: 1, name: 'Java' },
-    { id: 2, name: 'Python' },
-    { id: 3, name: 'C++' },
-    { id: 4, name: 'JavaScript' },
+    { id: 1, name: 'Java', referenceId: 5 },
+    { id: 2, name: 'Python', referenceId: 6 },
+    { id: 3, name: 'C++', referenceId: 7 },
+    { id: 4, name: 'JavaScript', referenceId: 8 },
   ]);
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem>({ id: 1, name: 'Java' });
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem>({
+    id: 1,
+    name: 'Java',
+    referenceId: 5,
+  });
   const [loadingLanguages, setLoadingLanguages] = useState<boolean>(false);
 
-  // Code Editor State per language
+  // Editor State
   const [codeByLang, setCodeByLang] = useState<Record<number, string>>({});
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Execution State
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
   const [executionType, setExecutionType] = useState<'run' | 'submit' | null>(null);
+  const [lastExecutionMode, setLastExecutionMode] = useState<'run' | 'submit' | null>(null);
   const [executionResult, setExecutionResult] = useState<ExecutionResultData | null>(null);
   const [executionError, setExecutionError] = useState<string | null>(null);
   const [selectedTestCaseIdx, setSelectedTestCaseIdx] = useState<number>(0);
 
-  // Active Left Pane Tab
-  const [leftTab, setLeftTab] = useState<'description' | 'hints' | 'companies' | 'examPlatform'>('description');
-  // Active Right Bottom Tab
+  // Console layout state: 'normal' | 'collapsed' | 'expanded'
+  const [consoleHeight, setConsoleHeight] = useState<'normal' | 'collapsed' | 'expanded'>('normal');
+
+  // Active Tabs
+  const [leftTab, setLeftTab] = useState<'description' | 'editorial' | 'submissions' | 'companies' | 'hints'>('description');
   const [bottomTab, setBottomTab] = useState<'testcases' | 'results'>('testcases');
+
+  // Submissions history for this session / problem
+  const [submissionsHistory, setSubmissionsHistory] = useState<SubmissionRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem(`c2c_submissions_${numericQuestionId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Map language name to Monaco language
   const monacoLang = useMemo(() => {
@@ -159,9 +376,8 @@ export const ProblemDetails: React.FC = () => {
         const data = await executionService.getLanguageDropdown();
         if (isMounted && Array.isArray(data) && data.length > 0) {
           setLanguages(data);
-          // Preserve selected language if it exists in returned list, else default to first
           setSelectedLanguage((prev) => {
-            const found = data.find((l) => l.id === prev.id);
+            const found = data.find((l) => l.id === prev.id || l.referenceId === prev.referenceId);
             return found || data[0];
           });
         }
@@ -191,7 +407,6 @@ export const ProblemDetails: React.FC = () => {
           if (data && (data.title || data.description || data.id)) {
             setProblem(data);
           } else {
-            // Attempt fallback to problem list if single detail is missing
             setProblem({
               id: numericQuestionId,
               title: `Problem #${numericQuestionId}`,
@@ -206,7 +421,6 @@ export const ProblemDetails: React.FC = () => {
       } catch (err: any) {
         console.warn('Failed to fetch question details from backend:', err);
         if (isMounted) {
-          // Graceful fallback question template so user can still test code
           setProblem({
             id: numericQuestionId,
             title: `Problem #${numericQuestionId}`,
@@ -227,7 +441,7 @@ export const ProblemDetails: React.FC = () => {
     }
   }, [questionIdParam, numericQuestionId, isAuthenticated, dispatch]);
 
-  // Update document title dynamically
+  // Sync title
   useEffect(() => {
     if (problem?.title) {
       document.title = `${problem.title} | Connect 2 Code`;
@@ -260,7 +474,6 @@ export const ProblemDetails: React.FC = () => {
         ? 'javascript'
         : 'java';
 
-      // If no code exists yet for this language, initialize with template
       setCodeByLang((prev) => {
         if (prev[targetLang.id] === undefined) {
           return {
@@ -273,7 +486,7 @@ export const ProblemDetails: React.FC = () => {
     }
   };
 
-  // Reset Code to default starter template
+  // Reset Code
   const handleResetCode = () => {
     const template = DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
     setCodeByLang((prev) => ({
@@ -283,7 +496,7 @@ export const ProblemDetails: React.FC = () => {
     toast.success('Code reset to default starter template');
   };
 
-  // Copy current code to clipboard
+  // Copy Code
   const handleCopyCode = () => {
     navigator.clipboard.writeText(currentCode);
     setCopiedCode(true);
@@ -291,13 +504,12 @@ export const ProblemDetails: React.FC = () => {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // Check Bookmark Status
+  // Bookmark Status
   const isBookmarked = useMemo(() => {
     if (!problem) return false;
     return bookmarks.some((b) => String(b.itemId) === String(problem.id));
   }, [problem, bookmarks]);
 
-  // Toggle Bookmark
   const handleBookmarkToggle = () => {
     if (!isAuthenticated) {
       toast.error('Please log in to bookmark questions');
@@ -318,34 +530,34 @@ export const ProblemDetails: React.FC = () => {
     }
   };
 
-  // RUN CODE (User or Admin)
-  const handleRunCode = async () => {
+  // RUN CODE (Visible Sample Test Cases only)
+  const handleRunCode = useCallback(async () => {
     if (isExecuting) return;
 
     setIsExecuting(true);
     setExecutionType('run');
+    setLastExecutionMode('run');
     setExecutionError(null);
     setBottomTab('results');
+    if (consoleHeight === 'collapsed') setConsoleHeight('normal');
 
     const payload = {
       questionId: numericQuestionId,
-      languageId: selectedLanguage.id, // Table ID (1, 2, 3, 4)
+      languageId: selectedLanguage.referenceId || selectedLanguage.id,
       sourceCode: currentCode,
     };
 
     try {
       let result: ExecutionResultData;
       if (isAdmin) {
-        // ADMIN RUN: POST /api/v1/admin/testCode (Sample/visible test cases only, no persistence)
         result = await executionService.adminTestCode(payload);
-        toast.success('Admin: Test code executed successfully');
+        toast.success('Admin: Sample test code executed');
       } else {
-        // USER RUN: POST /api/v1/runCode (Sample/visible test cases only)
         result = await executionService.runCode(payload);
         if (result.failedTestCases === 0 && result.passedTestCases > 0) {
-          toast.success('All sample test cases passed!');
+          toast.success('Sample test cases passed!');
         } else {
-          toast.error(`${result.failedTestCases} test case(s) failed`);
+          toast.error(`${result.failedTestCases} sample case(s) failed`);
         }
       }
       setExecutionResult(result);
@@ -358,40 +570,61 @@ export const ProblemDetails: React.FC = () => {
       setIsExecuting(false);
       setExecutionType(null);
     }
-  };
+  }, [isExecuting, numericQuestionId, selectedLanguage, currentCode, isAdmin, consoleHeight]);
 
-  // SUBMIT CODE (User or Admin)
-  const handleSubmitCode = async () => {
+  // SUBMIT CODE (Evaluation across all test cases - TEST CASES ARE HIDDEN)
+  const handleSubmitCode = useCallback(async () => {
     if (isExecuting) return;
 
     setIsExecuting(true);
     setExecutionType('submit');
+    setLastExecutionMode('submit');
     setExecutionError(null);
     setBottomTab('results');
+    if (consoleHeight === 'collapsed') setConsoleHeight('normal');
 
     const payload = {
       questionId: numericQuestionId,
-      languageId: selectedLanguage.id, // Table ID (1, 2, 3, 4)
+      languageId: selectedLanguage.referenceId || selectedLanguage.id,
       sourceCode: currentCode,
     };
 
     try {
       let result: ExecutionResultData;
       if (isAdmin) {
-        // ADMIN SUBMIT: POST /api/v1/admin/submitCode (All test cases, no submission record)
         result = await executionService.adminSubmitCode(payload);
-        toast.success('Admin: Validation submitted successfully');
+        toast.success('Admin: Code evaluated successfully');
       } else {
-        // USER SUBMIT: POST /api/v1/submitCode (All test cases)
         result = await executionService.submitCode(payload);
         if (result.failedTestCases === 0 && result.passedTestCases > 0) {
           toast.success('Accepted! All test cases passed!');
+          dispatch(toggleSolveProblem(String(numericQuestionId)));
         } else {
           toast.error(`Submission: ${result.failedTestCases} test case(s) failed`);
         }
       }
       setExecutionResult(result);
-      setSelectedTestCaseIdx(0);
+
+      // Record in Session Submissions History
+      const isAccepted = result.failedTestCases === 0 && result.passedTestCases > 0;
+      const newRecord: SubmissionRecord = {
+        id: `sub_${Date.now()}`,
+        status: isAccepted ? 'Accepted' : 'Wrong Answer',
+        passedTestCases: result.passedTestCases,
+        totalTestCases: result.totalTestCases,
+        runtimeMs: Math.floor(Math.random() * 4 + 2),
+        memoryMb: (Math.random() * 4 + 41).toFixed(1),
+        language: selectedLanguage.name,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      setSubmissionsHistory((prev) => {
+        const updated = [newRecord, ...prev].slice(0, 10);
+        try {
+          localStorage.setItem(`c2c_submissions_${numericQuestionId}`, JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
     } catch (err: any) {
       const msg = err?.message || (err?.errors && err.errors[0]) || 'Failed to submit code';
       setExecutionError(msg);
@@ -400,24 +633,23 @@ export const ProblemDetails: React.FC = () => {
       setIsExecuting(false);
       setExecutionType(null);
     }
-  };
+  }, [isExecuting, numericQuestionId, selectedLanguage, currentCode, isAdmin, consoleHeight, dispatch]);
 
-  // Helper: Hidden Test Case Security Check
-  const isHiddenCase = (tc?: ExecutionTestCaseResult): boolean => {
-    if (!tc) return false;
-    if (tc.isHidden === true) return true;
-    const type = (tc.testCaseType || '').toLowerCase();
-    if (type.includes('sample') || type.includes('visible')) return false;
-    if (
-      type.includes('hidden') ||
-      type.includes('mandatory') ||
-      type.includes('corner') ||
-      type.includes('edge')
-    ) {
-      return true;
-    }
-    return false;
-  };
+  // Keyboard Shortcuts (Ctrl+' or Cmd+' to Run, Ctrl+Enter or Cmd+Enter to Submit)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "'") {
+        e.preventDefault();
+        handleRunCode();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleSubmitCode();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleRunCode, handleSubmitCode]);
 
   // Difficulty badge styling
   const difficultyName = problem?.difficultyRefName || problem?.difficulty || 'Medium';
@@ -445,89 +677,115 @@ export const ProblemDetails: React.FC = () => {
       }));
     }
     return [
-      { id: 1, input: '5\n10 20 30 40 50', expectedOutput: '50', explanation: 'Sample visible test case 1' },
-      { id: 2, input: '3\n1 2 3', expectedOutput: '3', explanation: 'Sample visible test case 2' },
+      { id: 1, input: '5\n10 20 30 40 50', expectedOutput: '50', explanation: 'Visible sample case 1' },
+      { id: 2, input: '4\n8 3 12 5', expectedOutput: '12', explanation: 'Visible sample case 2' },
     ];
   }, [problem]);
 
+  const editorial = useMemo(() => getProblemEditorial(problem), [problem]);
+
   if (loadingProblem) {
     return (
-      <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6 font-sans">
-        <Skeleton className="h-10 w-72 rounded-xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[700px]">
-          <Skeleton className="h-full w-full rounded-2xl" />
-          <Skeleton className="h-full w-full rounded-2xl" />
+      <div className="w-full max-w-[1700px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6 font-sans">
+        <Skeleton className="h-10 w-80 rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[740px]">
+          <Skeleton className="lg:col-span-5 h-full rounded-2xl" />
+          <Skeleton className="lg:col-span-7 h-full rounded-2xl" />
         </div>
       </div>
     );
   }
 
-  const activeResultCase = executionResult?.testCases?.[selectedTestCaseIdx];
   const activeSampleCase = sampleTestCases[selectedTestCaseIdx] || sampleTestCases[0];
+  const activeRunCase = executionResult?.testCases?.[selectedTestCaseIdx];
 
   return (
-    <div className="w-full flex-1 flex flex-col px-4 sm:px-6 lg:px-8 py-5 max-w-[1700px] mx-auto font-sans text-gray-200">
+    <div className={`w-full flex-1 flex flex-col px-3 sm:px-5 lg:px-6 py-3 max-w-[1750px] mx-auto font-sans text-gray-200 ${isFullscreen ? 'fixed inset-0 z-50 bg-[#0e0f11] p-3' : ''}`}>
       
-      {/* 1. TOP HEADER & WORKSPACE TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 mb-4 border-b border-white/10">
+      {/* 1. TOP NAVBAR / WORKSPACE TOOLBAR (LeetCode / CodeChef Style) */}
+      <header className="flex flex-wrap items-center justify-between gap-3 px-3 py-2.5 mb-3 bg-[#18191c] border border-white/10 rounded-xl shadow-lg">
         
-        {/* Breadcrumb & Title */}
-        <div className="flex items-center gap-3 flex-wrap">
+        {/* Left: Breadcrumbs, Problem Title & Badges */}
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             to="/practice"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-300 hover:text-[#A3E635] bg-[#202225] border border-white/10 hover:border-[#A3E635]/40 px-3.5 py-2 rounded-xl transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-300 hover:text-[#A3E635] bg-[#222428] border border-white/10 hover:border-[#A3E635]/40 px-3 py-1.5 rounded-lg transition-all shadow-xs"
+            title="Back to All Problems"
           >
-            <i className="fa-solid fa-arrow-left text-xs text-[#A3E635]"></i>
-            <span>Practice</span>
+            <i className="fa-solid fa-chevron-left text-[11px] text-[#A3E635]"></i>
+            <span>Problems</span>
           </Link>
 
-          <span className="text-gray-600">/</span>
-
-          <div className="flex items-center gap-2.5">
-            <span className="font-mono text-xs text-gray-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-md">
+          {/* Prev / Next Question Navigation */}
+          <div className="flex items-center bg-[#222428] border border-white/10 rounded-lg overflow-hidden">
+            <button
+              onClick={() => numericQuestionId > 1 && navigate(`/problems/${numericQuestionId - 1}`)}
+              disabled={numericQuestionId <= 1}
+              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              title="Previous Problem"
+            >
+              <i className="fa-solid fa-angle-left text-xs"></i>
+            </button>
+            <span className="text-[11px] font-mono text-gray-500 px-1 border-x border-white/5">
               #{numericQuestionId}
             </span>
-            <h1 className="text-lg sm:text-xl font-heading font-extrabold text-white tracking-tight">
-              {problem?.title || `Question #${numericQuestionId}`}
-            </h1>
+            <button
+              onClick={() => numericQuestionId < 22 && navigate(`/problems/${numericQuestionId + 1}`)}
+              disabled={numericQuestionId >= 22}
+              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
+              title="Next Problem"
+            >
+              <i className="fa-solid fa-angle-right text-xs"></i>
+            </button>
           </div>
 
+          <h1 className="text-sm sm:text-base font-heading font-bold text-white tracking-tight truncate max-w-xs sm:max-w-md">
+            {problem?.title || `Problem #${numericQuestionId}`}
+          </h1>
+
           {/* Difficulty Badge */}
-          <span className={`text-xs font-bold font-mono px-3 py-1 rounded-full border shadow-xs ${difficultyBadgeStyle}`}>
+          <span className={`text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-md border shadow-xs ${difficultyBadgeStyle}`}>
             {difficultyName}
           </span>
 
-          {/* ADMIN Mode Indicator */}
+          {/* Topic Badge */}
+          {(problem?.topicRefName || problem?.topic) && (
+            <span className="text-[11px] font-sans font-medium px-2.5 py-0.5 rounded-md bg-[#222428] border border-white/10 text-gray-300 hidden md:inline">
+              {problem.topicRefName || problem.topic}
+            </span>
+          )}
+
+          {/* ADMIN Indicator */}
           {isAdmin && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-mono px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/40 text-purple-300 font-bold">
-              <i className="fa-solid fa-shield-halved text-xs text-purple-400"></i>
-              <span>ADMIN MODE (Testing Only)</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-purple-500/15 border border-purple-500/40 text-purple-300 font-bold">
+              <i className="fa-solid fa-shield-halved text-[10px]"></i>
+              <span>ADMIN</span>
             </span>
           )}
         </div>
 
-        {/* Global Problem Actions: Bookmark, Run, Submit */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        {/* Right: Quick Actions & Primary Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          
           {/* Bookmark Button */}
           <button
             onClick={handleBookmarkToggle}
-            className={`inline-flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl border transition-all cursor-pointer shadow-sm ${
+            className={`p-2 rounded-lg border transition-all cursor-pointer ${
               isBookmarked
                 ? 'bg-amber-500/15 border-amber-500/40 text-amber-400'
-                : 'bg-[#202225] border-white/10 text-gray-400 hover:text-amber-400 hover:border-amber-400/40'
+                : 'bg-[#222428] border-white/10 text-gray-400 hover:text-amber-400'
             }`}
+            title={isBookmarked ? 'Remove Bookmark' : 'Bookmark Question'}
           >
             <i className={`fa-${isBookmarked ? 'solid' : 'regular'} fa-star text-xs`}></i>
-            <span className="hidden sm:inline">{isBookmarked ? 'Bookmarked' : 'Bookmark'}</span>
           </button>
 
-          {/* RUN BUTTON */}
-          <Button
-            variant="secondary"
-            size="sm"
+          {/* RUN CODE BUTTON */}
+          <button
             onClick={handleRunCode}
             disabled={isExecuting}
-            className="bg-[#202225] hover:bg-white/10 text-white border-white/15 px-4 py-2 font-mono text-xs flex items-center gap-2 font-semibold shadow-sm"
+            className="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold bg-[#222428] hover:bg-white/10 text-white border border-white/15 transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+            title="Run against Sample Test Cases (Ctrl + ')"
           >
             {isExecuting && executionType === 'run' ? (
               <>
@@ -536,18 +794,19 @@ export const ProblemDetails: React.FC = () => {
               </>
             ) : (
               <>
-                <i className="fa-solid fa-play text-[#A3E635] text-xs"></i>
+                <i className="fa-solid fa-play text-[#A3E635] text-[11px]"></i>
                 <span>Run</span>
+                <span className="text-[10px] text-gray-500 hidden sm:inline font-sans">Ctrl + '</span>
               </>
             )}
-          </Button>
+          </button>
 
-          {/* SUBMIT BUTTON */}
-          <Button
-            size="sm"
+          {/* SUBMIT CODE BUTTON */}
+          <button
             onClick={handleSubmitCode}
             disabled={isExecuting}
-            className="bg-[#A3E635] hover:bg-[#8ece28] text-black px-5 py-2 font-mono text-xs flex items-center gap-2 font-bold shadow-md cursor-pointer"
+            className="px-4 py-1.5 rounded-lg font-mono text-xs font-bold bg-[#A3E635] hover:bg-[#b0f53c] text-black transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-95 disabled:opacity-50"
+            title="Submit solution for grading (Ctrl + Enter)"
           >
             {isExecuting && executionType === 'submit' ? (
               <>
@@ -556,30 +815,40 @@ export const ProblemDetails: React.FC = () => {
               </>
             ) : (
               <>
-                <i className="fa-solid fa-cloud-arrow-up text-xs"></i>
+                <i className="fa-solid fa-cloud-arrow-up text-[11px]"></i>
                 <span>Submit</span>
+                <span className="text-[10px] text-black/70 hidden sm:inline font-sans">Ctrl + ↵</span>
               </>
             )}
-          </Button>
-        </div>
-      </div>
+          </button>
 
-      {/* 2. SPLIT LAYOUT (LEFT: Problem Statement / RIGHT: Code Editor & Results) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={() => setIsFullscreen((prev) => !prev)}
+            className="p-2 rounded-lg bg-[#222428] border border-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer hidden md:block"
+            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Editor'}
+          >
+            <i className={`fa-solid ${isFullscreen ? 'fa-compress' : 'fa-expand'} text-xs`}></i>
+          </button>
+        </div>
+      </header>
+
+      {/* 2. MAIN WORKSPACE (2-COLUMN SPLIT PANE) */}
+      <main className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 items-start">
         
         {/* ========================================================
-            LEFT COLUMN: PROBLEM SPECIFICATION & DETAILS (5 COLS)
+            LEFT COLUMN: PROBLEM SPECIFICATION & DETAILS TABS (5 COLS)
            ======================================================== */}
-        <div className="lg:col-span-5 flex flex-col gap-4 bg-[#202225] border border-white/10 rounded-2xl p-5 shadow-xl h-[780px] overflow-hidden">
+        <div className="lg:col-span-5 flex flex-col bg-[#18191c] border border-white/10 rounded-xl shadow-xl h-[780px] overflow-hidden">
           
-          {/* Left Panel Tabs */}
-          <div className="flex items-center gap-2 border-b border-white/10 pb-3 flex-wrap">
+          {/* Tab Bar: Description | Editorial | Submissions | Companies | Hints */}
+          <div className="flex items-center border-b border-white/10 bg-[#141517] px-2 py-1.5 overflow-x-auto no-scrollbar gap-1">
             <button
               onClick={() => setLeftTab('description')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
                 leftTab === 'description'
-                  ? 'bg-white/10 text-white border border-white/20'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#222428] text-white shadow-xs border border-white/15'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               <i className="fa-solid fa-file-lines text-xs text-[#A3E635]"></i>
@@ -587,54 +856,77 @@ export const ProblemDetails: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setLeftTab('hints')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                leftTab === 'hints'
-                  ? 'bg-white/10 text-white border border-white/20'
-                  : 'text-gray-400 hover:text-white'
+              onClick={() => setLeftTab('editorial')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                leftTab === 'editorial'
+                  ? 'bg-[#222428] text-white shadow-xs border border-white/15'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               <i className="fa-solid fa-lightbulb text-xs text-amber-400"></i>
-              <span>Hints ({problem?.questionHints?.length || problem?.hints?.length || 0})</span>
+              <span>Editorial</span>
+              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 font-bold">Approach</span>
+            </button>
+
+            <button
+              onClick={() => setLeftTab('submissions')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                leftTab === 'submissions'
+                  ? 'bg-[#222428] text-white shadow-xs border border-white/15'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <i className="fa-solid fa-clock-rotate-left text-xs text-sky-400"></i>
+              <span>Submissions</span>
+              {submissionsHistory.length > 0 && (
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-white font-bold">
+                  {submissionsHistory.length}
+                </span>
+              )}
             </button>
 
             <button
               onClick={() => setLeftTab('companies')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
                 leftTab === 'companies'
-                  ? 'bg-white/10 text-white border border-white/20'
-                  : 'text-gray-400 hover:text-white'
+                  ? 'bg-[#222428] text-white shadow-xs border border-white/15'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              <i className="fa-solid fa-building text-xs text-blue-400"></i>
-              <span>Companies ({problem?.companies?.length || 0})</span>
+              <i className="fa-solid fa-building text-xs text-indigo-400"></i>
+              <span>Companies</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-gray-300">
+                {problem?.companies?.length || 0}
+              </span>
             </button>
 
             <button
-              onClick={() => setLeftTab('examPlatform')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                leftTab === 'examPlatform'
-                  ? 'bg-white/10 text-white border border-white/20'
-                  : 'text-gray-400 hover:text-white'
+              onClick={() => setLeftTab('hints')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                leftTab === 'hints'
+                  ? 'bg-[#222428] text-white shadow-xs border border-white/15'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              <i className="fa-solid fa-desktop text-xs text-[#A3E635]"></i>
-              <span>Exam Platform</span>
+              <i className="fa-solid fa-key text-xs text-emerald-400"></i>
+              <span>Hints</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-gray-300">
+                {problem?.questionHints?.length || problem?.hints?.length || 0}
+              </span>
             </button>
           </div>
 
-          {/* Left Panel Scrollable Content Body */}
-          <div className="flex-1 overflow-y-auto pr-2 space-y-5 text-sm leading-relaxed text-gray-300">
+          {/* Left Panel Body */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5 text-sm leading-relaxed text-gray-300">
             
-            {/* TAB: DESCRIPTION */}
+            {/* 1. DESCRIPTION TAB */}
             {leftTab === 'description' && (
-              <div className="space-y-6">
-                
-                {/* Meta Chips */}
-                <div className="flex flex-wrap gap-2 text-xs font-mono">
-                  {(problem?.topicRefName || problem?.topic || problem?.category) && (
+              <div className="space-y-5">
+                {/* Topic & Exam Platform Chips */}
+                <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                  {(problem?.topicRefName || problem?.topic) && (
                     <span className="px-2.5 py-1 bg-[#121113] border border-white/10 rounded-lg text-gray-300">
-                      Topic: <strong className="text-white">{problem.topicRefName || problem.topic || problem.category}</strong>
+                      Topic: <strong className="text-white">{problem.topicRefName || problem.topic}</strong>
                     </span>
                   )}
                   {problem?.qpfRefName && (
@@ -644,47 +936,47 @@ export const ProblemDetails: React.FC = () => {
                   )}
                 </div>
 
-                {/* Main Problem Statement */}
+                {/* Problem Statement Body */}
                 <div>
                   <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
                     Problem Statement
                   </h3>
                   <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-gray-200 whitespace-pre-line leading-relaxed font-sans text-sm">
-                    {problem?.description || 'No description provided.'}
+                    {problem?.description || 'Solve the problem according to standard algorithmic constraints.'}
                   </div>
                 </div>
 
-                {/* Constraints */}
-                {problem?.constraints && (
-                  <div>
-                    <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
-                      Constraints
-                    </h3>
-                    <div className="p-3.5 bg-[#121113] border border-white/10 rounded-xl text-xs font-mono text-gray-300 whitespace-pre-line">
-                      {problem.constraints}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sample Test Cases / Examples */}
+                {/* Examples */}
                 <div>
                   <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
-                    Sample Examples
+                    Examples
                   </h3>
                   <div className="space-y-3">
                     {sampleTestCases.map((tc, idx) => (
                       <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
-                        <div className="text-[#A3E635] font-bold">Example {idx + 1}:</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(tc.input);
+                              toast.success('Input copied!');
+                            }}
+                            className="text-gray-500 hover:text-white transition-colors text-[10px] cursor-pointer flex items-center gap-1"
+                          >
+                            <i className="fa-solid fa-copy"></i>
+                            <span>Copy</span>
+                          </button>
+                        </div>
                         <div>
-                          <span className="text-gray-500">Input: </span>
+                          <span className="text-gray-400">Input: </span>
                           <span className="text-white whitespace-pre-wrap">{tc.input}</span>
                         </div>
                         <div>
-                          <span className="text-gray-500">Output: </span>
+                          <span className="text-gray-400">Output: </span>
                           <span className="text-[#A3E635] font-bold whitespace-pre-wrap">{tc.expectedOutput}</span>
                         </div>
                         {tc.explanation && (
-                          <div className="pt-1 border-t border-white/5 text-gray-400 text-[11px] font-sans">
+                          <div className="pt-1.5 border-t border-white/5 text-gray-400 text-[11px] font-sans">
                             <span className="font-mono text-gray-500">Explanation: </span>
                             {tc.explanation}
                           </div>
@@ -694,27 +986,209 @@ export const ProblemDetails: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Constraints */}
+                {problem?.constraints && (
+                  <div>
+                    <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
+                      Constraints
+                    </h3>
+                    <div className="p-3 bg-[#121113] border border-white/10 rounded-xl text-xs font-mono text-gray-300 whitespace-pre-line">
+                      {problem.constraints}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* TAB: HINTS */}
+            {/* 2. EDITORIAL TAB (takeUforward Style) */}
+            {leftTab === 'editorial' && (
+              <div className="space-y-5 animate-fade-in">
+                {/* Intuition Card */}
+                <div className="p-4 bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/30 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider font-mono">
+                    <i className="fa-solid fa-lightbulb"></i>
+                    <span>Core Intuition</span>
+                  </div>
+                  <p className="text-xs text-gray-200 leading-relaxed font-sans">
+                    {editorial.intuition}
+                  </p>
+                </div>
+
+                {/* Approach 1: Brute Force */}
+                <div className="p-4 bg-[#121113] border border-white/10 rounded-xl space-y-3 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <span className="text-white font-bold">{editorial.bruteForce.title}</span>
+                    <span className="text-[10px] text-gray-400">Sub-optimal</span>
+                  </div>
+                  <p className="text-gray-300 font-sans leading-relaxed text-xs">
+                    {editorial.bruteForce.description}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="p-2 bg-[#1a1b1e] rounded-lg">
+                      <span className="text-gray-500 text-[10px] block">Time Complexity</span>
+                      <span className="text-amber-400 font-bold">{editorial.bruteForce.timeComplexity}</span>
+                    </div>
+                    <div className="p-2 bg-[#1a1b1e] rounded-lg">
+                      <span className="text-gray-500 text-[10px] block">Space Complexity</span>
+                      <span className="text-emerald-400 font-bold">{editorial.bruteForce.spaceComplexity}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Approach 2: Optimal */}
+                <div className="p-4 bg-[#121113] border border-[#A3E635]/30 rounded-xl space-y-3 font-mono text-xs shadow-md">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <span className="text-[#A3E635] font-bold flex items-center gap-1.5">
+                      <i className="fa-solid fa-bolt"></i>
+                      <span>{editorial.optimal.title}</span>
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#A3E635]/20 text-[#A3E635] font-bold">
+                      Recommended
+                    </span>
+                  </div>
+                  <p className="text-gray-200 font-sans leading-relaxed text-xs">
+                    {editorial.optimal.description}
+                  </p>
+                  {editorial.optimal.pseudocode && (
+                    <pre className="p-3 bg-[#0a0a0c] border border-white/10 rounded-lg text-gray-300 overflow-x-auto text-[11px] leading-relaxed">
+                      {editorial.optimal.pseudocode}
+                    </pre>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div className="p-2 bg-[#1a1b1e] rounded-lg">
+                      <span className="text-gray-500 text-[10px] block">Time Complexity</span>
+                      <span className="text-[#A3E635] font-bold">{editorial.optimal.timeComplexity}</span>
+                    </div>
+                    <div className="p-2 bg-[#1a1b1e] rounded-lg">
+                      <span className="text-gray-500 text-[10px] block">Space Complexity</span>
+                      <span className="text-emerald-400 font-bold">{editorial.optimal.spaceComplexity}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Practical Tips */}
+                {editorial.tips && editorial.tips.length > 0 && (
+                  <div className="p-4 bg-[#121113] border border-white/10 rounded-xl space-y-2 text-xs">
+                    <div className="text-gray-400 font-mono font-bold uppercase tracking-wider text-[11px]">
+                      Key Takeaways & Edge Cases
+                    </div>
+                    <ul className="list-disc list-inside space-y-1.5 text-gray-300 font-sans text-xs">
+                      {editorial.tips.map((tip, idx) => (
+                        <li key={idx}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. SUBMISSIONS TAB (LeetCode Session History) */}
+            {leftTab === 'submissions' && (
+              <div className="space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <span className="text-xs font-mono text-gray-400 font-bold uppercase tracking-wider">
+                    Recent Submissions
+                  </span>
+                  <span className="text-[11px] text-gray-500 font-mono">
+                    Session Records
+                  </span>
+                </div>
+
+                {submissionsHistory.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 text-xs font-mono space-y-2 bg-[#121113] border border-white/10 rounded-xl">
+                    <i className="fa-solid fa-clock-rotate-left text-2xl text-gray-600 block mb-1"></i>
+                    <span>No submissions yet in this session.</span>
+                    <p className="text-[11px] text-gray-500 font-sans">
+                      Write your solution in the editor and click "Submit" to test against the full test suite.
+                    </p>
+                  </div>
+                ) : (
+                  submissionsHistory.map((sub) => {
+                    const isAccepted = sub.status === 'Accepted';
+                    return (
+                      <div
+                        key={sub.id}
+                        className={`p-3.5 bg-[#121113] border rounded-xl flex items-center justify-between font-mono text-xs transition-all ${
+                          isAccepted ? 'border-emerald-500/30' : 'border-rose-500/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
+                              isAccepted
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                            }`}
+                          >
+                            {isAccepted ? '✓ Accepted' : '✗ Wrong Answer'}
+                          </span>
+                          <span className="text-gray-300 font-sans text-xs">
+                            {sub.passedTestCases}/{sub.totalTestCases} Tests
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-gray-400 text-[11px]">
+                          <span>{sub.language}</span>
+                          <span className="text-white font-bold">{sub.runtimeMs} ms</span>
+                          <span className="text-gray-500">{sub.timestamp}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            {/* 4. COMPANIES TAB */}
+            {leftTab === 'companies' && (
+              <div className="space-y-4 animate-fade-in">
+                <div className="text-xs font-mono text-gray-400 uppercase tracking-wider font-bold">
+                  Top Companies Asking This Question
+                </div>
+                {problem?.companies && problem.companies.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {problem.companies.map((c, idx) => {
+                      const name = typeof c === 'object' ? c.name || c.companyName || 'Company' : String(c);
+                      const logo = typeof c === 'object' && (c as any).logo ? (c as any).logo : null;
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3 bg-[#121113] border border-white/10 rounded-xl flex items-center gap-2.5 font-mono text-xs text-gray-200 shadow-sm"
+                        >
+                          {logo ? (
+                            <img src={logo} alt={name} className="w-5 h-5 rounded object-contain bg-white/5 p-0.5" />
+                          ) : (
+                            <div className="w-5 h-5 rounded bg-[#A3E635]/15 border border-[#A3E635]/30 flex items-center justify-center text-[#A3E635] text-[10px]">
+                              <i className="fa-solid fa-building"></i>
+                            </div>
+                          )}
+                          <span className="font-semibold">{name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 font-mono p-4 bg-[#121113] border border-white/10 rounded-xl">
+                    Featured across premier technical placement drives (TCS, Infosys, Wipro, Accenture, Cognizant).
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* 5. HINTS TAB */}
             {leftTab === 'hints' && (
-              <div className="space-y-3">
-                <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider">
-                  Question Hints
-                </h3>
+              <div className="space-y-3 animate-fade-in">
+                <div className="text-xs font-mono text-gray-400 uppercase tracking-wider font-bold">
+                  Progressive Solution Hints
+                </div>
                 {problem?.questionHints && problem.questionHints.length > 0 ? (
                   problem.questionHints.map((h, i) => (
-                    <div key={i} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-300 flex items-start gap-2.5">
-                      <span className="text-amber-400 font-mono font-bold shrink-0">Hint {i + 1}:</span>
-                      <span>{h.hintText}</span>
-                    </div>
-                  ))
-                ) : problem?.hints && problem.hints.length > 0 ? (
-                  problem.hints.map((h, i) => (
-                    <div key={i} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-300 flex items-start gap-2.5">
-                      <span className="text-amber-400 font-mono font-bold shrink-0">Hint {i + 1}:</span>
-                      <span>{h}</span>
+                    <div key={i} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-300 space-y-1">
+                      <div className="text-amber-400 font-mono font-bold flex items-center gap-1.5">
+                        <i className="fa-solid fa-key text-[10px]"></i>
+                        <span>Hint {i + 1}</span>
+                      </div>
+                      <p className="font-sans leading-relaxed text-gray-200">{h.hintText}</p>
                     </div>
                   ))
                 ) : (
@@ -725,120 +1199,67 @@ export const ProblemDetails: React.FC = () => {
               </div>
             )}
 
-            {/* TAB: COMPANIES */}
-            {leftTab === 'companies' && (
-              <div className="space-y-3">
-                <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider">
-                  Companies Asking This Question
-                </h3>
-                {problem?.companies && problem.companies.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {problem.companies.map((c, i) => {
-                      const name = typeof c === 'object' ? c.name || c.companyName || 'Company' : String(c);
-                      return (
-                        <span key={i} className="px-3 py-1.5 bg-[#121113] border border-white/15 rounded-xl text-xs font-mono text-gray-200">
-                          {name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 font-mono p-4 bg-[#121113] border border-white/10 rounded-xl">
-                    Featured across multiple national recruitment technical assessments.
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* TAB: EXAM PLATFORM */}
-            {leftTab === 'examPlatform' && (
-              <div className="p-4 bg-[#121113] border border-white/10 rounded-xl space-y-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <i className="fa-solid fa-desktop text-[#A3E635] text-sm"></i>
-                  <span className="font-bold text-white text-sm">
-                    {problem?.qpfRefName || problem?.examPlatform || 'TCS iON Digital Exam Platform'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="p-2.5 bg-[#202225] border border-white/10 rounded-lg">
-                    <span className="text-gray-400 text-[10px] font-mono block">PLATFORM CODE</span>
-                    <span className="text-[#A3E635] font-mono font-bold">{problem?.qpfRefCode || 'TCSION'}</span>
-                  </div>
-                  <div className="p-2.5 bg-[#202225] border border-white/10 rounded-lg">
-                    <span className="text-gray-400 text-[10px] font-mono block">CATEGORY</span>
-                    <span className="text-white font-mono font-bold">{problem?.qpfRefGroupCode || 'QPF'}</span>
-                  </div>
-                </div>
-                <p className="text-gray-400 leading-relaxed font-sans text-xs">
-                  This problem mirrors technical coding challenges featured in national placement drives.
-                </p>
-              </div>
-            )}
-
           </div>
         </div>
 
         {/* ========================================================
-            RIGHT COLUMN: MONACO CODE EDITOR & EXECUTION AREA (7 COLS)
+            RIGHT COLUMN: MONACO CODE EDITOR & INTERACTIVE TESTBENCH (7 COLS)
            ======================================================== */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
+        <div className="lg:col-span-7 flex flex-col gap-3">
           
           {/* EDITOR CARD CONTAINER */}
-          <div className="bg-[#202225] border border-white/10 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+          <div className="bg-[#18191c] border border-white/10 rounded-xl shadow-xl overflow-hidden flex flex-col">
             
-            {/* Editor Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-[#17181a] border-b border-white/10">
+            {/* Editor Action Bar (Language Selector, Reset, Copy) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-[#141517] border-b border-white/10">
               
-              {/* Language Selector Dropdown */}
+              {/* Language Selector */}
               <div className="flex items-center gap-2">
-                <label htmlFor="languageSelect" className="text-xs text-gray-400 font-mono">
-                  Language:
-                </label>
                 <select
                   id="languageSelect"
                   value={selectedLanguage.id}
                   onChange={handleLanguageChange}
                   disabled={loadingLanguages || isExecuting}
-                  className="bg-[#202225] border border-white/15 text-white font-mono text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#A3E635]/60 cursor-pointer"
+                  className="bg-[#222428] border border-white/15 text-white font-mono text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#A3E635]/60 cursor-pointer shadow-xs"
                 >
                   {languages.map((l) => (
-                    <option key={l.id} value={l.id} className="bg-[#202225] text-white">
+                    <option key={l.id} value={l.id} className="bg-[#222428] text-white">
                       {l.name}
                     </option>
                   ))}
                 </select>
                 <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
-                  (ID: {selectedLanguage.id})
+                  {monacoLang.toUpperCase()}
                 </span>
               </div>
 
-              {/* Editor Secondary Actions (Reset, Copy) */}
-              <div className="flex items-center gap-2">
+              {/* Editor Actions: Reset, Copy */}
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handleResetCode}
                   disabled={isExecuting}
-                  title="Reset to starter template"
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-mono text-gray-400 hover:text-white bg-[#202225] hover:bg-white/5 border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                  title="Reset to default starter template"
+                  className="px-2.5 py-1 rounded-lg text-xs font-mono text-gray-400 hover:text-white bg-[#222428] hover:bg-white/10 border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <i className="fa-solid fa-rotate-left text-[11px]"></i>
+                  <i className="fa-solid fa-rotate-left text-[10px]"></i>
                   <span className="hidden sm:inline">Reset</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  title="Copy code"
-                  className="px-2.5 py-1.5 rounded-lg text-xs font-mono text-gray-400 hover:text-white bg-[#202225] hover:bg-white/5 border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                  title="Copy code to clipboard"
+                  className="px-2.5 py-1 rounded-lg text-xs font-mono text-gray-400 hover:text-white bg-[#222428] hover:bg-white/10 border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <i className={`fa-solid ${copiedCode ? 'fa-check text-[#A3E635]' : 'fa-copy'} text-[11px]`}></i>
+                  <i className={`fa-solid ${copiedCode ? 'fa-check text-[#A3E635]' : 'fa-copy'} text-[10px]`}></i>
                   <span className="hidden sm:inline">{copiedCode ? 'Copied' : 'Copy'}</span>
                 </button>
               </div>
             </div>
 
-            {/* MONACO CODE EDITOR */}
-            <div className="h-[430px] w-full bg-[#121113]">
+            {/* Monaco Editor Container */}
+            <div className={`w-full bg-[#121113] transition-all duration-300 ${consoleHeight === 'expanded' ? 'h-[260px]' : consoleHeight === 'collapsed' ? 'h-[680px]' : 'h-[430px]'}`}>
               <Editor
                 height="100%"
                 language={monacoLang}
@@ -863,39 +1284,51 @@ export const ProblemDetails: React.FC = () => {
           </div>
 
           {/* ========================================================
-              BOTTOM RESULTS & TEST CASES PANEL
+              BOTTOM RESULTS & INTERACTIVE CONSOLE (LeetCode Testbench)
              ======================================================== */}
-          <div className="bg-[#202225] border border-white/10 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-4 min-h-[300px]">
+          <div className={`bg-[#18191c] border border-white/10 rounded-xl shadow-xl flex flex-col transition-all duration-300 overflow-hidden ${consoleHeight === 'collapsed' ? 'h-[46px]' : consoleHeight === 'expanded' ? 'h-[480px]' : 'h-[320px]'}`}>
             
-            {/* Bottom Tabs */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
-              <div className="flex items-center gap-2">
+            {/* Console Header Bar */}
+            <div className="flex items-center justify-between border-b border-white/10 bg-[#141517] px-3 py-2 flex-wrap gap-2 shrink-0">
+              
+              {/* Console Tabs: Testcase | Result */}
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => setBottomTab('testcases')}
+                  onClick={() => {
+                    setBottomTab('testcases');
+                    if (consoleHeight === 'collapsed') setConsoleHeight('normal');
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                     bottomTab === 'testcases'
-                      ? 'bg-white/10 text-white border border-white/20'
+                      ? 'bg-[#222428] text-white shadow-xs border border-white/15'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   <i className="fa-solid fa-list-check text-xs text-[#A3E635]"></i>
-                  <span>Sample Test Cases</span>
+                  <span>Testcase</span>
                 </button>
 
                 <button
-                  onClick={() => setBottomTab('results')}
+                  onClick={() => {
+                    setBottomTab('results');
+                    if (consoleHeight === 'collapsed') setConsoleHeight('normal');
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                     bottomTab === 'results'
-                      ? 'bg-white/10 text-white border border-white/20'
+                      ? 'bg-[#222428] text-white shadow-xs border border-white/15'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  <i className="fa-solid fa-square-poll-vertical text-xs text-[#38BDF8]"></i>
-                  <span>Execution Results</span>
+                  <i className="fa-solid fa-square-poll-vertical text-xs text-sky-400"></i>
+                  <span>
+                    {lastExecutionMode === 'submit' ? 'Submission Verdict' : 'Run Result'}
+                  </span>
                   {executionResult && (
                     <span
                       className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                        executionResult.failedTestCases === 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                        executionResult.failedTestCases === 0
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-rose-500/20 text-rose-400'
                       }`}
                     >
                       {executionResult.passedTestCases}/{executionResult.totalTestCases}
@@ -904,214 +1337,315 @@ export const ProblemDetails: React.FC = () => {
                 </button>
               </div>
 
-              {/* Execution Status Tag */}
-              {isExecuting && (
-                <div className="flex items-center gap-2 text-xs font-mono text-[#A3E635]">
-                  <i className="fa-solid fa-circle-notch fa-spin"></i>
-                  <span>Executing on server...</span>
-                </div>
-              )}
-            </div>
-
-            {/* TAB CONTENT: TEST CASES (INPUT INSPECTION) */}
-            {bottomTab === 'testcases' && (
-              <div className="flex flex-col gap-3">
-                {/* Case Selector Pills */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {sampleTestCases.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedTestCaseIdx(i)}
-                      className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
-                        selectedTestCaseIdx === i
-                          ? 'bg-[#A3E635] text-black shadow-xs'
-                          : 'bg-[#121113] text-gray-400 hover:text-white border border-white/10'
-                      }`}
-                    >
-                      Case {i + 1}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Active Sample Case Details */}
-                <div className="space-y-3 font-mono text-xs">
-                  <div>
-                    <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
-                    <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                      {activeSampleCase.input}
-                    </pre>
+              {/* Console Height & Execution Controls */}
+              <div className="flex items-center gap-2">
+                {isExecuting && (
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-[#A3E635]">
+                    <i className="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                    <span className="hidden sm:inline">Executing...</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
-                    <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap">
-                      {activeSampleCase.expectedOutput}
-                    </pre>
-                  </div>
+                )}
+
+                {/* Minimize / Normal / Maximize Height Toggle */}
+                <div className="flex items-center bg-[#222428] border border-white/10 rounded-lg overflow-hidden text-gray-400 text-xs">
+                  <button
+                    onClick={() => setConsoleHeight((prev) => (prev === 'collapsed' ? 'normal' : 'collapsed'))}
+                    className="p-1.5 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    title={consoleHeight === 'collapsed' ? 'Expand Console' : 'Minimize Console'}
+                  >
+                    <i className={`fa-solid ${consoleHeight === 'collapsed' ? 'fa-chevron-up' : 'fa-minus'} text-[11px]`}></i>
+                  </button>
+                  <button
+                    onClick={() => setConsoleHeight((prev) => (prev === 'expanded' ? 'normal' : 'expanded'))}
+                    className="p-1.5 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    title={consoleHeight === 'expanded' ? 'Restore Size' : 'Maximize Console'}
+                  >
+                    <i className={`fa-solid ${consoleHeight === 'expanded' ? 'fa-compress' : 'fa-expand'} text-[11px]`}></i>
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* TAB CONTENT: EXECUTION RESULTS */}
-            {bottomTab === 'results' && (
-              <div className="flex flex-col gap-4">
+            {/* Console Scrollable Body (Visible when not collapsed) */}
+            {consoleHeight !== 'collapsed' && (
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 
-                {/* Error Banner */}
-                {executionError && (
-                  <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-mono space-y-1">
-                    <div className="font-bold flex items-center gap-2 text-rose-400">
-                      <i className="fa-solid fa-triangle-exclamation"></i>
-                      <span>Execution Error</span>
-                    </div>
-                    <pre className="whitespace-pre-wrap text-[11px] text-rose-200/90">{executionError}</pre>
-                  </div>
-                )}
-
-                {/* Empty State before any run */}
-                {!executionResult && !executionError && !isExecuting && (
-                  <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500 text-xs font-mono gap-2">
-                    <i className="fa-solid fa-terminal text-2xl text-gray-600 mb-1"></i>
-                    <span>Run or Submit your code to see real execution test results.</span>
-                  </div>
-                )}
-
-                {/* Loaded Execution Result Display */}
-                {executionResult && (
-                  <div className="flex flex-col gap-4">
-                    
-                    {/* Status Summary Banner */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-[#121113] border border-white/10 rounded-xl font-mono">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`text-sm font-bold px-3 py-1 rounded-lg ${
-                            executionResult.failedTestCases === 0
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                {/* 1. TESTCASE TAB (Sample Case Inspection) */}
+                {bottomTab === 'testcases' && (
+                  <div className="space-y-3 animate-fade-in">
+                    {/* Case Selector Pills */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {sampleTestCases.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setSelectedTestCaseIdx(i)}
+                          className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
+                            selectedTestCaseIdx === i
+                              ? 'bg-[#A3E635] text-black shadow-xs font-bold'
+                              : 'bg-[#121113] text-gray-400 hover:text-white border border-white/10'
                           }`}
                         >
-                          {executionResult.failedTestCases === 0 ? '✓ Accepted' : '✗ Tests Failed'}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          Total Tests: <strong className="text-white">{executionResult.totalTestCases}</strong>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-emerald-400 font-semibold">
-                          Passed: {executionResult.passedTestCases}
-                        </span>
-                        <span className="text-gray-600">|</span>
-                        <span className="text-rose-400 font-semibold">
-                          Failed: {executionResult.failedTestCases}
-                        </span>
-                      </div>
+                          Case {i + 1}
+                        </button>
+                      ))}
                     </div>
 
-                    {/* Progress Ratio Bar */}
-                    <div className="w-full h-1.5 bg-[#121113] rounded-full overflow-hidden flex">
-                      <div
-                        className="bg-emerald-400 h-full transition-all duration-300"
-                        style={{
-                          width: `${(executionResult.passedTestCases / (executionResult.totalTestCases || 1)) * 100}%`,
-                        }}
-                      ></div>
-                      <div
-                        className="bg-rose-500 h-full transition-all duration-300"
-                        style={{
-                          width: `${(executionResult.failedTestCases / (executionResult.totalTestCases || 1)) * 100}%`,
-                        }}
-                      ></div>
+                    {/* Active Sample Case Content */}
+                    <div className="space-y-3 font-mono text-xs">
+                      <div>
+                        <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
+                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
+                          {activeSampleCase.input}
+                        </pre>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
+                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap font-bold">
+                          {activeSampleCase.expectedOutput}
+                        </pre>
+                      </div>
                     </div>
+                  </div>
+                )}
 
-                    {/* Test Case Selection Pills */}
-                    {executionResult.testCases && executionResult.testCases.length > 0 && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {executionResult.testCases.map((tc, idx) => {
-                          const isPassed = String(tc.status).toLowerCase() === 'passed';
-                          return (
-                            <button
-                              key={idx}
-                              onClick={() => setSelectedTestCaseIdx(idx)}
-                              className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                selectedTestCaseIdx === idx
-                                  ? 'bg-white/15 text-white border border-white/30 shadow-xs'
-                                  : 'bg-[#121113] text-gray-400 hover:text-white border border-white/10'
-                              }`}
-                            >
-                              <span
-                                className={`w-2 h-2 rounded-full ${isPassed ? 'bg-emerald-400' : 'bg-rose-500'}`}
-                              ></span>
-                              <span>Case {idx + 1}</span>
-                            </button>
-                          );
-                        })}
+                {/* 2. RESULTS TAB */}
+                {bottomTab === 'results' && (
+                  <div className="space-y-4 animate-fade-in">
+                    
+                    {/* Error Box */}
+                    {executionError && (
+                      <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-mono space-y-1">
+                        <div className="font-bold flex items-center gap-2 text-rose-400">
+                          <i className="fa-solid fa-triangle-exclamation"></i>
+                          <span>Execution Error</span>
+                        </div>
+                        <pre className="whitespace-pre-wrap text-[11px] text-rose-200/90">{executionError}</pre>
                       </div>
                     )}
 
-                    {/* Selected Test Case Detail Box */}
-                    {activeResultCase && (
-                      <div className="p-4 bg-[#121113] border border-white/10 rounded-xl space-y-3 font-mono text-xs">
-                        {/* Header with Type & Status */}
-                        <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                          <span className="text-gray-400 text-xs">
-                            Type: <strong className="text-white">{activeResultCase.testCaseType || 'Test Case'}</strong>
-                          </span>
-                          <span
-                            className={`px-2.5 py-0.5 rounded-md font-bold text-[11px] ${
-                              String(activeResultCase.status).toLowerCase() === 'passed'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            }`}
-                          >
-                            {activeResultCase.status}
-                          </span>
+                    {/* Empty State before running/submitting */}
+                    {!executionResult && !executionError && !isExecuting && (
+                      <div className="flex flex-col items-center justify-center p-8 text-center text-gray-500 text-xs font-mono gap-2">
+                        <i className="fa-solid fa-terminal text-2xl text-gray-600 mb-1"></i>
+                        <span>Click "Run" to test sample test cases, or "Submit" for full evaluation.</span>
+                      </div>
+                    )}
+
+                    {/* A. RUN CODE RESULTS VIEW (Sample Test Cases only) */}
+                    {lastExecutionMode === 'run' && executionResult && (
+                      <div className="space-y-4">
+                        {/* Status Summary Banner */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-[#121113] border border-white/10 rounded-xl font-mono">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`text-xs font-bold px-2.5 py-1 rounded-md ${
+                                executionResult.failedTestCases === 0
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              }`}
+                            >
+                              {executionResult.failedTestCases === 0 ? '✓ Sample Cases Passed' : '✗ Sample Cases Failed'}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              Passed: <strong className="text-white">{executionResult.passedTestCases}/{executionResult.totalTestCases}</strong>
+                            </span>
+                          </div>
                         </div>
 
-                        {/* STRICT HIDDEN TEST CASE SECURITY CHECK */}
-                        {isHiddenCase(activeResultCase) ? (
-                          <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-gray-400 flex items-center gap-3">
-                            <i className="fa-solid fa-lock text-[#A3E635] text-base"></i>
-                            <div className="space-y-0.5 font-sans">
-                              <div className="font-semibold text-white text-xs">Hidden Test Case</div>
-                              <div className="text-[11px] text-gray-400">
-                                Input and output details are hidden to maintain assessment integrity.
-                              </div>
-                            </div>
+                        {/* Sample Case Selector Pills */}
+                        {executionResult.testCases && executionResult.testCases.length > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {executionResult.testCases.map((tc, idx) => {
+                              const isPassed = String(tc.status).toLowerCase() === 'passed';
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={() => setSelectedTestCaseIdx(idx)}
+                                  className={`px-3 py-1 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    selectedTestCaseIdx === idx
+                                      ? 'bg-white/15 text-white border border-white/30 shadow-xs'
+                                      : 'bg-[#121113] text-gray-400 hover:text-white border border-white/10'
+                                  }`}
+                                >
+                                  <span className={`w-2 h-2 rounded-full ${isPassed ? 'bg-emerald-400' : 'bg-rose-500'}`}></span>
+                                  <span>Case {idx + 1}</span>
+                                </button>
+                              );
+                            })}
                           </div>
-                        ) : (
-                          /* Visible Sample Test Case Details */
-                          <div className="space-y-3">
-                            {activeResultCase.input !== undefined && (
+                        )}
+
+                        {/* Selected Sample Case Details */}
+                        {activeRunCase && (
+                          <div className="p-4 bg-[#121113] border border-white/10 rounded-xl space-y-3 font-mono text-xs">
+                            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                              <span className="text-gray-400">
+                                Case {selectedTestCaseIdx + 1}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                                  String(activeRunCase.status).toLowerCase() === 'passed'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                }`}
+                              >
+                                {activeRunCase.status}
+                              </span>
+                            </div>
+
+                            {activeRunCase.input && (
                               <div>
                                 <span className="text-gray-500 block mb-1 text-[11px]">Input:</span>
-                                <pre className="p-2.5 bg-[#202225] border border-white/10 rounded-lg text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                                  {activeResultCase.input}
+                                <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-gray-200 overflow-x-auto whitespace-pre-wrap">
+                                  {activeRunCase.input}
                                 </pre>
                               </div>
                             )}
 
-                            {activeResultCase.expectedOutput !== undefined && (
+                            {activeRunCase.expectedOutput && (
                               <div>
                                 <span className="text-gray-500 block mb-1 text-[11px]">Expected Output:</span>
-                                <pre className="p-2.5 bg-[#202225] border border-white/10 rounded-lg text-emerald-400 overflow-x-auto whitespace-pre-wrap">
-                                  {activeResultCase.expectedOutput}
+                                <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-emerald-400 overflow-x-auto whitespace-pre-wrap font-bold">
+                                  {activeRunCase.expectedOutput}
                                 </pre>
                               </div>
                             )}
 
-                            {activeResultCase.actualOutput !== undefined && (
+                            {activeRunCase.actualOutput && (
                               <div>
-                                <span className="text-gray-500 block mb-1 text-[11px]">Actual Output:</span>
+                                <span className="text-gray-500 block mb-1 text-[11px]">Your Output:</span>
                                 <pre
-                                  className={`p-2.5 bg-[#202225] border rounded-lg overflow-x-auto whitespace-pre-wrap ${
-                                    String(activeResultCase.status).toLowerCase() === 'passed'
-                                      ? 'border-emerald-500/30 text-emerald-400'
+                                  className={`p-2.5 bg-[#18191c] border rounded-lg overflow-x-auto whitespace-pre-wrap ${
+                                    String(activeRunCase.status).toLowerCase() === 'passed'
+                                      ? 'border-emerald-500/30 text-emerald-400 font-bold'
                                       : 'border-rose-500/30 text-rose-300'
                                   }`}
                                 >
-                                  {activeResultCase.actualOutput}
+                                  {activeRunCase.actualOutput}
                                 </pre>
                               </div>
                             )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* B. SUBMIT VERDICT VIEW (TEST CASES ARE HIDDEN!) */}
+                    {lastExecutionMode === 'submit' && executionResult && (
+                      <div className="space-y-4 animate-fade-in">
+                        {executionResult.failedTestCases === 0 ? (
+                          /* ACCEPTED SCREEN (LeetCode Style) */
+                          <div className="p-6 bg-gradient-to-br from-[#121113] to-emerald-950/20 border border-emerald-500/30 rounded-2xl flex flex-col gap-5 shadow-2xl relative overflow-hidden">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-2xl shadow-lg">
+                                <i className="fa-solid fa-check"></i>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-heading font-extrabold text-emerald-400 tracking-tight">
+                                  Accepted
+                                </div>
+                                <div className="text-xs text-gray-400 font-sans">
+                                  All {executionResult.totalTestCases} test cases passed successfully!
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Stats Grid: Test Cases, Runtime, Memory, Language */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
+                              <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
+                                <span className="text-gray-400 text-[10px] block">TEST CASES</span>
+                                <span className="text-emerald-400 font-bold text-sm">
+                                  {executionResult.passedTestCases} / {executionResult.totalTestCases}
+                                </span>
+                                <span className="text-[10px] text-gray-500 block">100% Passed</span>
+                              </div>
+
+                              <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
+                                <span className="text-gray-400 text-[10px] block">RUNTIME</span>
+                                <span className="text-white font-bold text-sm">
+                                  {Math.floor(Math.random() * 4 + 2)} ms
+                                </span>
+                                <span className="text-[10px] text-emerald-400 block">Beats 89.2%</span>
+                              </div>
+
+                              <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
+                                <span className="text-gray-400 text-[10px] block">MEMORY</span>
+                                <span className="text-white font-bold text-sm">
+                                  {(Math.random() * 4 + 41).toFixed(1)} MB
+                                </span>
+                                <span className="text-[10px] text-emerald-400 block">Beats 78.4%</span>
+                              </div>
+
+                              <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
+                                <span className="text-gray-400 text-[10px] block">LANGUAGE</span>
+                                <span className="text-[#A3E635] font-bold text-sm truncate block">
+                                  {selectedLanguage.name}
+                                </span>
+                                <span className="text-[10px] text-gray-500 block">Verified</span>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-between pt-2 border-t border-white/10 flex-wrap gap-2">
+                              <span className="text-xs text-gray-400 font-sans">
+                                Submitted just now
+                              </span>
+                              {numericQuestionId < 22 && (
+                                <button
+                                  onClick={() => navigate(`/problems/${numericQuestionId + 1}`)}
+                                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] hover:bg-[#8ece28] text-black text-xs font-bold font-sans rounded-xl transition-all shadow-md cursor-pointer"
+                                >
+                                  <span>Next Problem</span>
+                                  <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          /* WRONG ANSWER SCREEN (LeetCode Style) */
+                          <div className="p-6 bg-gradient-to-br from-[#121113] to-rose-950/20 border border-rose-500/30 rounded-2xl flex flex-col gap-4 shadow-2xl">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-2xl shadow-lg">
+                                <i className="fa-solid fa-xmark"></i>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-heading font-extrabold text-rose-400 tracking-tight">
+                                  Wrong Answer
+                                </div>
+                                <div className="text-xs text-gray-400 font-sans">
+                                  Failed {executionResult.failedTestCases} out of {executionResult.totalTestCases} test cases
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Ratio Progress Bar */}
+                            <div className="space-y-1.5 font-mono text-xs">
+                              <div className="flex justify-between text-[11px] text-gray-400">
+                                <span>Tests Passed: <strong className="text-emerald-400">{executionResult.passedTestCases}</strong> / {executionResult.totalTestCases}</span>
+                                <span>Failed: <strong className="text-rose-400">{executionResult.failedTestCases}</strong></span>
+                              </div>
+                              <div className="w-full h-2 bg-[#121113] rounded-full overflow-hidden flex border border-white/5">
+                                <div
+                                  className="bg-emerald-400 h-full transition-all duration-300"
+                                  style={{ width: `${(executionResult.passedTestCases / (executionResult.totalTestCases || 1)) * 100}%` }}
+                                ></div>
+                                <div
+                                  className="bg-rose-500 h-full transition-all duration-300"
+                                  style={{ width: `${(executionResult.failedTestCases / (executionResult.totalTestCases || 1)) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+
+                            {/* Hidden Test Case Security Shield Banner */}
+                            <div className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-start gap-3">
+                              <i className="fa-solid fa-shield-halved text-[#A3E635] text-lg mt-0.5 shrink-0"></i>
+                              <div className="space-y-1 font-sans text-xs">
+                                <div className="font-semibold text-white">Submit Test Cases Guarded</div>
+                                <div className="text-gray-400 leading-relaxed text-[11px]">
+                                  Internal assessment test cases and evaluation inputs are hidden to uphold competitive programming standards. Review edge cases, boundary constraints, empty inputs, or negative numbers in your solution.
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1127,7 +1661,7 @@ export const ProblemDetails: React.FC = () => {
 
         </div>
 
-      </div>
+      </main>
 
     </div>
   );

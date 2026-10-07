@@ -1,6 +1,7 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import { QuestionPayload, QuestionTestCase } from '../questionService';
+import { executionService } from '../executionService';
 
 export interface PageRequestPayload {
   pageNumber: number;
@@ -83,41 +84,28 @@ export const adminQuestionService = {
   },
 
   /**
-   * GET /api/v1/language/dropdown
-   * Fetches supported languages with database table IDs for admin execution
+   * GET /api/v1/language/dropdown & /language
+   * Fetches supported languages with database table IDs and reference IDs for admin execution
    */
-  async getLanguagesDropdown(): Promise<Array<{ id: number; name: string }>> {
-    try {
-      const res: any = await apiClient.get(API_ENDPOINTS.LANGUAGE.DROPDOWN);
-      const data = res?.data || res;
-      if (Array.isArray(data)) return data;
-      if (data && Array.isArray(data.data)) return data.data;
-    } catch (err) {
-      console.warn('Language dropdown fetch fallback:', err);
-    }
-    return [
-      { id: 1, name: 'Java' },
-      { id: 2, name: 'Python' },
-      { id: 3, name: 'C++' },
-      { id: 4, name: 'JavaScript' },
-    ];
+  async getLanguagesDropdown(): Promise<Array<{ id: number; name: string; referenceId?: number }>> {
+    return executionService.getLanguageDropdown();
   },
 
   /**
    * POST /api/v1/admin/testCode
    * Admin RUN: executes sample / visible test cases for testing without persistence.
+   * Auto-resolves referenceId and falls back seamlessly if token role is not admin on Render.
    */
   async adminTestCode(payload: { questionId: number; languageId: number; sourceCode: string }): Promise<any> {
-    const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_RUN, payload);
-    return res?.data || res;
+    return executionService.adminTestCode(payload);
   },
 
   /**
    * POST /api/v1/admin/submitCode
    * Admin SUBMIT: executes all test cases (visible + hidden) for validation without persistence.
+   * Auto-resolves referenceId and falls back seamlessly if token role is not admin on Render.
    */
   async adminSubmitCode(payload: { questionId: number; languageId: number; sourceCode: string }): Promise<any> {
-    const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_SUBMIT, payload);
-    return res?.data || res;
+    return executionService.adminSubmitCode(payload);
   },
 };
