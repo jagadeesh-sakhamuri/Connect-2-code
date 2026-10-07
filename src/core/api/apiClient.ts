@@ -2,16 +2,19 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
 import { tokenStorage } from '../security/tokenStorage';
 
 const getBaseUrl = () => {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+
+  // 1. If explicitly configured with an absolute HTTP/HTTPS URL, use it (trim trailing slashes)
+  if (envUrl && (envUrl.startsWith('http://') || envUrl.startsWith('https://'))) {
+    return envUrl.replace(/\/+$/, '');
   }
-  if (import.meta.env.DEV) {
-    return '/api/v1';
-  }
+
+  // 2. Default directly to the Render backend base URL across all environments (both local and deployed on Vercel)
+  // Relative paths like '/api/v1' must NEVER be used as default baseURL because static hosting (Vercel) will return index.html
   return 'https://codingplatform-tdt0.onrender.com/api/v1';
 };
 
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -89,7 +92,7 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     const resData = response.data;
 
-    // Reject HTML responses from Spring Security OAuth redirects when unauthenticated
+    // Reject HTML responses from Spring Security OAuth redirects or Vercel static router when unauthenticated
     if (typeof resData === 'string' && (resData.includes('<!doctype') || resData.includes('<html') || resData.includes('accounts.google.com'))) {
       const errorMsg = 'Authentication required. Please log in.';
       return Promise.reject({
@@ -119,10 +122,14 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config;
     const reqUrl = originalRequest?.url || '';
 
-    // Handle Network Error Retries for dev proxy
+    // Handle Network Error Retries & CORS Proxy Fallbacks
     if (error.message === 'Network Error' && !originalRequest._networkRetried) {
       originalRequest._networkRetried = true;
-      if (!originalRequest.url.startsWith('http')) {
+      // If direct call to Render failed (e.g. CORS preflight on Vercel preview branch domains), fallback to Vercel proxy rewrite '/api/v1'
+      if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') && originalRequest.baseURL?.startsWith('http')) {
+        originalRequest.baseURL = '/api/v1';
+        return apiClient(originalRequest);
+      } else if (!originalRequest.url?.startsWith('http') && originalRequest.baseURL !== 'https://codingplatform-tdt0.onrender.com/api/v1') {
         originalRequest.baseURL = 'https://codingplatform-tdt0.onrender.com/api/v1';
         return apiClient(originalRequest);
       }

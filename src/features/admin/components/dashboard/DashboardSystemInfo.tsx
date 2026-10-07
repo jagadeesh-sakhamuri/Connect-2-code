@@ -1,13 +1,10 @@
 import React from 'react';
 import { AdminCard } from '../AdminCard';
 import { AdminBadge } from '../AdminBadge';
+import { BASE_URL } from '../../../../core/api/apiClient';
 
 export const DashboardSystemInfo: React.FC = () => {
-  const getBaseUrl = () => {
-    if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
-    if (import.meta.env.DEV) return '/api/v1 (Proxied to Render)';
-    return 'https://codingplatform-tdt0.onrender.com/api/v1';
-  };
+  const getBaseUrl = () => BASE_URL;
 
   return (
     <AdminCard title="System Information" subtitle="Environment details">

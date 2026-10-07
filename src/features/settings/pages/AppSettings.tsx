@@ -1,7 +1,8 @@
 import React from 'react';
+import { BASE_URL } from '../../../core/api/apiClient';
 
 export const AppSettings: React.FC = () => {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || '/api/v1';
+  const apiBase = BASE_URL;
 
   return (
     <div className="flex flex-col gap-6 max-w-3xl font-sans">
