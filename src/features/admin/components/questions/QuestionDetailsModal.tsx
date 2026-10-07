@@ -8,6 +8,7 @@ interface QuestionDetailsModalProps {
   onClose: () => void;
   question: QuestionPayload | null;
   loading?: boolean;
+  onOpenTestCode?: (question: QuestionPayload) => void;
 }
 
 export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
@@ -15,6 +16,7 @@ export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
   onClose,
   question,
   loading = false,
+  onOpenTestCode,
 }) => {
   if (!question && !loading) return null;
 
@@ -59,12 +61,27 @@ export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
       subtitle="Complete problem statement, metadata, hints, and attached test cases"
       maxWidth="xl"
       footer={
-        <button
-          onClick={onClose}
-          className="px-4 py-2 bg-[#181A20] hover:bg-[#22252D] text-gray-300 border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer font-sans"
-        >
-          Close Inspector
-        </button>
+        <div className="flex items-center justify-between w-full">
+          {question && onOpenTestCode && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenTestCode(question);
+              }}
+              className="px-4 py-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-xl text-xs transition-all flex items-center gap-2 shadow-md shadow-[#A3E635]/20 cursor-pointer font-sans"
+              title="Open Admin Code Runner & Tester (Sample & Full Test Suite)"
+            >
+              <i className="fa-solid fa-terminal text-black text-xs"></i>
+              <span>Test &amp; Validate Code</span>
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-[#181A20] hover:bg-[#22252D] text-gray-300 border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer font-sans ml-auto"
+          >
+            Close Inspector
+          </button>
+        </div>
       }
     >
       {loading ? (
@@ -168,7 +185,7 @@ export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
             </div>
           )}
 
-          {/* External Platform Links */}
+          {/* External Platform Links (LeetCode, GeeksforGeeks, HackerRank) - Temporarily Commented Out
           <div className="flex flex-col gap-1.5 pt-2 border-t border-white/10">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider font-heading">
               Platform Links
@@ -209,6 +226,7 @@ export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
               )}
             </div>
           </div>
+          */}
 
           {/* Attached Test Cases */}
           {question.testCases && question.testCases.length > 0 && (

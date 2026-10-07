@@ -7,6 +7,7 @@ import { AdminErrorState } from '../components/AdminErrorState';
 import { QuestionFormModal, QuestionFormData } from '../components/questions/QuestionFormModal';
 import { QuestionDetailsModal } from '../components/questions/QuestionDetailsModal';
 import { TestCaseModal } from '../components/questions/TestCaseModal';
+import { AdminCodeTestModal } from '../components/questions/AdminCodeTestModal';
 import { QuestionPayload, QuestionTestCase } from '../../../services/questionService';
 import { adminQuestionService } from '../../../services/admin/adminQuestionService';
 import { adminCompanyService } from '../../../services/admin/adminCompanyService';
@@ -39,8 +40,10 @@ export const AdminQuestions: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [isTestCaseOpen, setIsTestCaseOpen] = useState<boolean>(false);
+  const [isTestCodeOpen, setIsTestCodeOpen] = useState<boolean>(false);
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionPayload | null>(null);
   const [targetQuestionForTestCases, setTargetQuestionForTestCases] = useState<{ id: number | string; title?: string } | null>(null);
+  const [targetQuestionForTestCode, setTargetQuestionForTestCode] = useState<{ id: number | string; title: string; difficultyRefName?: string } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
@@ -409,6 +412,21 @@ export const AdminQuestions: React.FC = () => {
             </button>
           )}
           <button
+            onClick={() => {
+              setTargetQuestionForTestCode({
+                id: row.id!,
+                title: row.title,
+                difficultyRefName: row.difficultyRefName,
+              });
+              setIsTestCodeOpen(true);
+            }}
+            className="px-2.5 py-1.5 rounded-xl bg-[#A3E635]/10 hover:bg-[#A3E635]/25 text-[#A3E635] border border-[#A3E635]/30 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+            title="Admin Code Runner & Tester: POST /api/v1/admin/testCode & /admin/submitCode"
+          >
+            <i className="fa-solid fa-play text-[10px]"></i>
+            <span className="text-[11px] font-extrabold hidden xl:inline">Test Code</span>
+          </button>
+          <button
             onClick={() => handleInspect(row.id!)}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
             title="Inspect Full Question Details"
@@ -424,7 +442,7 @@ export const AdminQuestions: React.FC = () => {
           </button>
         </div>
       ),
-      className: 'w-32 text-right',
+      className: 'w-40 text-right',
     },
   ];
 
@@ -649,6 +667,14 @@ export const AdminQuestions: React.FC = () => {
         onClose={() => setIsDetailsOpen(false)}
         question={selectedQuestion}
         loading={detailsLoading}
+        onOpenTestCode={(q) => {
+          setTargetQuestionForTestCode({
+            id: q.id!,
+            title: q.title,
+            difficultyRefName: q.difficultyRefName,
+          });
+          setIsTestCodeOpen(true);
+        }}
       />
 
       {/* Test Case Modal for Existing Questions */}
@@ -657,6 +683,13 @@ export const AdminQuestions: React.FC = () => {
         onClose={() => setIsTestCaseOpen(false)}
         questionId={targetQuestionForTestCases?.id ?? null}
         questionTitle={targetQuestionForTestCases?.title}
+      />
+
+      {/* Admin Code Runner & Validation Modal */}
+      <AdminCodeTestModal
+        isOpen={isTestCodeOpen}
+        onClose={() => setIsTestCodeOpen(false)}
+        question={targetQuestionForTestCode}
       />
     </div>
   );

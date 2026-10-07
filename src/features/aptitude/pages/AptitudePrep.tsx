@@ -313,8 +313,6 @@ const aptitudeCategoriesData: AptitudeCategory[] = [
   },
 ];
 
-const SOLVED_STORAGE_KEY = 'myjo_solved_aptitude';
-
 interface AptitudePrepProps {
   defaultCategory?: 'quants' | 'logical' | 'verbal';
 }

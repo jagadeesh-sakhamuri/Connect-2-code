@@ -76,15 +76,6 @@ export const tokenStorage = {
     removeCookie(USER_PROFILE_KEY);
   },
 
-  // Aliases for backward compatibility
-  getToken(): string | null {
-    return this.getAccessToken();
-  },
-
-  setToken(token: string): void {
-    this.setAccessToken(token);
-  },
-
   // Clear all authentication tokens and user cookies
   clearTokens(): void {
     this.removeAccessToken();

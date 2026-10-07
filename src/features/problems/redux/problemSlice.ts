@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { problemService, ProblemFilterParams, ProblemItem } from '../../../services/problemService';
+import { fallbackProblemsData } from '../data/problemsData';
 
 export interface ProblemState {
   problems: ProblemItem[];
@@ -70,7 +71,7 @@ const getSolvedStorage = (): Record<string, boolean> => {
   try {
     const saved = localStorage.getItem(SOLVED_STORAGE_KEY);
     return saved ? JSON.parse(saved) : {};
-  } catch (e) {
+  } catch {
     return {};
   }
 };
@@ -79,7 +80,7 @@ const getBookmarksStorage = (): any[] => {
   try {
     const saved = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
-  } catch (e) {
+  } catch {
     return [];
   }
 };
@@ -93,7 +94,7 @@ export const toggleSolveProblem = createAsyncThunk(
     solvedMap[id] = updatedStatus;
     try {
       localStorage.setItem(SOLVED_STORAGE_KEY, JSON.stringify(solvedMap));
-    } catch (e) {}
+    } catch {}
     return { id, isSolved: updatedStatus };
   }
 );
@@ -145,6 +146,31 @@ const problemSlice = createSlice({
       .addCase(fetchProblems.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+        if (state.problems.length === 0) {
+          const solvedMap = getSolvedStorage();
+          const bookmarks = getBookmarksStorage();
+          state.problems = fallbackProblemsData.map((p) => ({
+            ...p,
+            isSolved: !!solvedMap[p.id] || !!p.isSolved,
+            isBookmarked: bookmarks.some((b: any) => b.itemId === p.id) || !!p.isBookmarked,
+          }));
+          state.pagination.total = fallbackProblemsData.length;
+          state.pagination.totalPages = Math.ceil(fallbackProblemsData.length / 20) || 1;
+        }
+      })
+      .addCase(fetchProblemById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        if (!state.selectedProblem) {
+          const solvedMap = getSolvedStorage();
+          const bookmarks = getBookmarksStorage();
+          const p = fallbackProblemsData[0];
+          state.selectedProblem = {
+            ...p,
+            isSolved: !!solvedMap[p.id],
+            isBookmarked: bookmarks.some((b: any) => b.itemId === p.id),
+          };
+        }
       })
       .addCase(fetchProblemById.pending, (state) => {
         state.loading = true;

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authService, LoginPayload, SignUpPayload } from '../../../services/authService';
+import { authService, LoginPayload } from '../../../services/authService';
 import { tokenStorage } from '../../../core/security/tokenStorage';
 
 export interface UserProfile {
@@ -53,22 +53,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-export const registerUser = createAsyncThunk(
-  'auth/signUp',
-  async (payload: SignUpPayload, { rejectWithValue }) => {
-    try {
-      const res = await authService.signUp(payload);
-      if (res.statusCode === 200) {
-        return res.data || res.message;
-      }
-      return rejectWithValue(res.message || (res.errors && res.errors[0]) || 'Error while Creating the User');
-    } catch (err: any) {
-      const errMsg = err.message || (err.errors && err.errors[0]) || 'Error while Creating the User';
-      return rejectWithValue(errMsg);
-    }
-  }
-);
-
 export const generatePasswordResetOtpThunk = createAsyncThunk(
   'auth/generateOtp',
   async (email: string, { rejectWithValue }) => {
@@ -90,6 +74,19 @@ export const verifyPasswordResetOtpThunk = createAsyncThunk(
       return res?.message || 'Password Reset Successfully';
     } catch (err: any) {
       const errMsg = err.message || (err.errors && err.errors[0]) || 'Failed to verify OTP. Please try again.';
+      return rejectWithValue(errMsg);
+    }
+  }
+);
+
+export const loginWithGoogleRefreshToken = createAsyncThunk(
+  'auth/loginWithGoogleRefreshToken',
+  async (refreshToken: string, { rejectWithValue }) => {
+    try {
+      const response = await authService.exchangeRefreshToken(refreshToken);
+      return response.data;
+    } catch (err: any) {
+      const errMsg = err.message || (err.errors && err.errors[0]) || 'Failed to authenticate with Google';
       return rejectWithValue(errMsg);
     }
   }
@@ -154,17 +151,30 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // SignUp
-      .addCase(registerUser.pending, (state) => {
+      // Google OAuth loginWithGoogleRefreshToken
+      .addCase(loginWithGoogleRefreshToken.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerUser.fulfilled, (state) => {
+      .addCase(loginWithGoogleRefreshToken.fulfilled, (state, action) => {
         state.loading = false;
-        state.error = null;
-        state.authModalMode = 'login';
+        state.isAuthenticated = true;
+        state.isAuthModalOpen = false;
+        const data = action.payload;
+        state.token = null;
+        state.refreshToken = null;
+        const userObj = {
+          id: data.id,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
+          email: data.email,
+          role: data.role,
+        };
+        state.user = userObj;
+        tokenStorage.setUser(userObj);
       })
-      .addCase(registerUser.rejected, (state, action) => {
+      .addCase(loginWithGoogleRefreshToken.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

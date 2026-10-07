@@ -23,6 +23,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export const ProfileSettings: React.FC = () => {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile.profile);
+  const authUser = useAppSelector((state) => state.auth.user);
 
   const {
     register,
@@ -31,13 +32,13 @@ export const ProfileSettings: React.FC = () => {
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: profile.fullName,
-      email: profile.email,
-      phone: profile.phone || '',
-      college: profile.college || '',
-      targetRole: profile.targetRole || '',
-      githubUrl: profile.githubUrl || '',
-      linkedinUrl: profile.linkedinUrl || '',
+      fullName: profile?.fullName || authUser?.fullName || '',
+      email: profile?.email || authUser?.email || '',
+      phone: profile?.phone || '',
+      college: profile?.collegeName || '',
+      targetRole: '',
+      githubUrl: profile?.githubUrl || '',
+      linkedinUrl: profile?.linkedinUrl || '',
     },
   });
 

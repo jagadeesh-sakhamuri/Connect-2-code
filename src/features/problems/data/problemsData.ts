@@ -1,0 +1,1467 @@
+import type { ProblemItem } from '../../../services/problemService';
+
+export const fallbackProblemsData: ProblemItem[] = [
+  {
+    "id": "gfg-000",
+    "title": "Check Even or Odd Number",
+    "slug": "check-even-or-odd-number",
+    "difficulty": "Basic",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "94.2%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "TCS",
+      "Infosys",
+      "Wipro"
+    ],
+    "description": "Given an integer n, determine whether it is even or odd. Return 'Even' if divisible by 2, else 'Odd'.",
+    "examples": [
+      {
+        "input": "n = 4",
+        "output": "Even",
+        "explanation": "4 is divisible by 2."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/check-even-or-odd-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/check-even-or-odd-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/check-even-or-odd-number"
+  },
+  {
+    "id": "gfg-001",
+    "title": "Second Largest Element in Array",
+    "slug": "second-largest-element",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "68.5%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "TCS"
+    ],
+    "description": "Given an array of positive integers arr[], return the second largest element from the array. If the second largest element doesn't exist then return -1.",
+    "examples": [
+      {
+        "input": "arr = [12, 35, 1, 10, 34, 1]",
+        "output": "34",
+        "explanation": "The largest element of the array is 35 and the second largest element is 34."
+      },
+      {
+        "input": "arr = [10, 5, 10]",
+        "output": "5",
+        "explanation": "The largest element is 10 and the second largest element is 5."
+      },
+      {
+        "input": "arr = [10, 10, 10]",
+        "output": "-1",
+        "explanation": "As all elements are equal, there is no second largest element."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/second-largest-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/second-largest-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/second-largest-element"
+  },
+  {
+    "id": "gfg-002",
+    "title": "Move All Zeroes to End",
+    "slug": "move-all-zeroes-to-end",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "72.1%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Amazon",
+      "Paytm",
+      "Samsung"
+    ],
+    "description": "Given an array arr[], move all zeroes to the end of the array while maintaining the relative order of the non-zero elements.",
+    "examples": [
+      {
+        "input": "arr = [1, 2, 0, 4, 3, 0, 5, 0]",
+        "output": "[1, 2, 4, 3, 5, 0, 0, 0]",
+        "explanation": "There are three 0s that are moved to the end while maintaining relative order of non-zero elements."
+      },
+      {
+        "input": "arr = [10, 20, 30]",
+        "output": "[10, 20, 30]",
+        "explanation": "No zeroes present, array remains unchanged."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/move-all-zeroes-to-end/",
+    "leetCodeUrl": "https://leetcode.com/problems/move-all-zeroes-to-end/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/move-all-zeroes-to-end"
+  },
+  {
+    "id": "gfg-003",
+    "title": "Reverse an Array",
+    "slug": "reverse-an-array",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "84.3%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "TCS",
+      "Infosys",
+      "Wipro"
+    ],
+    "description": "Given an array arr[], reverse the array in-place without using extra auxiliary memory.",
+    "examples": [
+      {
+        "input": "arr = [1, 4, 3, 2, 6, 5]",
+        "output": "[5, 6, 2, 3, 4, 1]",
+        "explanation": "The elements of the array are reversed in-place."
+      },
+      {
+        "input": "arr = [4, 5, 2]",
+        "output": "[2, 5, 4]",
+        "explanation": "Reversing array [4, 5, 2] yields [2, 5, 4]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/reverse-an-array/",
+    "leetCodeUrl": "https://leetcode.com/problems/reverse-an-array/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/reverse-an-array"
+  },
+  {
+    "id": "gfg-004",
+    "title": "Rotate Array by D Elements",
+    "slug": "rotate-array-by-d-elements",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "54.2%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "Adobe"
+    ],
+    "description": "Given an unsorted array arr[] of size n, rotate the array to the left by d steps where d is a positive integer.",
+    "examples": [
+      {
+        "input": "arr = [1, 2, 3, 4, 5], d = 2",
+        "output": "[3, 4, 5, 1, 2]",
+        "explanation": "Rotating by 2 positions shifts [1, 2] to the right end."
+      },
+      {
+        "input": "arr = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], d = 3",
+        "output": "[8, 10, 12, 14, 16, 18, 20, 2, 4, 6]",
+        "explanation": "Rotating by 3 positions shifts first 3 elements to the end."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/rotate-array-by-d-elements/",
+    "leetCodeUrl": "https://leetcode.com/problems/rotate-array-by-d-elements/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/rotate-array-by-d-elements"
+  },
+  {
+    "id": "gfg-005",
+    "title": "Next Permutation",
+    "slug": "next-permutation",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Prerequisites",
+    "acceptanceRate": "48.9%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Meta",
+      "Amazon"
+    ],
+    "description": "Given an array of integers arr[], re-arrange numbers into the lexicographically next greater permutation of numbers.",
+    "examples": [
+      {
+        "input": "arr = [2, 4, 1, 7, 5, 0]",
+        "output": "[2, 4, 5, 0, 1, 7]",
+        "explanation": "The next lexicographically greater permutation is [2, 4, 5, 0, 1, 7]."
+      },
+      {
+        "input": "arr = [3, 2, 1]",
+        "output": "[1, 2, 3]",
+        "explanation": "As the array is sorted in descending order, next permutation resets to lowest sorted order."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/next-permutation/",
+    "leetCodeUrl": "https://leetcode.com/problems/next-permutation/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/next-permutation"
+  },
+  {
+    "id": "gfg-006",
+    "title": "Stock Buy and Sell – Max One Transaction",
+    "slug": "stock-buy-and-sell-max-one-transaction",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Time Complexity",
+    "acceptanceRate": "62.4%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Goldman Sachs",
+      "Flipkart"
+    ],
+    "description": "Given an array prices[] of length N, find the maximum profit you can achieve by buying and selling a single stock once.",
+    "examples": [
+      {
+        "input": "prices = [7, 1, 5, 3, 6, 4]",
+        "output": "5",
+        "explanation": "Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6 - 1 = 5."
+      },
+      {
+        "input": "prices = [7, 6, 4, 3, 1]",
+        "output": "0",
+        "explanation": "Prices continuously decrease, so no transaction done and max profit = 0."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/stock-buy-and-sell-max-one-transaction/",
+    "leetCodeUrl": "https://leetcode.com/problems/stock-buy-and-sell-max-one-transaction/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/stock-buy-and-sell-max-one-transaction"
+  },
+  {
+    "id": "gfg-007",
+    "title": "Stock Buy and Sell – Multiple Transactions",
+    "slug": "stock-buy-and-sell-multiple-transactions",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Time Complexity",
+    "acceptanceRate": "58.1%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Paytm",
+      "Walmart",
+      "DE Shaw"
+    ],
+    "description": "Find the maximum profit you can achieve by buying and selling stock multiple times without holding concurrent stocks.",
+    "examples": [
+      {
+        "input": "prices = [100, 180, 260, 310, 40, 535, 695]",
+        "output": "865",
+        "explanation": "Buy on day 0, sell on day 3 (profit = 210). Buy on day 4, sell on day 6 (profit = 655). Total = 865."
+      },
+      {
+        "input": "prices = [4, 2, 2, 2, 4]",
+        "output": "2",
+        "explanation": "Buy on day 3 (price = 2) and sell on day 4 (price = 4), profit = 2."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/stock-buy-and-sell-multiple-transactions/",
+    "leetCodeUrl": "https://leetcode.com/problems/stock-buy-and-sell-multiple-transactions/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/stock-buy-and-sell-multiple-transactions"
+  },
+  {
+    "id": "gfg-008",
+    "title": "Minimize the Heights II",
+    "slug": "minimize-the-heights-ii",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Time Complexity",
+    "acceptanceRate": "39.6%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Adobe",
+      "Microsoft"
+    ],
+    "description": "Given an array arr[] and a positive integer k, modify height of each tower by adding or subtracting k such that maximum height difference is minimized.",
+    "examples": [
+      {
+        "input": "k = 2, arr = [1, 5, 8, 10]",
+        "output": "5",
+        "explanation": "Modify array to [3, 3, 6, 8]. Max height 8, min height 3. Difference = 5."
+      },
+      {
+        "input": "k = 3, arr = [3, 9, 12, 16, 20]",
+        "output": "11",
+        "explanation": "Modified array [6, 12, 9, 13, 17]. Max height 17, min height 6. Difference = 11."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/minimize-the-heights-ii/",
+    "leetCodeUrl": "https://leetcode.com/problems/minimize-the-heights-ii/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/minimize-the-heights-ii"
+  },
+  {
+    "id": "gfg-009",
+    "title": "Maximum Subarray Sum (Kadane's Algorithm)",
+    "slug": "maximum-subarray-sum-kadanes",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Time Complexity",
+    "acceptanceRate": "65.3%",
+    "isSolved": true,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft",
+      "Meta"
+    ],
+    "description": "Find the contiguous subarray within an array arr[] which has the largest sum.",
+    "examples": [
+      {
+        "input": "arr = [2, 3, -8, 7, -1, 2, 3]",
+        "output": "11",
+        "explanation": "The contiguous subarray [7, -1, 2, 3] has the largest sum = 11."
+      },
+      {
+        "input": "arr = [-2, -4]",
+        "output": "-2",
+        "explanation": "The contiguous subarray [-2] has the largest sum = -2."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/maximum-subarray-sum-kadanes/",
+    "leetCodeUrl": "https://leetcode.com/problems/maximum-subarray-sum-kadanes/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/maximum-subarray-sum-kadanes"
+  },
+  {
+    "id": "gfg-010",
+    "title": "Maximum Product Subarray",
+    "slug": "maximum-product-subarray",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Space Complexity",
+    "acceptanceRate": "44.7%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Morgan Stanley",
+      "Microsoft"
+    ],
+    "description": "Given an array arr[], find the product of the maximum product contiguous subarray.",
+    "examples": [
+      {
+        "input": "arr = [-2, 6, -3, -10, 0, 2]",
+        "output": "180",
+        "explanation": "The contiguous subarray [6, -3, -10] has max product 6 * (-3) * (-10) = 180."
+      },
+      {
+        "input": "arr = [2, 3, -2, 4]",
+        "output": "6",
+        "explanation": "Subarray [2, 3] yields max product 6."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/maximum-product-subarray/",
+    "leetCodeUrl": "https://leetcode.com/problems/maximum-product-subarray/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/maximum-product-subarray"
+  },
+  {
+    "id": "gfg-011",
+    "title": "Smallest Positive Missing Number",
+    "slug": "smallest-positive-missing-number",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Space Complexity",
+    "acceptanceRate": "41.2%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Accolite",
+      "Amazon",
+      "Samsung"
+    ],
+    "description": "Find the smallest positive missing number in an unsorted array of integers in O(N) time and O(1) auxiliary space.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/smallest-positive-missing-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/smallest-positive-missing-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/smallest-positive-missing-number"
+  },
+  {
+    "id": "gfg-012",
+    "title": "Implement Atoi / String to Integer",
+    "slug": "implement-atoi",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Pattern",
+    "acceptanceRate": "31.5%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "Oracle"
+    ],
+    "description": "Convert a given string to a 32-bit signed integer according to standard C/C++ atoi behavior.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/implement-atoi/",
+    "leetCodeUrl": "https://leetcode.com/problems/implement-atoi/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/implement-atoi"
+  },
+  {
+    "id": "gfg-013",
+    "title": "Add Binary Strings",
+    "slug": "add-binary-strings",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Pattern",
+    "acceptanceRate": "59.8%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Facebook",
+      "Adobe"
+    ],
+    "description": "Given two binary strings s1 and s2, return their sum as a binary string.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/add-binary-strings/",
+    "leetCodeUrl": "https://leetcode.com/problems/add-binary-strings/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/add-binary-strings"
+  },
+  {
+    "id": "gfg-014",
+    "title": "Anagram Check",
+    "slug": "valid-anagram",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Strings",
+    "acceptanceRate": "63.4%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Uber",
+      "Spotify"
+    ],
+    "description": "Given two strings s and t, check whether s and t are anagrams of each other.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/valid-anagram/",
+    "leetCodeUrl": "https://leetcode.com/problems/valid-anagram/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/valid-anagram"
+  },
+  {
+    "id": "gfg-015",
+    "title": "Search Pattern (KMP Algorithm)",
+    "slug": "search-pattern-kmp",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Strings",
+    "acceptanceRate": "47.2%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Microsoft"
+    ],
+    "description": "Given a text string txt and a pattern string pat, find all 1-based index occurrences of pat in txt using Knuth-Morris-Pratt algorithm.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/search-pattern-kmp/",
+    "leetCodeUrl": "https://leetcode.com/problems/search-pattern-kmp/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/search-pattern-kmp"
+  },
+  {
+    "id": "gfg-016",
+    "title": "Sort an Array of 0s, 1s, and 2s",
+    "slug": "sort-colors-dutch-flag",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Arrays & Hashing",
+    "acceptanceRate": "61.3%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "Paytm"
+    ],
+    "description": "Sort an array consisting only of 0s, 1s, and 2s in ascending order in O(N) time and O(1) space.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/sort-colors-dutch-flag/",
+    "leetCodeUrl": "https://leetcode.com/problems/sort-colors-dutch-flag/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/sort-colors-dutch-flag"
+  },
+  {
+    "id": "gfg-017",
+    "title": "Two Sum - Pair with Given Sum",
+    "slug": "two-sum",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Two Pointers",
+    "acceptanceRate": "51.2%",
+    "isSolved": true,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Meta",
+      "Microsoft"
+    ],
+    "description": "Find if there exists a pair of elements in an array whose sum equals a given target.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/two-sum/",
+    "leetCodeUrl": "https://leetcode.com/problems/two-sum/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/two-sum"
+  },
+  {
+    "id": "gfg-018",
+    "title": "3Sum - Triplet Sum in Array",
+    "slug": "3sum-triplet-sum",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Two Pointers",
+    "acceptanceRate": "42.8%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Meta",
+      "Amazon",
+      "Adobe"
+    ],
+    "description": "Find all unique triplets in the array which give the sum of zero.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/3sum-triplet-sum/",
+    "leetCodeUrl": "https://leetcode.com/problems/3sum-triplet-sum/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/3sum-triplet-sum"
+  },
+  {
+    "id": "gfg-019",
+    "title": "Longest Substring with Distinct Characters",
+    "slug": "longest-substring-without-repeating-characters",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Sliding Window",
+    "acceptanceRate": "34.8%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Meta",
+      "Microsoft",
+      "Netflix",
+      "Google"
+    ],
+    "description": "Find the length of the longest substring without repeating characters.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/longest-substring-without-repeating-characters/",
+    "leetCodeUrl": "https://leetcode.com/problems/longest-substring-without-repeating-characters/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/longest-substring-without-repeating-characters"
+  },
+  {
+    "id": "gfg-020",
+    "title": "Trapping Rain Water",
+    "slug": "trapping-rain-water",
+    "difficulty": "Hard",
+    "category": "DSA",
+    "topic": "Sliding Window",
+    "acceptanceRate": "60.1%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Apple",
+      "Goldman Sachs"
+    ],
+    "description": "Compute how much water an elevation map can trap after raining.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/trapping-rain-water/",
+    "leetCodeUrl": "https://leetcode.com/problems/trapping-rain-water/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/trapping-rain-water"
+  },
+  {
+    "id": "gfg-021",
+    "title": "Search in a Sorted and Rotated Array",
+    "slug": "search-in-rotated-sorted-array",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Binary Search",
+    "acceptanceRate": "56.4%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+    ],
+    "description": "Search for a target value in a sorted array that has been rotated at an unknown pivot.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/search-in-rotated-sorted-array/",
+    "leetCodeUrl": "https://leetcode.com/problems/search-in-rotated-sorted-array/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/search-in-rotated-sorted-array"
+  },
+  {
+    "id": "gfg-022",
+    "title": "Allocate Minimum Pages",
+    "slug": "allocate-minimum-pages",
+    "difficulty": "Hard",
+    "category": "DSA",
+    "topic": "Binary Search",
+    "acceptanceRate": "38.2%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Flipkart"
+    ],
+    "description": "Allocate books to k students such that the maximum number of pages allocated to a student is minimized.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/allocate-minimum-pages/",
+    "leetCodeUrl": "https://leetcode.com/problems/allocate-minimum-pages/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/allocate-minimum-pages"
+  },
+  {
+    "id": "gfg-023",
+    "title": "Merge Overlapping Intervals",
+    "slug": "merge-intervals",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Sorting",
+    "acceptanceRate": "53.9%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Meta",
+      "Google",
+      "Microsoft"
+    ],
+    "description": "Given a collection of intervals, merge all overlapping intervals into one consolidated list.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/merge-intervals/",
+    "leetCodeUrl": "https://leetcode.com/problems/merge-intervals/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/merge-intervals"
+  },
+  {
+    "id": "gfg-024",
+    "title": "Spirally Traversing a Matrix",
+    "slug": "spiral-matrix",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Matrixes",
+    "acceptanceRate": "52.1%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "Paytm"
+    ],
+    "description": "Given a matrix of size r x c, return all elements of the matrix in spiral order traversal.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/spiral-matrix/",
+    "leetCodeUrl": "https://leetcode.com/problems/spiral-matrix/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/spiral-matrix"
+  },
+  {
+    "id": "gfg-025",
+    "title": "Set Matrix Zeroes",
+    "slug": "set-matrix-zeroes",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Matrixes",
+    "acceptanceRate": "55.8%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ],
+    "description": "Given an m x n integer matrix, if an element is 0, set its entire row and column to 0 in-place.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/set-matrix-zeroes/",
+    "leetCodeUrl": "https://leetcode.com/problems/set-matrix-zeroes/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/set-matrix-zeroes"
+  },
+  {
+    "id": "gfg-026",
+    "title": "Single Number (Find Unique Element)",
+    "slug": "single-number",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Bit Manipulation",
+    "acceptanceRate": "71.4%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Google"
+    ],
+    "description": "Every element in the array appears twice except for one. Find that single unique element.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/single-number/",
+    "leetCodeUrl": "https://leetcode.com/problems/single-number/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/single-number"
+  },
+  {
+    "id": "gfg-027",
+    "title": "N-Queen Problem",
+    "slug": "n-queens",
+    "difficulty": "Hard",
+    "category": "DSA",
+    "topic": "Backtracking",
+    "acceptanceRate": "43.1%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Amazon",
+      "Microsoft"
+    ],
+    "description": "Place N chess queens on an N x N chessboard such that no two queens attack each other.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/n-queens/",
+    "leetCodeUrl": "https://leetcode.com/problems/n-queens/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/n-queens"
+  },
+  {
+    "id": "gfg-028",
+    "title": "Reverse a Linked List",
+    "slug": "reverse-linked-list",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Linked List",
+    "acceptanceRate": "74.8%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft",
+      "Meta"
+    ],
+    "description": "Given the head of a singly linked list, reverse the list, and return the reversed list head.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/reverse-linked-list/",
+    "leetCodeUrl": "https://leetcode.com/problems/reverse-linked-list/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/reverse-linked-list"
+  },
+  {
+    "id": "gfg-029",
+    "title": "Detect and Remove Loop in Linked List",
+    "slug": "linked-list-cycle-ii",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Linked List",
+    "acceptanceRate": "53.2%",
+    "isSolved": true,
+    "isBookmarked": true,
+    "companies": [
+      "Amazon",
+      "Paytm",
+      "Microsoft"
+    ],
+    "description": "Detect if a loop exists in a linked list using Floyd's cycle detection and break the loop.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/linked-list-cycle-ii/",
+    "leetCodeUrl": "https://leetcode.com/problems/linked-list-cycle-ii/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/linked-list-cycle-ii"
+  },
+  {
+    "id": "gfg-030",
+    "title": "Parenthesis Checker (Balanced Parentheses)",
+    "slug": "valid-parentheses",
+    "difficulty": "Easy",
+    "category": "DSA",
+    "topic": "Stack",
+    "acceptanceRate": "68.2%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Google",
+      "Meta"
+    ],
+    "description": "Check whether expressions containing brackets are balanced using a stack.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/valid-parentheses/",
+    "leetCodeUrl": "https://leetcode.com/problems/valid-parentheses/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/valid-parentheses"
+  },
+  {
+    "id": "gfg-031",
+    "title": "Next Greater Element",
+    "slug": "next-greater-element",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Stack",
+    "acceptanceRate": "57.3%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Amazon",
+      "Flipkart"
+    ],
+    "description": "Find the next greater element for each element of the array using a monotonic stack.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/next-greater-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/next-greater-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/next-greater-element"
+  },
+  {
+    "id": "gfg-032",
+    "title": "Level Order Traversal of Binary Tree",
+    "slug": "binary-tree-level-order-traversal",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Trees",
+    "acceptanceRate": "66.9%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft",
+      "Meta"
+    ],
+    "description": "Return the level order traversal of a binary tree nodes' values level by level.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/binary-tree-level-order-traversal/",
+    "leetCodeUrl": "https://leetcode.com/problems/binary-tree-level-order-traversal/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/binary-tree-level-order-traversal"
+  },
+  {
+    "id": "gfg-033",
+    "title": "Lowest Common Ancestor in BST",
+    "slug": "lca-bst",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "BST",
+    "acceptanceRate": "64.1%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Google",
+      "Microsoft"
+    ],
+    "description": "Given a Binary Search Tree and two nodes n1 and n2, find their lowest common ancestor.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/lca-bst/",
+    "leetCodeUrl": "https://leetcode.com/problems/lca-bst/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/lca-bst"
+  },
+  {
+    "id": "gfg-034",
+    "title": "K Largest Elements in Array",
+    "slug": "kth-largest-element",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Heap",
+    "acceptanceRate": "65.4%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Meta",
+      "Google"
+    ],
+    "description": "Given an array of N positive integers, print k largest elements from the array using a min-heap.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/kth-largest-element/",
+    "leetCodeUrl": "https://leetcode.com/problems/kth-largest-element/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/kth-largest-element"
+  },
+  {
+    "id": "gfg-035",
+    "title": "BFS & DFS of Graph",
+    "slug": "number-of-islands",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Graphs",
+    "acceptanceRate": "57.8%",
+    "isSolved": true,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ],
+    "description": "Perform Breadth-First and Depth-First traversals on connected & disconnected graph components.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/number-of-islands/",
+    "leetCodeUrl": "https://leetcode.com/problems/number-of-islands/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/number-of-islands"
+  },
+  {
+    "id": "gfg-036",
+    "title": "Dijkstra Algorithm (Shortest Path)",
+    "slug": "dijkstra-algorithm",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Graphs",
+    "acceptanceRate": "51.3%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Google",
+      "Uber",
+      "Amazon"
+    ],
+    "description": "Find the shortest path from a single source vertex to all other vertices in a weighted graph.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/dijkstra-algorithm/",
+    "leetCodeUrl": "https://leetcode.com/problems/dijkstra-algorithm/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/dijkstra-algorithm"
+  },
+  {
+    "id": "gfg-037",
+    "title": "0/1 Knapsack Problem",
+    "slug": "coin-change",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "1-D Dynamic Programming",
+    "acceptanceRate": "49.5%",
+    "isSolved": false,
+    "isBookmarked": true,
+    "companies": [
+      "Amazon",
+      "Paytm",
+      "Google"
+    ],
+    "description": "Given weights and values of N items, put these items in a knapsack of capacity W to get maximum total value.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/coin-change/",
+    "leetCodeUrl": "https://leetcode.com/problems/coin-change/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/coin-change"
+  },
+  {
+    "id": "gfg-038",
+    "title": "Longest Common Subsequence (LCS)",
+    "slug": "longest-common-subsequence",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "1-D Dynamic Programming",
+    "acceptanceRate": "52.4%",
+    "isSolved": false,
+    "isBookmarked": false,
+    "companies": [
+      "Amazon",
+      "Microsoft"
+    ],
+    "description": "Given two strings s1 and s2, find the length of their longest common subsequence.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": true,
+    "gfgUrl": "https://www.geeksforgeeks.org/longest-common-subsequence/",
+    "leetCodeUrl": "https://leetcode.com/problems/longest-common-subsequence/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/longest-common-subsequence"
+  },
+  {
+    "id": "gfg-039",
+    "title": "Trie Insert and Search",
+    "slug": "implement-trie",
+    "difficulty": "Medium",
+    "category": "DSA",
+    "topic": "Tries",
+    "acceptanceRate": "62.7%",
+    "isSolved": true,
+    "isBookmarked": false,
+    "companies": [
+      "Google",
+      "Amazon",
+      "Microsoft"
+    ],
+    "description": "Implement a Trie (Prefix Tree) with insert, search, and startsWith methods.",
+    "examples": [
+      {
+        "input": "nums = [2, 7, 11, 15], target = 9",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
+      },
+      {
+        "input": "nums = [3, 2, 4], target = 6",
+        "output": "[1, 2]",
+        "explanation": "Because nums[1] + nums[2] == 6, we return [1, 2]."
+      },
+      {
+        "input": "nums = [3, 3], target = 6",
+        "output": "[0, 1]",
+        "explanation": "Because nums[0] + nums[1] == 6, we return [0, 1]."
+      }
+    ],
+    "isOwnProblem": false,
+    "gfgUrl": "https://www.geeksforgeeks.org/implement-trie/",
+    "leetCodeUrl": "https://leetcode.com/problems/implement-trie/",
+    "hackerRankUrl": "https://www.hackerrank.com/challenges/implement-trie"
+  }
+];

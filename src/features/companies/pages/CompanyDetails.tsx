@@ -32,10 +32,12 @@ export const CompanyDetails: React.FC = () => {
   }, [dispatch, slug]);
 
   useEffect(() => {
-    if (company?.name) {
-      dispatch(fetchCompanyProblems(company.name));
+    if (company?.id || company?.name) {
+      dispatch(fetchCompanyProblems({ id: company.id, name: company.name }));
+    } else if (slug) {
+      dispatch(fetchCompanyProblems({ id: slug }));
     }
-  }, [dispatch, company]);
+  }, [dispatch, company, slug]);
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -77,7 +79,19 @@ export const CompanyDetails: React.FC = () => {
     );
   }
 
-  const logoUrl = company.logo || fallbackLogos[company.slug] || `https://gurucodes-data.pages.dev/img/companies/${company.slug}.png`;
+  const companySlug =
+    (company.slug && isNaN(Number(company.slug)) ? company.slug : null) ||
+    company.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') ||
+    (company.id ? String(company.id) : '') ||
+    slug ||
+    'tcs';
+
+  const logoUrl =
+    company.logo ||
+    fallbackLogos[companySlug] ||
+    fallbackLogos[company.name?.toLowerCase() || ''] ||
+    fallbackLogos[String(company.id)] ||
+    `https://gurucodes-data.pages.dev/img/companies/${companySlug}.png`;
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full font-sans text-gray-200 py-6 px-4 sm:px-6 lg:px-8">
@@ -107,10 +121,10 @@ export const CompanyDetails: React.FC = () => {
               className="w-full h-full object-contain"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (fallbackLogos[company.slug] && target.src !== fallbackLogos[company.slug]) {
-                  target.src = fallbackLogos[company.slug];
+                if (fallbackLogos[companySlug] && target.src !== fallbackLogos[companySlug]) {
+                  target.src = fallbackLogos[companySlug];
                 } else {
-                  target.src = `https://logo.clearbit.com/${company.slug.replace('-nqt', '')}.com`;
+                  target.src = `https://logo.clearbit.com/${companySlug.replace('-nqt', '')}.com`;
                 }
               }}
             />
@@ -136,7 +150,7 @@ export const CompanyDetails: React.FC = () => {
           </div>
 
           <Link
-            to={`/company-patterns/${company.slug}`}
+            to={`/company-patterns/${companySlug}`}
             className="inline-flex items-center justify-center gap-2 px-4.5 py-2.5 rounded-xl bg-[#A3E635] hover:bg-[#84CC16] text-xs font-bold text-black transition-all shadow-md font-sans shrink-0"
           >
             <i className="fa-solid fa-list-check text-black text-xs"></i>
@@ -210,81 +224,90 @@ export const CompanyDetails: React.FC = () => {
 
         {/* Practice Sheet Styled Problem Cards Container */}
         <div className="p-6 bg-[#202225] border border-white/10 rounded-2xl shadow-xl flex flex-col gap-3">
-          {companyProblems.map((q) => {
-            const isBookmarked = bookmarks.some((b) => b.itemId === q.id);
+          {companyProblems.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <i className="fa-solid fa-folder-open text-4xl mb-3 text-gray-500"></i>
+              <p className="text-sm font-medium">No problems found for this company yet.</p>
+            </div>
+          ) : (
+            companyProblems.map((q) => {
+              const isBookmarked = bookmarks.some((b) => b.itemId === q.id);
+              const targetSlug = q.slug || q.id;
 
-            return (
-              <div
-                key={q.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#121113] hover:bg-[#1c1a1e] border border-white/10 hover:border-white/30 rounded-xl transition-all gap-3 shadow-md group"
-              >
-                <div className="flex items-center gap-3.5 min-w-0">
-                  {/* Tick / Untick Circle Button */}
-                  <button
-                    onClick={(e) => handleSolveToggle(q.id, e)}
-                    className={`text-xl transition-colors shrink-0 cursor-pointer ${
-                      q.isSolved ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
-                    }`}
-                    title={q.isSolved ? 'Mark as Not Answered' : 'Mark as Answered'}
-                  >
-                    <i className={`fa-solid ${q.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
-                  </button>
-
-                  {/* Bookmark Star Button */}
-                  <button
-                    onClick={(e) => handleBookmarkToggle(q, e)}
-                    className={`p-2 rounded-lg border transition-all text-xs shrink-0 cursor-pointer ${
-                      isBookmarked
-                        ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
-                        : 'bg-[#202225] border-white/10 text-gray-500 hover:text-amber-400 hover:border-amber-400/40'
-                    }`}
-                    title={isBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
-                  >
-                    <i className={`fa-${isBookmarked ? 'solid' : 'regular'} fa-star`}></i>
-                  </button>
-
-                  {/* Title & Topic */}
-                  <div className="flex flex-col min-w-0">
-                    <Link
-                      to={`/problems/${q.slug}`}
-                      className="text-sm sm:text-base font-semibold text-white hover:text-[#A3E635] transition-colors truncate font-sans"
+              return (
+                <div
+                  key={q.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[#121113] hover:bg-[#1c1a1e] border border-white/10 hover:border-white/30 rounded-xl transition-all gap-3 shadow-md group"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    {/* Tick / Untick Circle Button */}
+                    <button
+                      onClick={(e) => handleSolveToggle(q.id, e)}
+                      className={`text-xl transition-colors shrink-0 cursor-pointer ${
+                        q.isSolved ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
+                      }`}
+                      title={q.isSolved ? 'Mark as Not Answered' : 'Mark as Answered'}
                     >
-                      {q.title}
-                    </Link>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[11px] font-mono text-gray-400 bg-[#202225] px-2.5 py-0.5 rounded-md border border-white/5">
-                        {q.topic || q.category || company.name}
-                      </span>
+                      <i className={`fa-solid ${q.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
+                    </button>
+
+                    {/* Bookmark Star Button */}
+                    <button
+                      onClick={(e) => handleBookmarkToggle(q, e)}
+                      className={`p-2 rounded-lg border transition-all text-xs shrink-0 cursor-pointer ${
+                        isBookmarked
+                          ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                          : 'bg-[#202225] border-white/10 text-gray-500 hover:text-amber-400 hover:border-amber-400/40'
+                      }`}
+                      title={isBookmarked ? 'Remove Bookmark' : 'Add Bookmark'}
+                    >
+                      <i className={`fa-${isBookmarked ? 'solid' : 'regular'} fa-star`}></i>
+                    </button>
+
+                    {/* Title & Topic */}
+                    <div className="flex flex-col min-w-0">
+                      <Link
+                        to={`/problems/${targetSlug}`}
+                        className="text-sm sm:text-base font-semibold text-white hover:text-[#A3E635] transition-colors truncate font-sans"
+                      >
+                        {q.title}
+                      </Link>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] font-mono text-gray-400 bg-[#202225] px-2.5 py-0.5 rounded-md border border-white/5">
+                          {q.topic || q.category || company.name}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                  {/* Difficulty Badge */}
-                  <span
-                    className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
-                      q.difficulty.toLowerCase() === 'easy'
-                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                        : q.difficulty.toLowerCase() === 'medium'
-                        ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
-                        : 'text-rose-400 bg-rose-500/10 border-rose-500/20'
-                    }`}
-                  >
-                    {q.difficulty}
-                  </span>
+                  <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                    {/* Difficulty Badge */}
+                    <span
+                      className={`text-xs font-mono font-bold px-3 py-1 rounded-full border ${
+                        (q.difficulty || '').toLowerCase().includes('easy') ||
+                        (q.difficulty || '').toLowerCase().includes('basic')
+                          ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                          : (q.difficulty || '').toLowerCase().includes('medium')
+                          ? 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                          : 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                      }`}
+                    >
+                      {q.difficulty || 'Easy'}
+                    </span>
 
-                  {/* Solve Problem Button */}
-                  <Link
-                    to={`/problems/${q.slug}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#A3E635] hover:bg-[#84CC16] text-xs font-bold text-black transition-all shadow-sm font-sans"
-                  >
-                    <span>Solve Problem</span>
-                    <i className="fa-solid fa-chevron-right text-[10px]"></i>
-                  </Link>
+                    {/* Solve Problem Button */}
+                    <Link
+                      to={`/problems/${targetSlug}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#A3E635] hover:bg-[#84CC16] text-xs font-bold text-black transition-all shadow-sm font-sans"
+                    >
+                      <span>Solve Problem</span>
+                      <i className="fa-solid fa-chevron-right text-[10px]"></i>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
 

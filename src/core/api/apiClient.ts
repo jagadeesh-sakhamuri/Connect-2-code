@@ -27,11 +27,12 @@ apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const reqUrl = config.url || '';
     
-    // Prevent stale Authorization headers from being attached to public auth endpoints
     const isPublicAuthEndpoint =
       reqUrl.includes('/auth/login') ||
       reqUrl.includes('/signUp') ||
-      reqUrl.includes('/auth/refresh');
+      reqUrl.includes('/auth/refresh') ||
+      reqUrl.includes('/auth/generatePasswordResetOtp') ||
+      reqUrl.includes('/auth/verifyPasswordResetOtp');
 
     const token = tokenStorage.getAccessToken();
     if (token && config.headers && !isPublicAuthEndpoint) {
@@ -100,12 +101,18 @@ apiClient.interceptors.response.use(
     // Check for HTTP 401 Unauthorized
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
       // Exclude auth endpoints from refresh loop
-      if (reqUrl.includes('/auth/refresh') || reqUrl.includes('/auth/login') || reqUrl.includes('/signUp')) {
+      if (
+        reqUrl.includes('/auth/refresh') ||
+        reqUrl.includes('/auth/login') ||
+        reqUrl.includes('/signUp') ||
+        reqUrl.includes('/auth/generatePasswordResetOtp') ||
+        reqUrl.includes('/auth/verifyPasswordResetOtp')
+      ) {
         tokenStorage.clearTokens();
         const errBody = error.response?.data || {};
         return Promise.reject({
           statusCode: error.response.status,
-          message: errBody.message || 'Invalid Email or Password',
+          message: errBody.message || 'Authentication error',
           errors: errBody.errors || [error.message],
         });
       }

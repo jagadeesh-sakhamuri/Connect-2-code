@@ -62,7 +62,6 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
   const [testCaseTypes, setTestCaseTypes] = useState<ReferenceItem[]>([]);
   const [allCompanies, setAllCompanies] = useState<CompanyItem[]>([]);
   const [selectedCompanies, setSelectedCompanies] = useState<CompanyItem[]>([]);
-  const [companyInput, setCompanyInput] = useState<string>('');
 
   const [refLoading, setRefLoading] = useState<boolean>(false);
   const [refError, setRefError] = useState<string | null>(null);
@@ -322,22 +321,6 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     setSelectedCompanies([]);
   };
 
-  const handleAddCompanyTag = () => {
-    if (!companyInput.trim()) return;
-    const nameToMatch = companyInput.trim();
-    const existingMatch = allCompanies.find(
-      (c) => c.name.toLowerCase() === nameToMatch.toLowerCase()
-    );
-    const companyToAdd: CompanyItem = existingMatch || {
-      id: null,
-      name: nameToMatch,
-    };
-    if (!selectedCompanies.some((c) => c.name.toLowerCase() === nameToMatch.toLowerCase())) {
-      setSelectedCompanies([...selectedCompanies, companyToAdd]);
-    }
-    setCompanyInput('');
-  };
-
   const handleRemoveCompany = (companyName: string) => {
     setSelectedCompanies(selectedCompanies.filter((c) => c.name !== companyName));
   };
@@ -592,7 +575,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
 
               {/* Active Status & Conditional Asked Date Section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
-                {/* Active Status Toggle */}
+                {/* Active Status Toggle - Temporarily Commented Out
                 <div className="flex items-center gap-3 p-3.5 bg-[#090A0C]/80 backdrop-blur-md border border-white/10 rounded-xl cursor-pointer">
                   <input
                     type="checkbox"
@@ -605,6 +588,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                     Active Problem (Published to users)
                   </label>
                 </div>
+                */}
 
                 {/* Conditional Field: Originally Asked Date (ONLY when isOwnProblem === true) */}
                 {isOwnProblem && (
@@ -623,7 +607,8 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                 )}
               </div>
 
-              {/* Conditional Field: External Platform URLs (ONLY when isOwnProblem === false) */}
+              {/* Conditional Field: External Platform URLs (LeetCode, GeeksforGeeks, HackerRank) - Temporarily Commented Out */}
+              {/*
               {!isOwnProblem && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-white/10">
                   <div className="space-y-1">
@@ -655,6 +640,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
                   </div>
                 </div>
               )}
+              */}
 
               {/* Tagged Hiring Companies Multiselect Dropdown */}
               <div className="space-y-2 pt-2 border-t border-white/10">

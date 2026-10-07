@@ -59,8 +59,20 @@ export const fetchCompanyBySlug = createAsyncThunk(
 
 export const fetchCompanyProblems = createAsyncThunk(
   'companies/fetchProblems',
-  async (companyName: string) => {
-    const res = await companyService.getCompanyProblems(companyName);
+  async (payload: { id?: string | number; name?: string } | string | number) => {
+    let companyId: string | number | undefined;
+    let companyName: string | undefined;
+
+    if (typeof payload === 'object' && payload !== null) {
+      companyId = payload.id;
+      companyName = payload.name;
+    } else if (typeof payload === 'number' || (!isNaN(Number(payload)) && String(payload).trim() !== '')) {
+      companyId = payload;
+    } else {
+      companyName = String(payload);
+    }
+
+    const res = await companyService.getCompanyProblems(companyId, companyName);
     return res.data;
   }
 );

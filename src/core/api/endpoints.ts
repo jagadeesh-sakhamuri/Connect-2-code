@@ -26,40 +26,21 @@ export const API_ENDPOINTS = {
   },
   PROBLEMS: {
     LIST: '/questions',
-    DETAILS: (id: string) => `/question/${id}`,
     SUBMIT: (id: string) => `/question/${id}/submit`,
-    CATEGORIES: '/question/categories',
-  },
-  COMPANIES: {
-    LIST: '/company',
-    DETAILS: (id: string) => `/company/${id}`,
-    PROBLEMS: (id: string) => `/company/${id}/problems`,
-  },
-  BOOKMARKS: {
-    LIST: '/bookmarks',
-    TOGGLE: (id: string) => `/bookmarks/toggle/${id}`,
   },
   USER: {
     PROFILE: '/user/profile',
     UPDATE: '/user/profile',
   },
-  DASHBOARD: {
-    STATS: '/dashboard/stats',
+  LANGUAGE: {
+    BASE: '/language',
+    DROPDOWN: '/language/dropdown',
+    DETAILS: (id: string | number) => `/language/${id}`,
   },
-  APTITUDE: {
-    LIST: '/aptitude',
-    TOPICS: '/aptitude/topics',
-  },
-  LOGICAL: {
-    LIST: '/logical',
-    TOPICS: '/logical/topics',
-  },
-  VERBAL: {
-    LIST: '/verbal',
-    TOPICS: '/verbal/topics',
-  },
-  INTERVIEW: {
-    LIST: '/interviews',
-    DETAILS: (id: string | number) => `/interviews/${id}`,
+  EXECUTION: {
+    USER_RUN: '/runCode',
+    USER_SUBMIT: '/submitCode',
+    ADMIN_RUN: '/admin/testCode',
+    ADMIN_SUBMIT: '/admin/submitCode',
   },
 } as const;

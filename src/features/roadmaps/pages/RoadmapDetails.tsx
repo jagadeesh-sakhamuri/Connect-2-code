@@ -1,4 +1,4 @@
-import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
+// import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
@@ -602,40 +602,8 @@ export const RoadmapDetails: React.FC = () => {
                                             Solve
                                           </Link>
                                         ) : (
-                                          <div className="flex items-center gap-2 self-start sm:self-auto">
-                                            {/* GeeksforGeeks Circle Logo Icon */}
-                                            <a
-                                              href={(p as any).gfgUrl || `https://www.geeksforgeeks.org/${p.slug}/`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              title="Solve on GeeksforGeeks"
-                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-emerald-500/25 border border-emerald-500/40 hover:border-emerald-400 text-emerald-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                                            >
-                                              <GfgLogoIcon className="w-4 h-4" />
-                                            </a>
-
-                                            {/* LeetCode Circle Logo Icon */}
-                                            <a
-                                              href={(p as any).leetCodeUrl || `https://leetcode.com/problems/${p.slug}/`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              title="Solve on LeetCode"
-                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-amber-500/25 border border-amber-500/40 hover:border-amber-400 text-amber-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                                            >
-                                              <LeetCodeLogoIcon className="w-4 h-4" />
-                                            </a>
-
-                                            {/* HackerRank Circle Logo Icon */}
-                                            <a
-                                              href={(p as any).hackerRankUrl || `https://www.hackerrank.com/challenges/${p.slug}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              title="Solve on HackerRank"
-                                              className="w-7.5 h-7.5 rounded-full bg-[#121113] hover:bg-teal-500/25 border border-teal-500/40 hover:border-teal-400 text-teal-400 flex items-center justify-center shadow-sm transition-all hover:scale-110 cursor-pointer"
-                                            >
-                                              <HackerRankLogoIcon className="w-4 h-4" />
-                                            </a>
-                                          </div>
+                                          /* External Platform Links (GeeksforGeeks, LeetCode, HackerRank) - Temporarily Commented Out */
+                                          null
                                         )}
                                       </div>
                                     );

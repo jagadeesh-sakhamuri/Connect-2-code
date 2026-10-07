@@ -4,6 +4,7 @@ import { DashboardOverview } from '../components/dashboard/DashboardOverview';
 import { DashboardMetricsGrid } from '../components/dashboard/DashboardMetricsGrid';
 import { DashboardSystemInfo } from '../components/dashboard/DashboardSystemInfo';
 import { DashboardQuickActions } from '../components/dashboard/DashboardQuickActions';
+import { DashboardCodeRunner } from '../components/dashboard/DashboardCodeRunner';
 import { adminQuestionService } from '../../../services/admin/adminQuestionService';
 import { adminCompanyService } from '../../../services/admin/adminCompanyService';
 
@@ -113,15 +114,27 @@ export const AdminDashboard: React.FC = () => {
         title="Dashboard"
         description="Overview of questions, companies, and platform activity"
         actions={
-          <button
-            onClick={fetchDashboardData}
-            disabled={loading}
-            className="px-4 py-2 bg-[#121316] hover:bg-[#1a1c22] text-gray-300 border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
-            title="Refresh Data"
-          >
-            <i className={`fa-solid fa-rotate-right text-xs ${loading ? 'animate-spin text-[#A3E635]' : ''}`}></i>
-            <span>Refresh</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => {
+                const el = document.getElementById('dashboard-code-runner');
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-4 py-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-[#A3E635]/20 font-sans"
+            >
+              <i className="fa-solid fa-play text-xs text-black"></i>
+              <span>Test &amp; Submit Code</span>
+            </button>
+            <button
+              onClick={fetchDashboardData}
+              disabled={loading}
+              className="px-4 py-2 bg-[#121316] hover:bg-[#1a1c22] text-gray-300 border border-white/10 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 disabled:opacity-50"
+              title="Refresh Data"
+            >
+              <i className={`fa-solid fa-rotate-right text-xs ${loading ? 'animate-spin text-[#A3E635]' : ''}`}></i>
+              <span>Refresh</span>
+            </button>
+          </div>
         }
       />
 
@@ -131,10 +144,15 @@ export const AdminDashboard: React.FC = () => {
       {/* 2. Real-Time Platform Metrics Grid */}
       <DashboardMetricsGrid stats={stats} loading={loading} />
 
-      {/* 3. System Configuration & Security Overview */}
+      {/* 3. Interactive Problem Code Runner & Test Suite */}
+      <div id="dashboard-code-runner">
+        <DashboardCodeRunner />
+      </div>
+
+      {/* 4. System Configuration & Security Overview */}
       <DashboardSystemInfo />
 
-      {/* 4. Admin Module Navigation Shortcuts */}
+      {/* 5. Admin Module Navigation Shortcuts */}
       <DashboardQuickActions />
     </div>
   );

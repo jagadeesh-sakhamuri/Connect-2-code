@@ -8,11 +8,13 @@ import { AdminRoute } from '../core/guards/AdminRoute';
 import { AdminLayout } from '../features/admin/components/AdminLayout';
 import { Skeleton } from '../shared/components/ui/Skeleton';
 
+// Static imports for Auth (already shared via MainLayout)
+import { Login } from '../features/auth/pages/Login';
+import { Signup } from '../features/auth/pages/Signup';
+import { ForgotPassword } from '../features/auth/pages/ForgotPassword';
+
 // Lazy-loaded Pages for Production Code Splitting
 const Landing = lazy(() => import('../features/landing/pages/Landing').then((m) => ({ default: m.Landing || m.default })));
-const Login = lazy(() => import('../features/auth/pages/Login').then((m) => ({ default: m.Login || m.default })));
-const Signup = lazy(() => import('../features/auth/pages/Signup').then((m) => ({ default: m.Signup || m.default })));
-const ForgotPassword = lazy(() => import('../features/auth/pages/ForgotPassword').then((m) => ({ default: m.ForgotPassword || m.default })));
 
 const PracticePage = lazy(() => import('../features/problems/pages/PracticePage').then((m) => ({ default: m.PracticePage || m.default })));
 const ProblemList = lazy(() => import('../features/problems/pages/ProblemList').then((m) => ({ default: m.ProblemList || m.default })));
@@ -38,9 +40,11 @@ const AppSettings = lazy(() => import('../features/settings/pages/AppSettings').
 const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboard').then((m) => ({ default: m.AdminDashboard || m.default })));
 const AdminQuestions = lazy(() => import('../features/admin/pages/AdminQuestions').then((m) => ({ default: m.AdminQuestions || m.default })));
 const AdminCompanies = lazy(() => import('../features/admin/pages/AdminCompanies').then((m) => ({ default: m.AdminCompanies || m.default })));
+const AdminLanguages = lazy(() => import('../features/admin/pages/AdminLanguages').then((m) => ({ default: m.AdminLanguages || m.default })));
 
 const NotFound = lazy(() => import('../shared/components/errors/NotFound').then((m) => ({ default: m.NotFound || m.default })));
 const ServerError = lazy(() => import('../shared/components/errors/ServerError').then((m) => ({ default: m.ServerError || m.default })));
+const ComingSoon = lazy(() => import('../shared/components/ComingSoon').then((m) => ({ default: m.ComingSoon || m.default })));
 
 const PageLoader: React.FC = () => (
   <div className="p-8 flex flex-col gap-4 max-w-5xl mx-auto font-sans">
@@ -56,6 +60,20 @@ const withSuspense = (Component: React.LazyExoticComponent<React.FC>) => (
   </Suspense>
 );
 
+// Feature toggle to temporarily route to the native Coming Soon UI while preserving all existing implementations
+const SHOW_COMING_SOON = true;
+
+const renderFeature = (Component: React.LazyExoticComponent<React.FC>, featureName: string) => {
+  if (SHOW_COMING_SOON) {
+    return (
+      <Suspense fallback={<PageLoader />}>
+        <ComingSoon featureName={featureName} />
+      </Suspense>
+    );
+  }
+  return withSuspense(Component);
+};
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -67,9 +85,9 @@ export const router = createBrowserRouter([
       {
         element: <AuthLayout />,
         children: [
-          { path: '/login', element: withSuspense(Login) },
-          { path: '/signup', element: withSuspense(Signup) },
-          { path: '/forgot-password', element: withSuspense(ForgotPassword) },
+          { path: '/login', element: <Login /> },
+          { path: '/signup', element: <Signup /> },
+          { path: '/forgot-password', element: <ForgotPassword /> },
         ],
       },
     ],
@@ -77,27 +95,29 @@ export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-      // ONLY DSA Sheet is accessible without login!
+      // Practice / DSA Problems (Restored)
       { path: '/dsa-sheet', element: withSuspense(ProblemList) },
+      { path: '/practice', element: withSuspense(PracticePage) },
+      { path: '/problems', element: <Navigate to="/practice" replace /> },
+      { path: '/problems/:slug', element: withSuspense(ProblemDetails) },
 
-      // ALL other user features REQUIRE LOGIN (ProtectedRoute)
+      // Temporarily Hidden Feature Pages -> Reusable Coming Soon UI
+      { path: '/roadmaps', element: renderFeature(RoadmapList, 'Roadmaps') },
+      { path: '/roadmaps/:slug', element: renderFeature(RoadmapDetails, 'Roadmaps') },
+      { path: '/company-patterns', element: renderFeature(CompanyPatterns, 'Company Exam Patterns') },
+      { path: '/company-patterns/:slug', element: renderFeature(CompanyPatternDetails, 'Company Exam Patterns') },
+      { path: '/aptitude', element: renderFeature(AptitudePrep, 'Aptitude') },
+      { path: '/logical', element: renderFeature(LogicalPrep, 'Logical Reasoning') },
+      { path: '/verbal', element: renderFeature(VerbalPrep, 'Verbal Ability') },
+      { path: '/interviews', element: renderFeature(InterviewPrep, 'Interview Questions') },
+
+      // Active User Features (Require Login)
       {
         element: <ProtectedRoute />,
         children: [
           { path: '/dashboard', element: <Navigate to="/practice" replace /> },
-          { path: '/practice', element: withSuspense(PracticePage) },
-          { path: '/problems', element: <Navigate to="/practice" replace /> },
-          { path: '/roadmaps', element: withSuspense(RoadmapList) },
-          { path: '/roadmaps/:slug', element: withSuspense(RoadmapDetails) },
-          { path: '/problems/:slug', element: withSuspense(ProblemDetails) },
           { path: '/companies', element: withSuspense(CompanyList) },
           { path: '/companies/:slug', element: withSuspense(CompanyDetails) },
-          { path: '/company-patterns', element: withSuspense(CompanyPatterns) },
-          { path: '/company-patterns/:slug', element: withSuspense(CompanyPatternDetails) },
-          { path: '/aptitude', element: withSuspense(AptitudePrep) },
-          { path: '/logical', element: withSuspense(LogicalPrep) },
-          { path: '/verbal', element: withSuspense(VerbalPrep) },
-          { path: '/interviews', element: withSuspense(InterviewPrep) },
           { path: '/bookmarks', element: withSuspense(BookmarksList) },
           { path: '/profile', element: withSuspense(ProfileSettings) },
           { path: '/settings', element: withSuspense(AppSettings) },
@@ -117,6 +137,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: withSuspense(AdminDashboard) },
           { path: 'questions', element: withSuspense(AdminQuestions) },
           { path: 'companies', element: withSuspense(AdminCompanies) },
+          { path: 'languages', element: withSuspense(AdminLanguages) },
         ],
       },
     ],

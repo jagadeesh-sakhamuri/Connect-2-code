@@ -18,6 +18,7 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: 'fa-solid fa-gauge-high', isImplemented: true },
   { to: '/admin/questions', label: 'Problem Bank', icon: 'fa-solid fa-code', isImplemented: true },
   { to: '/admin/companies', label: 'Target Companies', icon: 'fa-solid fa-building', isImplemented: true },
+  { to: '/admin/languages', label: 'Languages', icon: 'fa-solid fa-language', isImplemented: true },
 ];
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isMobileOpen, onCloseMobile }) => {

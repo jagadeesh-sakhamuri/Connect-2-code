@@ -9,13 +9,53 @@ import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Pagination } from '../../../shared/components/ui/Pagination';
 import { referenceService, ReferenceItem } from '../../../services/referenceService';
 import { companyService } from '../../../services/companyService';
+// import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
+import { useGoogleOAuthHandler } from '../../auth/hooks/useGoogleOAuthHandler';
 import { toast } from 'react-hot-toast';
+
+const DEFAULT_TOPICS: ReferenceItem[] = [
+  { id: 1, refGroupCode: 'TOPIC', refCode: 'TOPIC_ARRAYS', refName: 'Arrays & Hashing', isActive: true },
+  { id: 2, refGroupCode: 'TOPIC', refCode: 'TOPIC_TWOPTR', refName: 'Two Pointers', isActive: true },
+  { id: 3, refGroupCode: 'TOPIC', refCode: 'TOPIC_SLIDE', refName: 'Sliding Window', isActive: true },
+  { id: 4, refGroupCode: 'TOPIC', refCode: 'TOPIC_STACK', refName: 'Stack', isActive: true },
+  { id: 5, refGroupCode: 'TOPIC', refCode: 'TOPIC_BINSRCH', refName: 'Binary Search', isActive: true },
+  { id: 6, refGroupCode: 'TOPIC', refCode: 'TOPIC_LL', refName: 'Linked List', isActive: true },
+  { id: 7, refGroupCode: 'TOPIC', refCode: 'TOPIC_TREES', refName: 'Trees', isActive: true },
+  { id: 8, refGroupCode: 'TOPIC', refCode: 'TOPIC_TRIES', refName: 'Tries', isActive: true },
+  { id: 9, refGroupCode: 'TOPIC', refCode: 'TOPIC_BACKTRACK', refName: 'Backtracking', isActive: true },
+  { id: 10, refGroupCode: 'TOPIC', refCode: 'TOPIC_HEAP', refName: 'Heap', isActive: true },
+  { id: 11, refGroupCode: 'TOPIC', refCode: 'TOPIC_GRAPHS', refName: 'Graphs', isActive: true },
+  { id: 12, refGroupCode: 'TOPIC', refCode: 'TOPIC_1DDP', refName: '1-D Dynamic Programming', isActive: true },
+  { id: 13, refGroupCode: 'TOPIC', refCode: 'TOPIC_2DDP', refName: '2-D Dynamic Programming', isActive: true },
+  { id: 14, refGroupCode: 'TOPIC', refCode: 'TOPIC_BIT', refName: 'Bit Manipulation', isActive: true },
+  { id: 15, refGroupCode: 'TOPIC', refCode: 'TOPIC_MATH', refName: 'Math & Geometry', isActive: true },
+  { id: 16, refGroupCode: 'TOPIC', refCode: 'TOPIC_PREREQ', refName: 'Prerequisites', isActive: true },
+];
+
+const DEFAULT_COMPANIES = [
+  { id: 1, name: 'Amazon' },
+  { id: 2, name: 'Google' },
+  { id: 3, name: 'Microsoft' },
+  { id: 4, name: 'Meta' },
+  { id: 5, name: 'TCS' },
+  { id: 6, name: 'Infosys' },
+  { id: 7, name: 'Wipro' },
+  { id: 8, name: 'Accenture' },
+  { id: 9, name: 'Cognizant' },
+  { id: 10, name: 'Capgemini' },
+  { id: 11, name: 'Uber' },
+  { id: 12, name: 'Netflix' },
+  { id: 13, name: 'Adobe' },
+];
 
 export const PracticePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { problems, loading, pagination } = useAppSelector((state) => state.problems);
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  // Intercept Google OAuth callback if backend redirected to /practice?refreshToken=...
+  useGoogleOAuthHandler();
 
   const [activeSheetTab, setActiveSheetTab] = useState<'all' | 'answered' | 'bookmarked'>('all');
   const [searchInput, setSearchInput] = useState<string>('');
@@ -32,25 +72,33 @@ export const PracticePage: React.FC = () => {
     { id: 3, refGroupCode: 'DIFF', refCode: 'DIFF_MED', refName: 'Medium', isActive: true },
     { id: 4, refGroupCode: 'DIFF', refCode: 'DIFF_HARD', refName: 'Hard', isActive: true },
   ]);
-  const [topics, setTopics] = useState<ReferenceItem[]>([]);
-  const [companies, setCompanies] = useState<Array<{ id: number; name: string }>>([]);
+  const [topics, setTopics] = useState<ReferenceItem[]>(DEFAULT_TOPICS);
+  const [companies, setCompanies] = useState<Array<{ id: number; name: string }>>(DEFAULT_COMPANIES);
 
   // 1. Fetch Reference Library & Companies for Filter Dropdowns
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
-        const [diffRes, topicRes, compRes] = await Promise.all([
+        const [diffRes, topicRes, compRes] = await Promise.allSettled([
           referenceService.getByGroupCode('DIFF'),
           referenceService.getByGroupCode('TOPIC'),
           companyService.getCompanies(),
         ]);
-        const diffList = diffRes?.data || (Array.isArray(diffRes) ? diffRes : []);
-        const topicList = topicRes?.data || (Array.isArray(topicRes) ? topicRes : []);
-        const compList = compRes?.data || (Array.isArray(compRes) ? compRes : []);
 
-        if (Array.isArray(diffList) && diffList.length > 0) setDifficulties(diffList);
-        if (Array.isArray(topicList) && topicList.length > 0) setTopics(topicList);
-        if (Array.isArray(compList) && compList.length > 0) setCompanies(compList);
+        if (diffRes.status === 'fulfilled') {
+          const diffList = diffRes.value?.data || (Array.isArray(diffRes.value) ? diffRes.value : []);
+          if (Array.isArray(diffList) && diffList.length > 0) setDifficulties(diffList);
+        }
+
+        if (topicRes.status === 'fulfilled') {
+          const topicList = topicRes.value?.data || (Array.isArray(topicRes.value) ? topicRes.value : []);
+          if (Array.isArray(topicList) && topicList.length > 0) setTopics(topicList);
+        }
+
+        if (compRes.status === 'fulfilled') {
+          const compList = compRes.value?.data || (Array.isArray(compRes.value) ? compRes.value : []);
+          if (Array.isArray(compList) && compList.length > 0) setCompanies(compList);
+        }
       } catch (err) {
         console.warn('Filter API fetch fallback:', err);
       }
@@ -58,26 +106,33 @@ export const PracticePage: React.FC = () => {
     fetchFilterData();
   }, []);
 
-  // 2. Fetch Questions with Filter Parameters from Java Spring Boot Backend API
+  // 2. Fetch Questions with Filter Parameters
   const loadQuestions = useCallback((targetPage?: number) => {
     const pageToLoad = targetPage !== undefined ? targetPage : currentPage;
-    const diffArr = selectedDifficulty ? [Number(selectedDifficulty)] : undefined;
-    const topArr = selectedTopic ? [Number(selectedTopic)] : undefined;
-    const compArr = selectedCompany ? [Number(selectedCompany)] : undefined;
+
+    // Resolve human-readable name or numeric ID
+    const topicItem = topics.find((t) => String(t.id) === selectedTopic || t.refName === selectedTopic);
+    const topVal = topicItem?.refName || (selectedTopic || undefined);
+
+    const diffItem = difficulties.find((d) => String(d.id) === selectedDifficulty || d.refName === selectedDifficulty);
+    const diffVal = diffItem?.refName || (selectedDifficulty || undefined);
+
+    const compItem = companies.find((c) => String(c.id) === selectedCompany || c.name === selectedCompany);
+    const compVal = compItem?.name || (selectedCompany || undefined);
 
     dispatch(
       fetchProblems({
         search: searchInput.trim() || undefined,
-        topic: topArr,
-        difficulty: diffArr,
-        level: diffArr,
-        companies: compArr,
-        company: compArr,
+        topic: topVal,
+        difficulty: diffVal,
+        level: selectedDifficulty ? [Number(selectedDifficulty)].filter((n) => !isNaN(n)) : undefined,
+        company: compVal,
+        companies: compVal ? [compVal] : undefined,
         page: pageToLoad,
         limit: pageSize,
       })
     );
-  }, [dispatch, searchInput, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize]);
+  }, [dispatch, searchInput, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize, topics, difficulties, companies]);
 
   useEffect(() => {
     loadQuestions();
@@ -253,7 +308,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Topics</option>
               {topics.map((t) => (
-                <option key={t.id || t.refCode} value={String(t.id)} className="bg-[#202225] text-white">
+                <option key={t.id || t.refCode} value={String(t.refName || t.id)} className="bg-[#202225] text-white">
                   {t.refName}
                 </option>
               ))}
@@ -267,7 +322,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Companies</option>
               {companies.map((c) => (
-                <option key={c.id || c.name} value={String(c.id)} className="bg-[#202225] text-white">
+                <option key={c.id || c.name} value={String(c.name || c.id)} className="bg-[#202225] text-white">
                   {c.name}
                 </option>
               ))}
@@ -281,7 +336,7 @@ export const PracticePage: React.FC = () => {
             >
               <option value="" className="bg-[#202225] text-white">All Difficulties</option>
               {difficulties.map((diff) => (
-                <option key={diff.id || diff.refCode} value={String(diff.id)} className="bg-[#202225] text-white">
+                <option key={diff.id || diff.refCode} value={String(diff.refName || diff.id)} className="bg-[#202225] text-white">
                   {diff.refName}
                 </option>
               ))}
@@ -374,6 +429,13 @@ export const PracticePage: React.FC = () => {
                           {problem.difficulty || 'Medium'}
                         </span>
 
+                        {/* Category / Topic Tag */}
+                        {problem.topic && (
+                          <span className="text-[10px] font-sans font-medium text-gray-400 bg-[#121113] px-2 py-0.5 rounded-md border border-white/5">
+                            {problem.topic}
+                          </span>
+                        )}
+
                         {/* Companies Displayed Beside Level */}
                         {companyList && companyList.length > 0 && (
                           <div className="flex items-center gap-1.5 flex-wrap">
@@ -392,14 +454,53 @@ export const PracticePage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Solve Problem Action Button */}
-                  <Link
-                    to={`/problems/${problem.slug}`}
-                    className="shrink-0 px-4 py-2 text-xs font-semibold bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-lg transition-all border border-[#A3E635]/50 flex items-center justify-center gap-1.5 font-sans shadow-md"
-                  >
-                    <span>Solve Problem</span>
-                    <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                  </Link>
+                  {/* Actions: Solve Problem Button + External Platform Links (GFG/LeetCode/HackerRank commented out) */}
+                  <div className="shrink-0 flex items-center gap-2">
+                    {/* External Platform Quick Links (GeeksforGeeks, LeetCode, HackerRank) - Temporarily Commented Out
+                    {problem.gfgUrl && (
+                      <a
+                        href={problem.gfgUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View on GeeksforGeeks"
+                        className="w-8 h-8 rounded-lg bg-[#121113] hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-500/40 text-emerald-400 flex items-center justify-center transition-all hover:scale-105"
+                      >
+                        <GfgLogoIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                    {problem.leetCodeUrl && (
+                      <a
+                        href={problem.leetCodeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View on LeetCode"
+                        className="w-8 h-8 rounded-lg bg-[#121113] hover:bg-amber-500/20 border border-white/10 hover:border-amber-500/40 text-amber-400 flex items-center justify-center transition-all hover:scale-105"
+                      >
+                        <LeetCodeLogoIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                    {problem.hackerRankUrl && (
+                      <a
+                        href={problem.hackerRankUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="View on HackerRank"
+                        className="w-8 h-8 rounded-lg bg-[#121113] hover:bg-teal-500/20 border border-white/10 hover:border-teal-500/40 text-teal-400 flex items-center justify-center transition-all hover:scale-105"
+                      >
+                        <HackerRankLogoIcon className="w-4 h-4" />
+                      </a>
+                    )}
+                    */}
+
+                    {/* Solve Problem Action Button */}
+                    <Link
+                      to={`/problems/${problem.slug}`}
+                      className="px-4 py-2 text-xs font-semibold bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-lg transition-all border border-[#A3E635]/50 flex items-center justify-center gap-1.5 font-sans shadow-md hover:scale-[1.02]"
+                    >
+                      <span>Solve Problem</span>
+                      <i className="fa-solid fa-arrow-right text-[10px]"></i>
+                    </Link>
+                  </div>
                 </div>
               );
             })}
