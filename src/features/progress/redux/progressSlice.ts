@@ -62,6 +62,11 @@ export const getProblemSolvedStatus = (
   ref: ProblemProgressRef
 ): boolean => solvedByProblemId[String(ref.id)] ?? !!ref.fallbackSolved;
 
+export const hydrateProgress = createAsyncThunk(
+  'progress/hydrate',
+  async () => loadInitialProgress()
+);
+
 export const toggleSolvedProblem = createAsyncThunk(
   'progress/toggleSolved',
   async (ref: ProblemProgressRef, { getState }) => {
@@ -81,7 +86,11 @@ const problemProgressSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(toggleSolvedProblem.fulfilled, (state, action) => {
+    builder
+      .addCase(hydrateProgress.fulfilled, (state, action) => {
+        state.solvedByProblemId = action.payload;
+      })
+      .addCase(toggleSolvedProblem.fulfilled, (state, action) => {
       state.solvedByProblemId[action.payload.problemId] = action.payload.isSolved;
       persistProgress(state.solvedByProblemId);
     });
