@@ -1,6 +1,5 @@
 import React from 'react';
-import { MainLayout } from './MainLayout';
+import { Outlet } from 'react-router-dom';
 
-export const AuthLayout: React.FC = () => {
-  return <MainLayout />;
-};
+/** Authentication-only layout. Auth routes own their UI instead of rendering MainLayout underneath them. */
+export const AuthLayout: React.FC = () => <Outlet />;
