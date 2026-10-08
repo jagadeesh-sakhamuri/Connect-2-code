@@ -81,6 +81,14 @@ export const toggleSolvedProblem = createAsyncThunk(
   }
 );
 
+export const markSolvedProblem = createAsyncThunk(
+  'progress/markSolved',
+  async (ref: ProblemProgressRef) => ({
+    problemId: String(ref.id),
+    isSolved: true,
+  })
+);
+
 const problemProgressSlice = createSlice({
   name: 'progress',
   initialState,
@@ -92,6 +100,10 @@ const problemProgressSlice = createSlice({
       })
       .addCase(toggleSolvedProblem.fulfilled, (state, action) => {
         state.solvedByProblemId[action.payload.problemId] = action.payload.isSolved;
+        persistProgress(state.solvedByProblemId);
+      })
+      .addCase(markSolvedProblem.fulfilled, (state, action) => {
+        state.solvedByProblemId[action.payload.problemId] = true;
         persistProgress(state.solvedByProblemId);
       });
   },

@@ -185,7 +185,7 @@ export const executionService = {
   /**
    * POST /api/v1/admin/testCode
    * Admin user RUN: executes sample / visible test cases for testing without persistence.
-   * Gracefully falls back to /runCode if role is not ADMIN on Render backend.
+   * Backend authorization remains authoritative; no privileged-to-user endpoint fallback.
    */
   async adminTestCode(payload: CodeExecutionPayload): Promise<ExecutionResultData> {
     const finalPayload = await this.prepareExecutionPayload(payload);
@@ -193,33 +193,18 @@ export const executionService = {
     const role = user?.role?.toUpperCase();
     const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
 
-    if (hasAdminRole) {
-      try {
-        const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_RUN, finalPayload);
-        return res?.data || res;
-      } catch (err: any) {
-        const isAuthError =
-          err?.statusCode === 401 ||
-          err?.statusCode === 403 ||
-          err?.message?.toLowerCase().includes('auth') ||
-          (Array.isArray(err?.errors) &&
-            err.errors.some(
-              (e: string) => e?.toLowerCase().includes('jwt') || e?.toLowerCase().includes('token')
-            ));
-        if (isAuthError) {
-          console.warn('Falling back from /admin/testCode to /runCode due to token role:', err);
-          return this.runCode(finalPayload);
-        }
-        throw err;
-      }
+    if (!hasAdminRole) {
+      return this.runCode(finalPayload);
     }
-    return this.runCode(finalPayload);
+
+    const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_RUN, finalPayload);
+    return res?.data || res;
   },
 
   /**
    * POST /api/v1/admin/submitCode
    * Admin user SUBMIT: executes all test cases for validation without persistence.
-   * Gracefully falls back to /submitCode if role is not ADMIN on Render backend.
+   * Backend authorization remains authoritative; no privileged-to-user endpoint fallback.
    */
   async adminSubmitCode(payload: CodeExecutionPayload): Promise<ExecutionResultData> {
     const finalPayload = await this.prepareExecutionPayload(payload);
@@ -227,26 +212,11 @@ export const executionService = {
     const role = user?.role?.toUpperCase();
     const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
 
-    if (hasAdminRole) {
-      try {
-        const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_SUBMIT, finalPayload);
-        return res?.data || res;
-      } catch (err: any) {
-        const isAuthError =
-          err?.statusCode === 401 ||
-          err?.statusCode === 403 ||
-          err?.message?.toLowerCase().includes('auth') ||
-          (Array.isArray(err?.errors) &&
-            err.errors.some(
-              (e: string) => e?.toLowerCase().includes('jwt') || e?.toLowerCase().includes('token')
-            ));
-        if (isAuthError) {
-          console.warn('Falling back from /admin/submitCode to /submitCode due to token role:', err);
-          return this.submitCode(finalPayload);
-        }
-        throw err;
-      }
+    if (!hasAdminRole) {
+      return this.submitCode(finalPayload);
     }
-    return this.submitCode(finalPayload);
+
+    const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_SUBMIT, finalPayload);
+    return res?.data || res;
   },
 };

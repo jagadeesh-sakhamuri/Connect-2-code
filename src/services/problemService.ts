@@ -415,20 +415,4 @@ export const problemService = {
     };
   },
 
-  async toggleSolveStatus(id: string): Promise<ApiResponse<{ id: string; isSolved: boolean }>> {
-    try {
-      const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.SUBMIT(id));
-      return {
-        statusCode: 200,
-        message: 'Problem status updated',
-        data: res?.data || { id, isSolved: true },
-      };
-    } catch {
-      return {
-        statusCode: 200,
-        message: 'Problem status updated locally',
-        data: { id, isSolved: true },
-      };
-    }
-  },
 };
