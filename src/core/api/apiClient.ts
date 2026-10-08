@@ -16,6 +16,8 @@ const getBaseUrl = () => {
 
 export const BASE_URL = getBaseUrl();
 
+export const isRequestCanceled = (error: unknown): boolean => axios.isCancel(error);
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
