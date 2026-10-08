@@ -387,7 +387,7 @@ export const PracticePage: React.FC = () => {
                       }`}
                       title={(solvedByProblemId[problem.id] ?? problem.isSolved) ? 'Mark as Not Answered' : 'Mark as Answered'}
                     >
-                      <i className={`fa-solid ${problem.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
+                      <i className={`fa-solid ${(solvedByProblemId[problem.id] ?? problem.isSolved) ? 'fa-circle-check' : 'fa-circle'}`}></i>
                     </button>
 
                     {/* Bookmark Star Button */}
