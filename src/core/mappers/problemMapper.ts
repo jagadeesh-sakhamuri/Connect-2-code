@@ -1,5 +1,7 @@
 import type { Problem } from '../types/domain';
 
+type ProblemDto = Record<string, unknown> | Problem;
+
 interface ProblemMappingContext {
   fallbackCompany?: string;
   fallbackTopic?: string;
@@ -22,63 +24,64 @@ const readCompanies = (value: unknown, fallbackCompany?: string): string[] => {
 };
 
 export const mapProblemDto = (
-  value: Record<string, unknown>,
+  value: ProblemDto,
   context: ProblemMappingContext = {}
 ): Problem => {
-  const rawId = value.id ?? value._id ?? '';
+  const rawValue = value as Record<string, unknown>;
+  const rawId = rawValue.id ?? rawValue._id ?? '';
   const topic =
-    value.topicName ||
-    value.topicRefName ||
-    value.category ||
-    value.topic ||
+    rawValue.topicName ||
+    rawValue.topicRefName ||
+    rawValue.category ||
+    rawValue.topic ||
     context.fallbackTopic ||
     'General';
   const difficulty =
-    value.difficultyName ||
-    value.difficultyRefName ||
-    value.difficulty ||
-    value.level ||
+    rawValue.difficultyName ||
+    rawValue.difficultyRefName ||
+    rawValue.difficulty ||
+    rawValue.level ||
     'Medium';
 
   return {
     id: String(rawId),
-    title: String(value.title || value.name || ''),
-    slug: String(value.slug || rawId),
+    title: String(rawValue.title || rawValue.name || ''),
+    slug: String(rawValue.slug || rawId),
     difficulty: String(difficulty),
     difficultyId:
-      value.difficultyId !== undefined
-        ? Number(value.difficultyId)
-        : value.levelId !== undefined
-        ? Number(value.levelId)
+      rawValue.difficultyId !== undefined
+        ? Number(rawValue.difficultyId)
+        : rawValue.levelId !== undefined
+        ? Number(rawValue.levelId)
         : undefined,
     category: String(topic),
     topic: String(topic),
-    topicId: value.topicId !== undefined ? Number(value.topicId) : undefined,
-    companies: readCompanies(value.companies, context.fallbackCompany),
-    acceptanceRate: String(value.acceptanceRate || '75%'),
-    isSolved: !!value.isSolved,
-    isBookmarked: !!value.isBookmarked,
-    isOwnProblem: value.isOwnProblem !== undefined ? !!value.isOwnProblem : true,
-    leetCodeUrl: value.leetCodeUrl ? String(value.leetCodeUrl) : undefined,
-    gfgUrl: value.gfgUrl ? String(value.gfgUrl) : undefined,
-    hackerRankUrl: value.hackerRankUrl ? String(value.hackerRankUrl) : undefined,
-    description: value.description ? String(value.description) : '',
-    constraints: value.constraints ? String(value.constraints) : undefined,
-    difficultyRefName: value.difficultyRefName ? String(value.difficultyRefName) : undefined,
-    difficultyRefCode: value.difficultyRefCode ? String(value.difficultyRefCode) : undefined,
-    topicRefName: value.topicRefName ? String(value.topicRefName) : undefined,
-    topicRefCode: value.topicRefCode ? String(value.topicRefCode) : undefined,
-    qpfRefGroupCode: value.qpfRefGroupCode ? String(value.qpfRefGroupCode) : undefined,
-    qpfRefCode: value.qpfRefCode ? String(value.qpfRefCode) : undefined,
-    qpfRefName: value.qpfRefName ? String(value.qpfRefName) : undefined,
-    examPlatform: value.examPlatform ? String(value.examPlatform) : undefined,
-    questionHints: Array.isArray(value.questionHints) ? value.questionHints : undefined,
-    hints: Array.isArray(value.hints) ? value.hints.map(String) : undefined,
-    testCases: Array.isArray(value.testCases) ? value.testCases : undefined,
+    topicId: rawValue.topicId !== undefined ? Number(rawValue.topicId) : undefined,
+    companies: readCompanies(rawValue.companies, context.fallbackCompany),
+    acceptanceRate: String(rawValue.acceptanceRate || '75%'),
+    isSolved: !!rawValue.isSolved,
+    isBookmarked: !!rawValue.isBookmarked,
+    isOwnProblem: rawValue.isOwnProblem !== undefined ? !!rawValue.isOwnProblem : true,
+    leetCodeUrl: rawValue.leetCodeUrl ? String(rawValue.leetCodeUrl) : undefined,
+    gfgUrl: rawValue.gfgUrl ? String(rawValue.gfgUrl) : undefined,
+    hackerRankUrl: rawValue.hackerRankUrl ? String(rawValue.hackerRankUrl) : undefined,
+    description: rawValue.description ? String(rawValue.description) : '',
+    constraints: rawValue.constraints ? String(rawValue.constraints) : undefined,
+    difficultyRefName: rawValue.difficultyRefName ? String(rawValue.difficultyRefName) : undefined,
+    difficultyRefCode: rawValue.difficultyRefCode ? String(rawValue.difficultyRefCode) : undefined,
+    topicRefName: rawValue.topicRefName ? String(rawValue.topicRefName) : undefined,
+    topicRefCode: rawValue.topicRefCode ? String(rawValue.topicRefCode) : undefined,
+    qpfRefGroupCode: rawValue.qpfRefGroupCode ? String(rawValue.qpfRefGroupCode) : undefined,
+    qpfRefCode: rawValue.qpfRefCode ? String(rawValue.qpfRefCode) : undefined,
+    qpfRefName: rawValue.qpfRefName ? String(rawValue.qpfRefName) : undefined,
+    examPlatform: rawValue.examPlatform ? String(rawValue.examPlatform) : undefined,
+    questionHints: Array.isArray(rawValue.questionHints) ? rawValue.questionHints : undefined,
+    hints: Array.isArray(rawValue.hints) ? rawValue.hints.map(String) : undefined,
+    testCases: Array.isArray(rawValue.testCases) ? rawValue.testCases : undefined,
     codeSnippets:
-      value.codeSnippets && typeof value.codeSnippets === 'object'
-        ? (value.codeSnippets as Record<string, string>)
+      rawValue.codeSnippets && typeof rawValue.codeSnippets === 'object'
+        ? (rawValue.codeSnippets as Record<string, string>)
         : undefined,
-    examples: Array.isArray(value.examples) ? value.examples : undefined,
+    examples: Array.isArray(rawValue.examples) ? rawValue.examples : undefined,
   };
 };

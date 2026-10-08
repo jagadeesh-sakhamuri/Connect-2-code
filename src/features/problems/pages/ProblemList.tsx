@@ -334,7 +334,7 @@ export const ProblemList: React.FC = () => {
       <div className="flex flex-col gap-3.5 max-w-5xl w-full mt-10 px-4">
         {currentModules.map((module) => {
           const isExpanded = expandedModuleNum === module.num;
-          const solvedInModule = module.questions.filter((q) => !!solvedMap[q.id]).length;
+          const solvedInModule = module.questions.filter((q) => !!solvedByProblemId[q.id]).length;
           const progressPercent = Math.round((solvedInModule / (module.questions.length || 1)) * 100);
 
           return (

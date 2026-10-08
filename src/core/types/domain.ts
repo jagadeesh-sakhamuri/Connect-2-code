@@ -26,6 +26,10 @@ export interface Company {
     medium: number;
     hard: number;
   };
+  rounds?: Array<{
+    name: string;
+    description: string;
+  }>;
 }
 
 export interface Problem {

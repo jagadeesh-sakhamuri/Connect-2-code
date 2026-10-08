@@ -19,7 +19,7 @@ export const CompanyList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    dispatch(fetchCompanies());
+    dispatch(fetchCompanies(undefined));
   }, [dispatch]);
 
   const filteredCompanies = companies.filter((company) =>

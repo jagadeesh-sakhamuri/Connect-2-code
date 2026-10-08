@@ -1082,8 +1082,8 @@ export const ProblemDetails: React.FC = () => {
                 {problem?.companies && problem.companies.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2.5">
                     {problem.companies.map((c, idx) => {
-                      const name = typeof c === 'object' ? c.name || c.companyName || 'Company' : String(c);
-                      const logo = typeof c === 'object' && (c as any).logo ? (c as any).logo : null;
+                      const name = String(c);
+                      const logo = null;
                       return (
                         <div
                           key={idx}
