@@ -887,40 +887,45 @@ export const ProblemDetails: React.FC = () => {
                   <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
                     Examples
                   </h3>
-                  <div className="space-y-3">
-                    {sampleTestCases.length > 0 ? (
-                      sampleTestCases.map((tc, idx) => (
-                      <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(tc.input);
-                              toast.success('Input copied!');
-                            }}
-                            className="text-gray-500 hover:text-white transition-colors text-[10px] cursor-pointer flex items-center gap-1"
-                          >
-                            <i className="fa-solid fa-copy"></i>
-                            <span>Copy</span>
-                          </button>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Input: </span>
-                          <span className="text-white whitespace-pre-wrap">{tc.input}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Output: </span>
-                          <span className="text-[#A3E635] font-bold whitespace-pre-wrap">{tc.expectedOutput}</span>
-                        </div>
-                        {tc.explanation && (
-                          <div className="pt-1.5 border-t border-white/5 text-gray-400 text-[11px] font-sans">
-                            <span className="font-mono text-gray-500">Explanation: </span>
-                            {tc.explanation}
+                  {sampleTestCases.length > 0 ? (
+                    <div className="space-y-3">
+                      {sampleTestCases.map((tc, idx) => (
+                        <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(tc.input);
+                                toast.success('Input copied!');
+                              }}
+                              className="text-gray-500 hover:text-white transition-colors text-[10px] cursor-pointer flex items-center gap-1"
+                            >
+                              <i className="fa-solid fa-copy"></i>
+                              <span>Copy</span>
+                            </button>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                          <div>
+                            <span className="text-gray-400">Input: </span>
+                            <span className="text-white whitespace-pre-wrap">{tc.input}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Output: </span>
+                            <span className="text-[#A3E635] font-bold whitespace-pre-wrap">{tc.expectedOutput}</span>
+                          </div>
+                          {tc.explanation && (
+                            <div className="pt-1.5 border-t border-white/5 text-gray-400 text-[11px] font-sans">
+                              <span className="font-mono text-gray-500">Explanation: </span>
+                              {tc.explanation}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-500">
+                      No visible examples were returned for this problem.
+                    </p>
+                  )}
                 </div>
 
                 {/* Constraints */}
