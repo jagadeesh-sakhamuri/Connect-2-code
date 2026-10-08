@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
+import { AppRouterLayout } from '../layouts/AppRouterLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { ProtectedRoute } from '../core/guards/ProtectedRoute';
 import { GuestRoute } from '../core/guards/GuestRoute';
@@ -74,7 +75,7 @@ const renderFeature = (Component: React.LazyExoticComponent<React.FC>, featureNa
   return withSuspense(Component);
 };
 
-export const router = createBrowserRouter([
+const appRoutes = [
   {
     path: '/',
     element: withSuspense(Landing),
@@ -149,5 +150,12 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: withSuspense(NotFound),
+  },
+];
+
+export const router = createBrowserRouter([
+  {
+    element: <AppRouterLayout />,
+    children: appRoutes,
   },
 ]);
