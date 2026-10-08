@@ -9,54 +9,57 @@ export type CompanyItem = Company;
 export const companyService = {
   async getCompanies(search?: string, signal?: AbortSignal): Promise<ApiResponse<Company[]>> {
     try {
-      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.BASE, { params: { search }, signal });
-      const rawData = res?.data || res || [];
-      const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.content) ? rawData.content : []);
-      if (list.length > 0) {
-        const mappedList = list.map((item: any) => {
-          const name = item.name || item.companyName || '';
-          const safeSlug = item.slug || (item.id ? String(item.id) : name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-          return {
-            ...item,
-            id: item.id ?? safeSlug,
-            name: name,
-            slug: safeSlug,
-            logo: item.logo || item.logoUrl || '',
-            logoUrl: item.logoUrl || item.logo || '',
-          };
-        });
-        return {
-          statusCode: 200,
-          message: 'Companies Fetched Successfully',
-          data: mappedList,
-          errors: null,
-          timestamp: new Date().toISOString(),
-        };
+      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.BASE, {
+        params: { search },
+        signal,
+      });
+      const rawData = res?.data || res;
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.content)
+        ? rawData.content
+        : null;
+
+      if (!list) {
+        throw new Error('Unexpected companies response format');
       }
+
+      const mappedList = list.map((item: any) => {
+        const name = item.name || item.companyName || '';
+        const safeSlug =
+          item.slug ||
+          (item.id ? String(item.id) : name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+
+        return {
+          ...item,
+          id: item.id ?? safeSlug,
+          name,
+          slug: safeSlug,
+          logo: item.logo || item.logoUrl || '',
+          logoUrl: item.logoUrl || item.logo || '',
+        };
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Companies Fetched Successfully',
+        data: mappedList,
+        errors: null,
+        timestamp: new Date().toISOString(),
+      };
     } catch (err) {
       if (isRequestCanceled(err)) {
         throw err;
       }
-      console.warn('Backend getCompanies failed, falling back to cached companies list:', err);
+      throw err;
     }
-
-    const filtered = search
-      ? FALLBACK_COMPANIES.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-      : FALLBACK_COMPANIES;
-
-    return {
-      statusCode: 200,
-      message: 'Companies Fetched Successfully (Cached)',
-      data: filtered,
-      errors: null,
-      timestamp: new Date().toISOString(),
-    };
   },
 
   async getCompanyBySlug(slug: string, signal?: AbortSignal): Promise<ApiResponse<Company>> {
     try {
       const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(slug), { signal });
       const compData = res?.data || res;
+
       if (compData && (compData.id || compData.name)) {
         const name = compData.name || compData.companyName || '';
         const safeSlug =
@@ -64,6 +67,7 @@ export const companyService = {
           (compData.id ? String(compData.id) : '') ||
           slug ||
           name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
         return {
           statusCode: 200,
           message: 'Company Fetched Successfully',
@@ -76,39 +80,35 @@ export const companyService = {
           timestamp: new Date().toISOString(),
         };
       }
+
+      throw new Error('Company details response did not contain a company');
     } catch (err) {
       if (isRequestCanceled(err)) {
         throw err;
       }
-      console.warn('Backend getCompanyBySlug direct call failed:', err);
     }
 
-    try {
-      const allCompRes = await this.getCompanies(undefined, signal);
-      const matched = (allCompRes.data || []).find(
-        (c: any) =>
-          String(c.id) === String(slug) ||
-          c.slug === slug ||
-          c.name?.toLowerCase() === slug.toLowerCase() ||
-          c.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug.toLowerCase()
-      );
-      if (matched) {
-        return {
-          statusCode: 200,
-          message: 'Company Fetched Successfully',
-          data: matched,
-          errors: null,
-          timestamp: new Date().toISOString(),
-        };
-      }
-    } catch (err) {
-      if (isRequestCanceled(err)) {
-        throw err;
-      }
-      console.warn('Company fallback matching failed:', err);
+    const allCompRes = await this.getCompanies(undefined, signal);
+    const normalizedSlug = slug.toLowerCase();
+    const matched = allCompRes.data.find(
+      (company) =>
+        String(company.id) === String(slug) ||
+        company.slug?.toLowerCase() === normalizedSlug ||
+        company.name?.toLowerCase() === normalizedSlug ||
+        company.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === normalizedSlug
+    );
+
+    if (!matched) {
+      throw new Error(`Company not found for slug: ${slug}`);
     }
 
-    throw new Error(`Company not found for slug: ${slug}`);
+    return {
+      statusCode: 200,
+      message: 'Company Fetched Successfully',
+      data: matched,
+      errors: null,
+      timestamp: new Date().toISOString(),
+    };
   },
 
   async getCompanyProblems(
@@ -116,26 +116,28 @@ export const companyService = {
     companyName?: string,
     signal?: AbortSignal
   ): Promise<ApiResponse<Problem[]>> {
-    let compIdNum =
-      companyIdOrName !== undefined && !isNaN(Number(companyIdOrName)) ? Number(companyIdOrName) : undefined;
-    const nameStr = companyName || (isNaN(Number(companyIdOrName)) ? String(companyIdOrName) : undefined);
+    const numericCandidate =
+      companyIdOrName !== undefined &&
+      String(companyIdOrName).trim() !== '' &&
+      !Number.isNaN(Number(companyIdOrName))
+        ? Number(companyIdOrName)
+        : undefined;
 
-    if (compIdNum === undefined && nameStr) {
-      const normName = nameStr.toLowerCase().trim();
-      if (COMPANY_NAME_TO_ID[normName]) {
-        compIdNum = COMPANY_NAME_TO_ID[normName];
-      }
-    }
+    const nameStr =
+      companyName?.trim() ||
+      (numericCandidate === undefined && companyIdOrName !== undefined
+        ? String(companyIdOrName).trim()
+        : undefined);
 
-    let problemsList: any[] = [];
+    const problemsList: Problem[] = [];
     const seenTitles = new Set<string>();
+    let lastBackendError: unknown = null;
 
-    // 1. Query real backend POST /api/v1/questions with { companies: [compIdNum] }
-    if (compIdNum !== undefined) {
+    if (numericCandidate !== undefined) {
       try {
         const payload = {
           level: null,
-          companies: [compIdNum],
+          companies: [numericCandidate],
           topic: null,
           searchText: null,
           pageRequest: {
@@ -154,26 +156,28 @@ export const companyService = {
           ? raw
           : Array.isArray(raw?.data)
           ? raw.data
-          : [];
+          : null;
 
-        if (list.length > 0) {
-          for (const item of list) {
-            const problem = mapProblemDto(item, { fallbackCompany: nameStr });
-            if (!seenTitles.has(problem.title.toLowerCase().trim())) {
-              seenTitles.add(problem.title.toLowerCase().trim());
-              problemsList.push(problem);
-            }
+        if (!list) {
+          throw new Error('Unexpected company problems response format');
+        }
+
+        for (const item of list) {
+          const problem = mapProblemDto(item, { fallbackCompany: nameStr });
+          const normalizedTitle = problem.title.toLowerCase().trim();
+          if (!seenTitles.has(normalizedTitle)) {
+            seenTitles.add(normalizedTitle);
+            problemsList.push(problem);
           }
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
           throw err;
         }
-        console.warn('Backend query by company ID failed:', err);
+        lastBackendError = err;
       }
     }
 
-    // 2. Query real backend by searchText if no questions found yet
     if (problemsList.length === 0 && nameStr) {
       try {
         const payload = {
@@ -197,33 +201,30 @@ export const companyService = {
           ? raw
           : Array.isArray(raw?.data)
           ? raw.data
-          : [];
+          : null;
 
-        if (list.length > 0) {
-          for (const item of list) {
-            const problem = mapProblemDto(item, { fallbackCompany: nameStr });
-            if (!seenTitles.has(problem.title.toLowerCase().trim())) {
-              seenTitles.add(problem.title.toLowerCase().trim());
-              problemsList.push(problem);
-            }
+        if (!list) {
+          throw new Error('Unexpected company search response format');
+        }
+
+        for (const item of list) {
+          const problem = mapProblemDto(item, { fallbackCompany: nameStr });
+          const normalizedTitle = problem.title.toLowerCase().trim();
+          if (!seenTitles.has(normalizedTitle)) {
+            seenTitles.add(normalizedTitle);
+            problemsList.push(problem);
           }
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
           throw err;
         }
-        console.warn('Backend query by company name failed:', err);
+        lastBackendError = err;
       }
     }
 
-    if (problemsList.length === 0) {
-      return {
-        statusCode: 200,
-        message: 'Company Problems Fetched Successfully',
-        data: [],
-        errors: null,
-        timestamp: new Date().toISOString(),
-      };
+    if (problemsList.length === 0 && lastBackendError) {
+      throw lastBackendError;
     }
 
     return {
