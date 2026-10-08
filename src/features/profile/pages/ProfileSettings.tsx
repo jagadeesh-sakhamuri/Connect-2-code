@@ -23,6 +23,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export const ProfileSettings: React.FC = () => {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile.profile);
+  const profileLoading = useAppSelector((state) => state.profile.loading);
   const authUser = useAppSelector((state) => state.auth.user);
 
   const {
@@ -95,19 +96,24 @@ export const ProfileSettings: React.FC = () => {
 
       {/* Profile Form Container - Matching Companies Page Div Hover Design */}
       <div className="w-full max-w-3xl px-4 mt-6">
+        {profileLoading && !profile ? (
+          <div className="p-6 bg-[#202225] border border-white/10 rounded-lg text-sm text-gray-400">
+            Loading profile…
+          </div>
+        ) : null}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="p-6 bg-[#202225] hover:bg-[#202225] border border-white/10 rounded-lg flex flex-col gap-5 shadow-md transition-all"
         >
           <div className="flex items-center gap-4 pb-4 border-b border-white/10">
             <img
-              src={profile.avatarUrl}
-              alt={profile.fullName}
+              src={profile?.avatarUrl || ''}
+              alt={profile?.fullName || authUser?.fullName || 'User'}
               className="w-16 h-16 rounded-full border-2 border-[#A3E635]/60 object-cover shadow-sm"
             />
             <div>
-              <h3 className="text-xl font-bold text-white font-heading tracking-tight">{profile.fullName}</h3>
-              <p className="text-xs font-mono text-gray-400 mt-0.5">{profile.email}</p>
+              <h3 className="text-xl font-bold text-white font-heading tracking-tight">{profile?.fullName || authUser?.fullName || 'Your Profile'}</h3>
+              <p className="text-xs font-mono text-gray-400 mt-0.5">{profile?.email || authUser?.email || ''}</p>
             </div>
           </div>
 
