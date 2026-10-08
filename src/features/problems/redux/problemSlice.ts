@@ -1,14 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { problemService, ProblemFilterParams, ProblemItem } from '../../../services/problemService';
+import { problemService } from '../../../services/problemService';
+import type { Problem, ProblemFilter } from '../../../core/types/domain';
 import { fallbackProblemsData } from '../data/problemsData';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 export interface ProblemState {
-  problems: ProblemItem[];
-  selectedProblem: ProblemItem | null;
+  problems: Problem[];
+  selectedProblem: Problem | null;
   loading: boolean;
   error: string | null;
-  filters: ProblemFilterParams;
+  filters: ProblemFilter;
   pagination: {
     page: number;
     total: number;
@@ -38,7 +39,7 @@ const initialState: ProblemState = {
 
 export const fetchProblems = createAsyncThunk(
   'problems/fetchList',
-  async (params: ProblemFilterParams | undefined, { rejectWithValue }) => {
+  async (params: ProblemFilter | undefined, { rejectWithValue }) => {
     try {
       const res = await problemService.getProblems(params);
       return {
