@@ -19,16 +19,16 @@ export const adminCompanyService = {
    * GET /api/v1/company
    * Fetches company list from backend database.
    */
-  async getCompanies(): Promise<ApiResponse<Company[]>> {
-    return apiClient.get(API_ENDPOINTS.COMPANY.BASE);
+  async getCompanies(signal?: AbortSignal): Promise<ApiResponse<Company[]>> {
+    return apiClient.get(API_ENDPOINTS.COMPANY.BASE, { signal });
   },
 
   /**
    * GET /api/v1/company/:id
    * Fetches single company details directly from backend database.
    */
-  async getCompanyById(id: string | number): Promise<ApiResponse<Company>> {
-    return apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(id));
+  async getCompanyById(id: string | number, signal?: AbortSignal): Promise<ApiResponse<Company>> {
+    return apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(id), { signal });
   },
 
   /**
@@ -44,7 +44,7 @@ export const adminCompanyService = {
    * GET /api/v1/company/:id/problems
    * Fetches questions/problems associated with a specific company.
    */
-  async getCompanyProblems(id: string | number): Promise<ApiResponse<Problem[]>> {
-    return apiClient.get(API_ENDPOINTS.COMPANY.PROBLEMS(id));
+  async getCompanyProblems(id: string | number, signal?: AbortSignal): Promise<ApiResponse<Problem[]>> {
+    return apiClient.get(API_ENDPOINTS.COMPANY.PROBLEMS(id), { signal });
   },
 };
