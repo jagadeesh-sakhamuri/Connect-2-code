@@ -258,7 +258,7 @@ export const CompanyDetails: React.FC = () => {
                       }`}
                       title={(solvedByProblemId[q.id] ?? q.isSolved) ? 'Mark as Not Answered' : 'Mark as Answered'}
                     >
-                      <i className={`fa-solid ${q.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
+                      <i className={`fa-solid ${(solvedByProblemId[q.id] ?? q.isSolved) ? 'fa-circle-check' : 'fa-circle'}`}></i>
                     </button>
 
                     {/* Bookmark Star Button */}
