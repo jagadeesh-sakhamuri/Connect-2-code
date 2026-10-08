@@ -5,17 +5,6 @@ import { z } from 'zod';
 import { AdminModal } from '../AdminModal';
 import { CompanyItem } from '../../../../services/admin/adminCompanyService';
 
-const PRESET_HIRING_COMPANIES = [
-  { name: 'Google', logo: 'https://gurucodes-data.pages.dev/img/companies/google.png', website: 'https://google.com' },
-  { name: 'Amazon', logo: 'https://gurucodes-data.pages.dev/img/companies/amazon.png', website: 'https://amazon.com' },
-  { name: 'Microsoft', logo: 'https://gurucodes-data.pages.dev/img/companies/microsoft.png', website: 'https://microsoft.com' },
-  { name: 'Meta', logo: 'https://gurucodes-data.pages.dev/img/companies/meta.png', website: 'https://meta.com' },
-  { name: 'Apple', logo: 'https://gurucodes-data.pages.dev/img/companies/apple.png', website: 'https://apple.com' },
-  { name: 'Netflix', logo: 'https://gurucodes-data.pages.dev/img/companies/netflix.png', website: 'https://netflix.com' },
-  { name: 'Accenture', logo: 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg', website: 'https://accenture.com' },
-  { name: 'TCS', logo: 'https://gurucodes-data.pages.dev/img/companies/tcs.png', website: 'https://tcs.com' },
-];
-
 const companySchema = z.object({
   id: z.number().nullable().optional(),
   name: z.string().min(2, 'Company name must be at least 2 characters'),
@@ -32,6 +21,7 @@ interface CompanyFormModalProps {
   onClose: () => void;
   onSubmit: (data: CompanyFormData) => Promise<void>;
   initialData?: CompanyItem | null;
+  availableCompanies?: CompanyItem[];
   submitting?: boolean;
 }
 
@@ -40,6 +30,7 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
   onClose,
   onSubmit,
   initialData,
+  availableCompanies = [],
   submitting = false,
 }) => {
   const isEditing = Boolean(initialData?.id);
@@ -85,10 +76,10 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
     }
   }, [initialData, reset]);
 
-  const handleSelectPreset = (preset: { name: string; logo: string; website: string }) => {
-    setValue('name', preset.name, { shouldValidate: true });
-    setValue('logoUrl', preset.logo, { shouldValidate: true });
-    setValue('websiteUrl', preset.website, { shouldValidate: true });
+  const handleSelectPreset = (company: CompanyItem) => {
+    setValue('name', company.name, { shouldValidate: true });
+    setValue('logoUrl', company.logoUrl || '', { shouldValidate: true });
+    setValue('websiteUrl', company.websiteUrl || '', { shouldValidate: true });
   };
 
   const handleFormSubmit = (data: CompanyFormData) => {
@@ -107,25 +98,28 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 font-sans text-left">
-        {/* Quick Preset Selection */}
+        {/* Select Existing Company */}
         {!isEditing && (
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
               Quick Preset Selection
             </label>
             <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2 rounded-xl bg-[#121317] border border-white/5">
-              {PRESET_HIRING_COMPANIES.map((preset) => (
+              {availableCompanies.map((company) => (
                 <button
-                  key={preset.name}
+                  key={company.id || company.name}
                   type="button"
-                  onClick={() => handleSelectPreset(preset)}
+                  onClick={() => handleSelectPreset(company)}
                   className="px-2.5 py-1.5 rounded-lg bg-[#181A20] hover:bg-white/10 text-xs font-medium text-gray-300 hover:text-white flex items-center gap-2 border border-white/10 transition-all cursor-pointer"
                 >
-                  <img src={preset.logo} alt={preset.name} className="w-3.5 h-3.5 object-contain" />
-                  <span>{preset.name}</span>
+                  <img src={company.logoUrl || '/logo-mark-transparent.png'} alt={company.name} className="w-3.5 h-3.5 object-contain" />
+                  <span>{company.name}</span>
                 </button>
               ))}
             </div>
+            {availableCompanies.length === 0 && (
+              <p className="text-[11px] text-gray-500">No companies are currently available from the backend.</p>
+            )}
           </div>
         )}
 
