@@ -27,7 +27,27 @@ export const CompanyDetails: React.FC = () => {
   const location = useLocation();
   const fromPatterns = (location.state as any)?.from === 'company-patterns';
 
-  useEffect(() => {\n    if (!slug) return;\n\n    const request = dispatch(fetchCompanyBySlug(slug));\n    return () => {\n      request.abort();\n    };\n  }, [dispatch, slug]);\n\n  const companyId = company?.id;\n  const companyName = company?.name;\n\n  useEffect(() => {\n    if (companyId === undefined && !companyName) return;\n\n    const request = dispatch(fetchCompanyProblems({ id: companyId, name: companyName }));\n    return () => {\n      request.abort();\n    };\n  }, [dispatch, companyId, companyName]);\n
+  useEffect(() => {
+    if (!slug) return;
+
+    const request = dispatch(fetchCompanyBySlug(slug));
+    return () => {
+      request.abort();
+    };
+  }, [dispatch, slug]);
+
+  const companyId = company?.id;
+  const companyName = company?.name;
+
+  useEffect(() => {
+    if (companyId === undefined && !companyName) return;
+
+    const request = dispatch(fetchCompanyProblems({ id: companyId, name: companyName }));
+    return () => {
+      request.abort();
+    };
+  }, [dispatch, companyId, companyName]);
+
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isUserAuth) {
