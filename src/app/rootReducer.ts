@@ -6,6 +6,7 @@ import bookmarkReducer from '../features/bookmarks/redux/bookmarkSlice';
 import profileReducer from '../features/profile/redux/profileSlice';
 import referenceReducer from '../features/references/redux/referenceSlice';
 import languageReducer from '../features/languages/redux/languageSlice';
+import progressReducer from '../features/progress/redux/progressSlice';
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -15,4 +16,5 @@ export const rootReducer = combineReducers({
   profile: profileReducer,
   references: referenceReducer,
   languages: languageReducer,
+  progress: progressReducer,
 });

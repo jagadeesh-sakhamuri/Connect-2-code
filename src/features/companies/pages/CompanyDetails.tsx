@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchCompanyBySlug, fetchCompanyProblems } from '../redux/companySlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
-import { toggleSolveProblem } from '../../problems/redux/problemSlice';
+import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
 import { toggleBookmarkItem } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { tokenStorage } from '../../../core/security/tokenStorage';
@@ -23,6 +23,7 @@ export const CompanyDetails: React.FC = () => {
   const { selectedCompany: company, companyProblems, loading } = useAppSelector((state) => state.companies);
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
   const isUserAuth = isAuthenticated || Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
   const location = useLocation();
   const fromPatterns = (location.state as any)?.from === 'company-patterns';
@@ -55,7 +56,7 @@ export const CompanyDetails: React.FC = () => {
       dispatch(openAuthModal({ mode: 'login' }));
       return;
     }
-    dispatch(toggleSolveProblem(id));
+    dispatch(toggleSolvedProblem({ id }));
     toast.success('Problem solved status updated');
   };
 
@@ -253,11 +254,11 @@ export const CompanyDetails: React.FC = () => {
                     <button
                       onClick={(e) => handleSolveToggle(q.id, e)}
                       className={`text-xl transition-colors shrink-0 cursor-pointer ${
-                        q.isSolved ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
+                        (solvedByProblemId[q.id] ?? q.isSolved) ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
                       }`}
-                      title={q.isSolved ? 'Mark as Not Answered' : 'Mark as Answered'}
+                      title={(solvedByProblemId[q.id] ?? q.isSolved) ? 'Mark as Not Answered' : 'Mark as Answered'}
                     >
-                      <i className={`fa-solid ${q.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
+                      <i className={`fa-solid ${(solvedByProblemId[q.id] ?? q.isSolved) ? 'fa-circle-check' : 'fa-circle'}`}></i>
                     </button>
 
                     {/* Bookmark Star Button */}

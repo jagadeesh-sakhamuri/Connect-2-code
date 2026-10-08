@@ -3,7 +3,6 @@ import { problemService } from '../../../services/problemService';
 import { isRequestCanceled } from '../../../core/api/apiClient';
 import type { Problem, ProblemFilter } from '../../../core/types/domain';
 import { fallbackProblemsData } from '../data/problemsData';
-import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 const PROBLEM_LIST_CACHE_TTL_MS = 60_000;
 const PROBLEM_DETAIL_CACHE_TTL_MS = 5 * 60_000;
@@ -89,34 +88,7 @@ const getProblemDetailKey = (id: string | number): string => String(id).trim().t
 const isFresh = (fetchedAt: number, ttlMs: number): boolean =>
   fetchedAt > 0 && Date.now() - fetchedAt < ttlMs;
 
-const applyLocalProblemState = (problems: Problem[]): Problem[] => {
-  const solvedMap = getSolvedStorage();
-  const bookmarks = getBookmarksStorage();
-
-  return problems.map((problem) => ({
-    ...problem,
-    isSolved: !!solvedMap[problem.id] || !!problem.isSolved,
-    isBookmarked: bookmarks.some((bookmark) => bookmark.itemId === problem.id) || !!problem.isBookmarked,
-  }));
-};
-
-const getSolvedStorage = (): Record<string, boolean> => {
-  try {
-    const saved = userScopedStorage.getItem('solved_problems');
-    return saved ? JSON.parse(saved) : {};
-  } catch {
-    return {};
-  }
-};
-
-const getBookmarksStorage = (): Array<{ itemId: string }> => {
-  try {
-    const saved = userScopedStorage.getItem('bookmarks');
-    return saved ? JSON.parse(saved) : [];
-  } catch {
-    return [];
-  }
-};
+const applyLocalProblemState = (problems: Problem[]): Problem[] => problems;
 
 const trimCache = <T extends { fetchedAt: number }>(
   cache: Record<string, T>,
@@ -227,19 +199,6 @@ export const fetchProblemById = createAsyncThunk(
 
 export const fetchProblemBySlug = fetchProblemById;
 
-export const toggleSolveProblem = createAsyncThunk(
-  'problems/toggleSolve',
-  async (id: string) => {
-    const solvedMap = getSolvedStorage();
-    const current = solvedMap[id];
-    const updatedStatus = current !== undefined ? !current : true;
-    solvedMap[id] = updatedStatus;
-    try {
-      userScopedStorage.setItem('solved_problems', JSON.stringify(solvedMap));
-    } catch {}
-    return { id, isSolved: updatedStatus };
-  }
-);
 
 const problemSlice = createSlice({
   name: 'problems',
@@ -345,30 +304,6 @@ const problemSlice = createSlice({
             state.selectedProblem = applyLocalProblemState([fallback])[0];
           }
         }
-      })
-      .addCase(toggleSolveProblem.fulfilled, (state, action) => {
-        const { id, isSolved } = action.payload;
-        const problem = state.problems.find((item) => item.id === id);
-        if (problem) {
-          problem.isSolved = isSolved;
-        }
-
-        if (state.selectedProblem && state.selectedProblem.id === id) {
-          state.selectedProblem.isSolved = isSolved;
-        }
-
-        Object.values(state.listCache).forEach((entry) => {
-          const cachedProblem = entry.problems.find((item) => item.id === id);
-          if (cachedProblem) {
-            cachedProblem.isSolved = isSolved;
-          }
-        });
-
-        Object.values(state.detailCache).forEach((entry) => {
-          if (entry.problem?.id === id) {
-            entry.problem.isSolved = isSolved;
-          }
-        });
       });
   },
 });

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
-import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 import { toast } from 'react-hot-toast';
+import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
 
 interface SheetProblem {
   id: string;
@@ -223,15 +223,7 @@ export const ProblemList: React.FC = () => {
   const [sheetType, setSheetType] = useState<'service' | 'product'>('service');
   const [expandedModuleNum, setExpandedModuleNum] = useState<string | null>('01');
 
-  // Solved state stored in localStorage (no questions API)
-  const [solvedMap, setSolvedMap] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = userScopedStorage.getItem('dsa_sheet_solved');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+  const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -239,14 +231,6 @@ export const ProblemList: React.FC = () => {
     }
   }, [dispatch, isAuthenticated]);
 
-  useEffect(() => {
-    try {
-      const saved = userScopedStorage.getItem('dsa_sheet_solved');
-      setSolvedMap(saved ? JSON.parse(saved) : {});
-    } catch {
-      setSolvedMap({});
-    }
-  }, [isAuthenticated]);
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -255,13 +239,7 @@ export const ProblemList: React.FC = () => {
       dispatch(openAuthModal({ mode: 'login' }));
       return;
     }
-    setSolvedMap((prev) => {
-      const updated = { ...prev, [id]: !prev[id] };
-      try {
-        userScopedStorage.setItem('dsa_sheet_solved', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    dispatch(toggleSolvedProblem({ id }));
     toast.success('Problem solved status updated');
   };
 
@@ -289,7 +267,7 @@ export const ProblemList: React.FC = () => {
   // Global counts for active sheet
   const totalQuestionsCount = currentModules.reduce((acc, m) => acc + m.questions.length, 0);
   const solvedQuestionsCount = currentModules.reduce(
-    (acc, m) => acc + m.questions.filter((q) => !!solvedMap[q.id]).length,
+    (acc, m) => acc + m.questions.filter((q) => !!solvedByProblemId[q.id]).length,
     0
   );
   const overallProgressPercent = Math.round((solvedQuestionsCount / (totalQuestionsCount || 1)) * 100);
@@ -420,7 +398,7 @@ export const ProblemList: React.FC = () => {
 
                   <div className="flex flex-col gap-2.5">
                     {module.questions.map((q) => {
-                      const isSolved = !!solvedMap[q.id];
+                      const isSolved = !!solvedByProblemId[q.id];
                       const isBookmarked = bookmarks.some((b) => b.itemId === q.id);
 
                       return (
