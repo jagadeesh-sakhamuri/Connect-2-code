@@ -370,7 +370,6 @@ export const companyService = {
               problemsList.push(problem);
             }
           }
-        }}
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
@@ -414,7 +413,6 @@ export const companyService = {
               problemsList.push(problem);
             }
           }
-        }}
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
