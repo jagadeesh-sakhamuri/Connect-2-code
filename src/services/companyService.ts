@@ -1,7 +1,10 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { BackendApiResponse } from './authService';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
+import type { ApiResponse } from '../core/types/api';
+import type { Company, Problem } from '../core/types/domain';
+
+export type CompanyItem = Company;
 
 const FALLBACK_COMPANIES = [
   {
@@ -198,7 +201,7 @@ const CURATED_COMPANY_QUESTIONS: Array<{
 ];
 
 export const companyService = {
-  async getCompanies(search?: string): Promise<BackendApiResponse<any[]>> {
+  async getCompanies(search?: string): Promise<ApiResponse<Company[]>> {
     try {
       const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.BASE, { params: { search } });
       const rawData = res?.data || res || [];
@@ -241,7 +244,7 @@ export const companyService = {
     };
   },
 
-  async getCompanyBySlug(slug: string): Promise<BackendApiResponse<any>> {
+  async getCompanyBySlug(slug: string): Promise<ApiResponse<Company>> {
     try {
       const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(slug));
       const compData = res?.data || res;
@@ -307,7 +310,7 @@ export const companyService = {
   async getCompanyProblems(
     companyIdOrName?: string | number,
     companyName?: string
-  ): Promise<BackendApiResponse<any[]>> {
+  ): Promise<ApiResponse<Problem[]>> {
     let compIdNum =
       companyIdOrName !== undefined && !isNaN(Number(companyIdOrName)) ? Number(companyIdOrName) : undefined;
     const nameStr = companyName || (isNaN(Number(companyIdOrName)) ? String(companyIdOrName) : undefined);
