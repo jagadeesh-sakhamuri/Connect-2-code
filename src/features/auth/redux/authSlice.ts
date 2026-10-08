@@ -159,8 +159,8 @@ const authSlice = createSlice({
               id: u.id,
               firstName: u.firstName,
               lastName: u.lastName,
-              fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
-              email: u.email,
+              fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || 'User',
+              email: String(u.email || ''),
               role: u.role,
             };
             state.user = userObj;
@@ -192,8 +192,8 @@ const authSlice = createSlice({
           id: data.id,
           firstName: data.firstName,
           lastName: data.lastName,
-          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
-          email: data.email,
+          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'User',
+          email: String(data.email || ''),
           role: data.role,
         };
         state.user = userObj;
