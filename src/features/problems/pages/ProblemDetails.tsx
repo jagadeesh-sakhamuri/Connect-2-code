@@ -353,10 +353,14 @@ export const ProblemDetails: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchProblemById(questionIdParam));
+    const request = dispatch(fetchProblemById(questionIdParam));
     if (isAuthenticated) {
       dispatch(fetchBookmarks());
     }
+
+    return () => {
+      request.abort();
+    };
   }, [dispatch, questionIdParam, isAuthenticated]);
 
   useEffect(() => {
