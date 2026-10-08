@@ -11,9 +11,6 @@ on:
       - main
 
 permissions:
-  contents: read
-
-permissions:
   contents: write
 
 jobs:
