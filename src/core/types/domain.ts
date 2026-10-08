@@ -150,6 +150,31 @@ export interface Language {
   isActive?: boolean;
 }
 
+export interface AdminLanguage {
+  id?: number;
+  referenceId: number;
+  languageName?: string;
+  judge0LanguageId: number;
+  version?: string;
+  isActive?: boolean;
+}
+
+export interface UserProfile {
+  id?: string | number;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email: string;
+  collegeName?: string;
+  graduationYear?: number | string;
+  phone?: string;
+  githubUrl?: string;
+  linkedinUrl?: string;
+  leetcodeUrl?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 export interface CodeExecutionPayload {
   questionId: number;
   languageId: number;
