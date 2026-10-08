@@ -1,39 +1,16 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { tokenStorage } from '../core/security/tokenStorage';
+import type {
+  CodeExecutionPayload,
+  ExecutionResult,
+  ExecutionTestCaseResult,
+  Language,
+} from '../core/types/domain';
 
-export interface LanguageDropdownItem {
-  id: number;
-  name: string;
-  referenceId?: number;
-  judge0LanguageId?: number;
-  version?: string;
-}
-
-export interface CodeExecutionPayload {
-  questionId: number;
-  languageId: number;
-  sourceCode: string;
-}
-
-export interface ExecutionTestCaseResult {
-  testCaseId: number;
-  testCaseType: string;
-  isHidden?: boolean | null;
-  status: 'Passed' | 'Failed' | 'Compilation Error' | string;
-  input?: string;
-  expectedOutput?: string;
-  actualOutput?: string;
-}
-
-export interface ExecutionResultData {
-  totalTestCases: number;
-  passedTestCases: number;
-  failedTestCases: number;
-  runtimeMs?: number | string;
-  memoryMb?: number | string;
-  testCases: ExecutionTestCaseResult[];
-}
+export type { CodeExecutionPayload, ExecutionTestCaseResult };
+export type LanguageDropdownItem = Language;
+export type ExecutionResultData = ExecutionResult;
 
 // Default fallback mappings between Table ID and Reference Library ID
 const DEFAULT_ID_TO_REF: Record<number, number> = {
