@@ -1,6 +1,5 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { tokenStorage } from '../core/security/tokenStorage';
 import type {
   CodeExecutionPayload,
   ExecutionResult,
@@ -167,14 +166,6 @@ export const executionService = {
    */
   async adminTestCode(payload: CodeExecutionPayload): Promise<ExecutionResultData> {
     const finalPayload = await this.prepareExecutionPayload(payload);
-    const user = tokenStorage.getUser();
-    const role = user?.role?.toUpperCase();
-    const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
-
-    if (!hasAdminRole) {
-      return this.runCode(finalPayload);
-    }
-
     const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_RUN, finalPayload);
     return res?.data || res;
   },
@@ -186,14 +177,6 @@ export const executionService = {
    */
   async adminSubmitCode(payload: CodeExecutionPayload): Promise<ExecutionResultData> {
     const finalPayload = await this.prepareExecutionPayload(payload);
-    const user = tokenStorage.getUser();
-    const role = user?.role?.toUpperCase();
-    const hasAdminRole = role === 'ADMIN' || role === 'ROLE_ADMIN';
-
-    if (!hasAdminRole) {
-      return this.submitCode(finalPayload);
-    }
-
     const res: any = await apiClient.post(API_ENDPOINTS.EXECUTION.ADMIN_SUBMIT, finalPayload);
     return res?.data || res;
   },

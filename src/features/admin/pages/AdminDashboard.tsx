@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { AdminPageHeader } from '../components/AdminPageHeader';
 import { DashboardOverview } from '../components/dashboard/DashboardOverview';
 import { DashboardMetricsGrid } from '../components/dashboard/DashboardMetricsGrid';
@@ -23,9 +23,14 @@ export const AdminDashboard: React.FC = () => {
     totalCompanies: 0,
   });
   const [loading, setLoading] = useState<boolean>(true);
+  const dashboardRequestRef = useRef<AbortController | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
+    dashboardRequestRef.current?.abort();
+    const controller = new AbortController();
+    dashboardRequestRef.current = controller;
     setLoading(true);
+
     try {
       const [probRes, compRes] = await Promise.allSettled([
         adminQuestionService.getQuestions({
@@ -39,9 +44,13 @@ export const AdminDashboard: React.FC = () => {
             sortBy: 'id',
             sortDirection: 'ASC',
           },
-        }),
-        adminCompanyService.getCompanies(),
+        }, controller.signal),
+        adminCompanyService.getCompanies(controller.signal),
       ]);
+
+      if (controller.signal.aborted) {
+        return;
+      }
 
       let totalProblems = 0;
       let easyCount = 0;
@@ -67,8 +76,6 @@ export const AdminDashboard: React.FC = () => {
             mediumCount++;
           } else if (diffId === 3 || diffName.includes('HARD')) {
             hardCount++;
-          } else {
-            mediumCount++;
           }
         });
       }
@@ -90,6 +97,9 @@ export const AdminDashboard: React.FC = () => {
         totalCompanies,
       });
     } catch (err) {
+      if (controller.signal.aborted) {
+        return;
+      }
       console.warn('Dashboard fetch error:', err);
       setStats({
         totalProblems: 0,
@@ -99,12 +109,17 @@ export const AdminDashboard: React.FC = () => {
         totalCompanies: 0,
       });
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchDashboardData();
+    void fetchDashboardData();
+    return () => {
+      dashboardRequestRef.current?.abort();
+    };
   }, [fetchDashboardData]);
 
   return (

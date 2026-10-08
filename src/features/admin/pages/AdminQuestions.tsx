@@ -227,7 +227,7 @@ export const AdminQuestions: React.FC = () => {
         constraints: formData.constraints || '',
         difficultyRefGroupCode: formData.difficultyRefGroupCode || 'DIFF',
         difficultyRefCode: formData.difficultyRefCode || 'EASY',
-        difficultyRefName: formData.difficultyRefName || 'Easy',
+        difficultyRefName: formData.difficultyRefName || '',
         topicRefGroupCode: formData.topicRefGroupCode || 'TOPIC',
         topicRefCode: formData.topicRefCode || 'ARRAY',
         topicRefName: formData.topicRefName || 'Arrays',
@@ -376,7 +376,7 @@ export const AdminQuestions: React.FC = () => {
         else if (diff.includes('medium')) variant = 'medium';
         else if (diff.includes('hard')) variant = 'hard';
 
-        const label = row.difficultyRefName || row.difficultyName || row.difficultyRefCode || row.difficulty || 'Easy';
+        const label = row.difficultyRefName || row.difficultyName || row.difficultyRefCode || row.difficulty || '—';
         return <AdminBadge variant={variant}>{label}</AdminBadge>;
       },
       className: 'w-28',

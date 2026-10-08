@@ -34,6 +34,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Architecture verification
+        run: npm run verify:architecture
+
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+
       - name: Typecheck
         run: npx --yes -p typescript@5.9.3 tsc -p tsconfig.ci.json --noEmit
 
