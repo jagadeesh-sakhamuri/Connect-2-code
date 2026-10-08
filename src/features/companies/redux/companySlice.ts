@@ -9,6 +9,21 @@ const COMPANY_PROBLEMS_CACHE_TTL_MS = 2 * 60_000;
 
 export type CompanyItem = Company;
 
+export interface CompanyListCacheEntry {
+  companies: CompanyItem[];
+  fetchedAt: number;
+}
+
+interface CompanyDetailCacheEntry {
+  company: CompanyItem;
+  fetchedAt: number;
+}
+
+interface CompanyProblemsCacheEntry {
+  problems: Problem[];
+  fetchedAt: number;
+}
+
 export interface CompanyState {
   companies: CompanyItem[];
   selectedCompany: CompanyItem | null;
@@ -17,11 +32,11 @@ export interface CompanyState {
   companyProblemsLoading: boolean;
   error: string | null;
   companiesRequestKey: string | null;
-  companiesFetchedAt: number;
   companyDetailRequestKey: string | null;
-  companyDetailFetchedAt: number;
   companyProblemsRequestKey: string | null;
-  companyProblemsFetchedAt: number;
+  listCache: Record<string, CompanyListCacheEntry>;
+  detailCache: Record<string, CompanyDetailCacheEntry>;
+  problemsCache: Record<string, CompanyProblemsCacheEntry>;
 }
 
 const initialState: CompanyState = {
@@ -32,11 +47,11 @@ const initialState: CompanyState = {
   companyProblemsLoading: false,
   error: null,
   companiesRequestKey: null,
-  companiesFetchedAt: 0,
   companyDetailRequestKey: null,
-  companyDetailFetchedAt: 0,
   companyProblemsRequestKey: null,
-  companyProblemsFetchedAt: 0,
+  listCache: {},
+  detailCache: {},
+  problemsCache: {},
 };
 
 const getCompanyListKey = (search?: string): string => (search || '').trim().toLowerCase();
@@ -78,11 +93,12 @@ export const fetchCompanies = createAsyncThunk(
     const key = getCompanyListKey(search);
     const state = getState() as { companies: CompanyState };
 
-    if (!key && state.companies.companies.length > 0 && Date.now() - state.companies.companiesFetchedAt < COMPANY_LIST_CACHE_TTL_MS) {
+    const cached = state.companies.listCache[key];
+    if (cached && Date.now() - cached.fetchedAt < COMPANY_LIST_CACHE_TTL_MS) {
       return {
         key,
-        companies: state.companies.companies,
-        fetchedAt: state.companies.companiesFetchedAt,
+        companies: cached.companies,
+        fetchedAt: cached.fetchedAt,
       };
     }
 
@@ -109,7 +125,8 @@ export const fetchCompanies = createAsyncThunk(
         return false;
       }
 
-      if (!key && state.companies.companies.length > 0 && Date.now() - state.companies.companiesFetchedAt < COMPANY_LIST_CACHE_TTL_MS) {
+      const cached = state.companies.listCache[key];
+      if (cached && Date.now() - cached.fetchedAt < COMPANY_LIST_CACHE_TTL_MS) {
         return false;
       }
 
@@ -124,15 +141,12 @@ export const fetchCompanyBySlug = createAsyncThunk(
     const key = getCompanyDetailKey(slug);
     const state = getState() as { companies: CompanyState };
 
-    if (
-      state.companies.selectedCompany &&
-      state.companies.companyDetailRequestKey === key &&
-      Date.now() - state.companies.companyDetailFetchedAt < COMPANY_DETAIL_CACHE_TTL_MS
-    ) {
+    const cached = state.companies.detailCache[key];
+    if (cached && Date.now() - cached.fetchedAt < COMPANY_DETAIL_CACHE_TTL_MS) {
       return {
         key,
-        company: state.companies.selectedCompany,
-        fetchedAt: state.companies.companyDetailFetchedAt,
+        company: cached.company,
+        fetchedAt: cached.fetchedAt,
       };
     }
 
@@ -159,11 +173,8 @@ export const fetchCompanyBySlug = createAsyncThunk(
         return false;
       }
 
-      return !(
-        state.companies.selectedCompany &&
-        state.companies.companyDetailRequestKey === key &&
-        Date.now() - state.companies.companyDetailFetchedAt < COMPANY_DETAIL_CACHE_TTL_MS
-      );
+      const cached = state.companies.detailCache[key];
+      return !(cached && Date.now() - cached.fetchedAt < COMPANY_DETAIL_CACHE_TTL_MS);
     },
   }
 );
@@ -177,14 +188,12 @@ export const fetchCompanyProblems = createAsyncThunk(
     const lookup = normalizeProblemLookup(payload);
     const state = getState() as { companies: CompanyState };
 
-    if (
-      state.companies.companyProblemsRequestKey === lookup.key &&
-      Date.now() - state.companies.companyProblemsFetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS
-    ) {
+    const cached = state.companies.problemsCache[lookup.key];
+    if (cached && Date.now() - cached.fetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS) {
       return {
         key: lookup.key,
-        problems: state.companies.companyProblems,
-        fetchedAt: state.companies.companyProblemsFetchedAt,
+        problems: cached.problems,
+        fetchedAt: cached.fetchedAt,
       };
     }
 
@@ -211,10 +220,8 @@ export const fetchCompanyProblems = createAsyncThunk(
         return false;
       }
 
-      return !(
-        state.companies.companyProblemsRequestKey === lookup.key &&
-        Date.now() - state.companies.companyProblemsFetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS
-      );
+      const cached = state.companies.problemsCache[lookup.key];
+      return !(cached && Date.now() - cached.fetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS);
     },
   }
 );
@@ -230,12 +237,14 @@ const companySlice = createSlice({
         state.error = null;
         state.companiesRequestKey = getCompanyListKey(action.meta.arg);
       })
-      .addCase(fetchCompanies.fulfilled, (state, action) => {
+.addCase(fetchCompanies.fulfilled, (state, action) => {
         const { key, companies, fetchedAt } = action.payload;
+        state.listCache[key] = { companies, fetchedAt };
+        if (state.companiesRequestKey !== key) {
+          return;
+        }
         state.companies = companies;
-        state.companiesFetchedAt = fetchedAt;
         state.loading = false;
-        state.companiesRequestKey = key;
       })
       .addCase(fetchCompanies.rejected, (state, action) => {
         if (action.meta.aborted || state.companiesRequestKey !== getCompanyListKey(action.meta.arg)) {
@@ -256,9 +265,9 @@ const companySlice = createSlice({
         if (state.companyDetailRequestKey !== key) {
           return;
         }
+        state.detailCache[key] = { company, fetchedAt };
         state.loading = false;
         state.selectedCompany = company;
-        state.companyDetailFetchedAt = fetchedAt;
       })
       .addCase(fetchCompanyBySlug.rejected, (state, action) => {
         if (action.meta.aborted || state.companyDetailRequestKey !== getCompanyDetailKey(action.meta.arg)) {
@@ -278,9 +287,9 @@ const companySlice = createSlice({
         if (state.companyProblemsRequestKey !== key) {
           return;
         }
+        state.problemsCache[key] = { problems, fetchedAt };
         state.companyProblemsLoading = false;
         state.companyProblems = problems;
-        state.companyProblemsFetchedAt = fetchedAt;
       })
       .addCase(fetchCompanyProblems.rejected, (state, action) => {
         if (action.meta.aborted || state.companyProblemsRequestKey !== normalizeProblemLookup(action.meta.arg).key) {
