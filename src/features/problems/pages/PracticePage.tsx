@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProblems, resetFilters } from '../redux/problemSlice';
 import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
@@ -12,7 +12,6 @@ import type { ReferenceItem } from '../../../core/types/domain';
 import { fetchReferenceGroup } from '../../references/redux/referenceSlice';
 import { fetchCompanies } from '../../companies/redux/companySlice';
 // import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
-import { useGoogleOAuthHandler } from '../../auth/hooks/useGoogleOAuthHandler';
 import { toast } from 'react-hot-toast';
 
 export const PracticePage: React.FC = () => {
@@ -24,17 +23,32 @@ export const PracticePage: React.FC = () => {
   const serverCompanies = useAppSelector((state) => state.companies.companies);
   const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
 
-  // Intercept Google OAuth callback if backend redirected to /practice?refreshToken=...
-  useGoogleOAuthHandler();
-
-  const [activeSheetTab, setActiveSheetTab] = useState<'all' | 'answered' | 'bookmarked'>('all');
-  const [searchInput, setSearchInput] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('');
-  const [selectedCompany, setSelectedCompany] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [searchParams, setSearchParams] = useSearchParams();
   const pageSize = 20;
+
+  // Practice navigation state lives in the URL so a detail -> back navigation
+  // restores the exact filters, tab, search query, and page instead of rebuilding defaults.
+  const activeSheetTabParam = searchParams.get('tab');
+  const activeSheetTab: 'all' | 'answered' | 'bookmarked' =
+    activeSheetTabParam === 'answered' || activeSheetTabParam === 'bookmarked' ? activeSheetTabParam : 'all';
+  const searchInput = searchParams.get('q') || '';
+  const selectedTopic = searchParams.get('topic') || '';
+  const selectedDifficulty = searchParams.get('difficulty') || '';
+  const selectedCompany = searchParams.get('company') || '';
+  const parsedPage = Number(searchParams.get('page') || '1');
+  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
+
+  const updatePracticeParams = (updates: Record<string, string | null>) => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') next.delete(key);
+        else next.set(key, value);
+      });
+      return next;
+    }, { replace: true, preventScrollReset: true });
+  };
 
   const difficulties: ReferenceItem[] = referenceGroups.DIFF ?? [];
   const topics: ReferenceItem[] = referenceGroups.TOPIC ?? [];
@@ -44,7 +58,6 @@ export const PracticePage: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput);
-      setCurrentPage(1);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
@@ -91,27 +104,27 @@ export const PracticePage: React.FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setDebouncedSearch(searchInput);
-    setCurrentPage(1);
+    updatePracticeParams({ page: '1' });
+  };
+
+  const handleSearchChange = (value: string) => {
+    updatePracticeParams({ q: value || null, page: '1' });
   };
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedTopic(e.target.value);
-    setCurrentPage(1);
+    updatePracticeParams({ topic: e.target.value || null, page: '1' });
   };
 
   const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCompany(e.target.value);
-    setCurrentPage(1);
+    updatePracticeParams({ company: e.target.value || null, page: '1' });
   };
 
   const handleDifficultyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedDifficulty(e.target.value);
-    setCurrentPage(1);
+    updatePracticeParams({ difficulty: e.target.value || null, page: '1' });
   };
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    window.scrollTo({ top: 300, behavior: 'smooth' });
+    updatePracticeParams({ page: String(newPage) });
   };
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
@@ -144,14 +157,13 @@ export const PracticePage: React.FC = () => {
     toast.success('Bookmark updated');
   };
 
+  const handleTabChange = (tab: 'all' | 'answered' | 'bookmarked') => {
+    updatePracticeParams({ tab: tab === 'all' ? null : tab });
+  };
+
   const handleResetFilters = () => {
-    setSearchInput('');
     setDebouncedSearch('');
-    setSelectedTopic('');
-    setSelectedDifficulty('');
-    setSelectedCompany('');
-    setActiveSheetTab('all');
-    setCurrentPage(1);
+    setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true });
     dispatch(resetFilters());
   };
 
@@ -185,7 +197,7 @@ export const PracticePage: React.FC = () => {
         <div className="flex items-center justify-between border-b border-white/10 pb-4 flex-wrap gap-4">
           <div className="flex items-center gap-2 bg-[#202225] p-1.5 rounded-lg border border-white/10 shadow-md">
             <button
-              onClick={() => setActiveSheetTab('all')}
+              onClick={() => handleTabChange('all')}
               className={`px-4 py-2 text-xs font-bold rounded-md transition-all font-sans cursor-pointer ${
                 activeSheetTab === 'all'
                   ? 'bg-[#A3E635] text-black shadow-sm'
@@ -195,7 +207,7 @@ export const PracticePage: React.FC = () => {
               All Problems
             </button>
             <button
-              onClick={() => setActiveSheetTab('answered')}
+              onClick={() => handleTabChange('answered')}
               className={`px-4 py-2 text-xs font-bold rounded-md transition-all font-sans cursor-pointer ${
                 activeSheetTab === 'answered'
                   ? 'bg-[#A3E635] text-black shadow-sm'
@@ -205,7 +217,7 @@ export const PracticePage: React.FC = () => {
               Answered ✓
             </button>
             <button
-              onClick={() => setActiveSheetTab('bookmarked')}
+              onClick={() => handleTabChange('bookmarked')}
               className={`px-4 py-2 text-xs font-bold rounded-md transition-all font-sans cursor-pointer ${
                 activeSheetTab === 'bookmarked'
                   ? 'bg-[#A3E635] text-black shadow-sm'
@@ -240,7 +252,7 @@ export const PracticePage: React.FC = () => {
               type="text"
               placeholder="Search problem title..."
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full bg-[#121113] border border-white/10 text-xs sm:text-sm text-gray-200 placeholder-gray-500 rounded-lg pl-10 pr-4 py-2 outline-none focus:border-white/30 transition-colors font-sans"
             />
           </form>
