@@ -28,18 +28,25 @@ export const CompanyDetails: React.FC = () => {
   const fromPatterns = (location.state as any)?.from === 'company-patterns';
 
   useEffect(() => {
-    if (slug) {
-      dispatch(fetchCompanyBySlug(slug));
-    }
+    if (!slug) return;
+
+    const request = dispatch(fetchCompanyBySlug(slug));
+    return () => {
+      request.abort();
+    };
   }, [dispatch, slug]);
 
+  const companyId = company?.id;
+  const companyName = company?.name;
+
   useEffect(() => {
-    if (company?.id || company?.name) {
-      dispatch(fetchCompanyProblems({ id: company.id, name: company.name }));
-    } else if (slug) {
-      dispatch(fetchCompanyProblems({ id: slug }));
-    }
-  }, [dispatch, company, slug]);
+    if (companyId === undefined && !companyName) return;
+
+    const request = dispatch(fetchCompanyProblems({ id: companyId, name: companyName }));
+    return () => {
+      request.abort();
+    };
+  }, [dispatch, companyId, companyName]);
 
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();

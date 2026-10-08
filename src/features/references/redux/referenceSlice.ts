@@ -31,6 +31,9 @@ export const fetchReferenceGroup = createAsyncThunk(
     condition: (groupCode, { getState }) => {
       const state = getState() as { references: ReferenceState };
       const items = state.references.groups[groupCode];
+      if (state.references.loading[groupCode]) {
+        return false;
+      }
       return !items || items.length === 0;
     },
   }

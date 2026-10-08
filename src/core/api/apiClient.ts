@@ -16,6 +16,8 @@ const getBaseUrl = () => {
 
 export const BASE_URL = getBaseUrl();
 
+export const isRequestCanceled = (error: unknown): boolean => axios.isCancel(error);
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
@@ -119,6 +121,11 @@ apiClient.interceptors.response.use(
     return resData;
   },
   async (error) => {
+    // Preserve AbortController cancellation so callers can distinguish a canceled request from an API failure.
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
     const reqUrl = originalRequest?.url || '';
 

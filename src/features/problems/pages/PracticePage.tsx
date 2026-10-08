@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProblems, toggleSolveProblem, resetFilters } from '../redux/problemSlice';
@@ -105,41 +105,37 @@ export const PracticePage: React.FC = () => {
     dispatch(fetchCompanies());
   }, [dispatch]);
 
-  // 2. Fetch Questions with Filter Parameters
-  const loadQuestions = useCallback(() => {
-      const pageToLoad = currentPage;
+  // Fetch the current page/filter combination once. Redux deduplicates repeated keys and
+  // the thunk can be aborted when this page leaves the screen or its filters change.
+  useEffect(() => {
+    const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;
+    const difficultyId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;
+    const companyId = selectedCompany && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : undefined;
 
-      const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;
-      const diffId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;
-      const compId = selectedCompany && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : undefined;
+    const request = dispatch(
+      fetchProblems({
+        search: debouncedSearch.trim() || undefined,
+        searchText: debouncedSearch.trim() || undefined,
+        topic: topicId ? [topicId] : undefined,
+        difficulty: difficultyId ? [difficultyId] : undefined,
+        level: difficultyId ? [difficultyId] : undefined,
+        company: companyId ? [companyId] : undefined,
+        companies: companyId ? [companyId] : undefined,
+        page: currentPage,
+        limit: pageSize,
+      })
+    );
 
-      const topicItem = topics.find((t) => String(t.id) === selectedTopic || t.refName === selectedTopic);
-      const diffItem = difficulties.find((d) => String(d.id) === selectedDifficulty || d.refName === selectedDifficulty);
-      const compItem = companies.find((c) => String(c.id) === selectedCompany || c.name === selectedCompany);
-
-      dispatch(
-        fetchProblems({
-          search: debouncedSearch.trim() || undefined,
-          searchText: debouncedSearch.trim() || undefined,
-          topic: topicId ? [topicId] : topicItem?.id ? [topicItem.id] : (selectedTopic || undefined),
-          difficulty: diffId ? [diffId] : diffItem?.id ? [diffItem.id] : (selectedDifficulty || undefined),
-          level: diffId ? [diffId] : diffItem?.id ? [diffItem.id] : undefined,
-          company: compId ? [compId] : compItem?.id ? [compItem.id] : (selectedCompany || undefined),
-          companies: compId ? [compId] : compItem?.id ? [compItem.id] : undefined,
-          page: pageToLoad,
-          limit: pageSize,
-        })
-      );
-    },
-    [dispatch, debouncedSearch, selectedTopic, selectedDifficulty, selectedCompany, currentPage, pageSize, topics, difficulties, companies]
-  );
+    return () => {
+      request.abort();
+    };
+  }, [dispatch, debouncedSearch, selectedTopic, selectedDifficulty, selectedCompany, currentPage]);
 
   useEffect(() => {
-    loadQuestions();
     if (isAuthenticated) {
       dispatch(fetchBookmarks());
     }
-  }, [loadQuestions, isAuthenticated, dispatch]);
+  }, [dispatch, isAuthenticated]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
