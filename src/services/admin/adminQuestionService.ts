@@ -23,23 +23,23 @@ export type QuestionPayload = Question;
  * Dedicated Admin Question Service Layer
  * REAL API ONLY — Explicitly bypasses client-side mock modes (VITE_USE_MOCK).
  * Routes 100% of network requests through the shared `apiClient` instance
- * targeting the Java Spring Boot REST API (`https://codingplatform-tdt0.onrender.com/api/v1`).
+ * targeting the configured Java Spring Boot REST API.
  */
 export const adminQuestionService = {
   /**
    * POST /api/v1/questions
    * Fetches real paginated question list directly from Java Spring Boot backend.
    */
-  async getQuestions(payload: QuestionListRequestPayload): Promise<ApiResponse<PaginatedQuestionResponse>> {
-    return apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload);
+  async getQuestions(payload: QuestionListRequestPayload, signal?: AbortSignal): Promise<ApiResponse<PaginatedQuestionResponse>> {
+    return apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload, { signal });
   },
 
   /**
    * GET /api/v1/question/:id
    * Fetches single question statement and details directly from Java backend.
    */
-  async getQuestionById(id: string | number): Promise<ApiResponse<QuestionPayload>> {
-    return apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(id));
+  async getQuestionById(id: string | number, signal?: AbortSignal): Promise<ApiResponse<QuestionPayload>> {
+    return apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(id), { signal });
   },
 
   /**
@@ -54,8 +54,8 @@ export const adminQuestionService = {
    * POST /api/v1/question/:id/testCases
    * Attaches test cases to a question in the Java database.
    */
-  async addTestCases(id: string | number, testCases: QuestionTestCase[]): Promise<ApiResponse<QuestionTestCase[]>> {
-    return apiClient.post(API_ENDPOINTS.QUESTION.TEST_CASES(id), testCases);
+  async addTestCases(id: string | number, testCases: QuestionTestCase[], signal?: AbortSignal): Promise<ApiResponse<QuestionTestCase[]>> {
+    return apiClient.post(API_ENDPOINTS.QUESTION.TEST_CASES(id), testCases, { signal });
   },
 
   /**
@@ -69,7 +69,7 @@ export const adminQuestionService = {
   /**
    * POST /api/v1/admin/testCode
    * Admin RUN: executes sample / visible test cases for testing without persistence.
-   * Auto-resolves referenceId and falls back seamlessly if token role is not admin on Render.
+   * Auto-resolves the backend referenceId and uses the dedicated admin endpoint.
    */
   async adminTestCode(payload: CodeExecutionPayload): Promise<ExecutionResult> {
     return executionService.adminTestCode(payload);
