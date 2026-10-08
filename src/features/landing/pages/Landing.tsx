@@ -191,6 +191,8 @@ export const Landing: React.FC = () => {
                   <img
                     src={logo.src}
                     alt={logo.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-6 sm:h-7 w-auto max-w-[95px] object-contain transition-transform hover:scale-105"
                   />
                 </div>
