@@ -52,8 +52,7 @@ export const adminLanguageService = {
     version?: string;
     isActive?: boolean;
   }): Promise<ApiResponse<AdminLanguageItem>> {
-    const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
-    return res?.data || res;
+    return apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
   },
 
   /**
@@ -67,8 +66,7 @@ export const adminLanguageService = {
     version?: string;
     isActive?: boolean;
   }): Promise<ApiResponse<AdminLanguageItem>> {
-    const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
-    return res?.data || res;
+    return apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
   },
 
   /**
