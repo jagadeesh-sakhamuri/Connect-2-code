@@ -358,7 +358,11 @@ export const ProblemDetails: React.FC = () => {
   useEffect(() => {
     if (serverLanguages.length > 0) {
       setSelectedLanguage((prev) => {
-        const found = serverLanguages.find((language) => language.id === prev.id || language.referenceId === prev.referenceId);
+        const found = serverLanguages.find(
+          (language) =>
+            prev &&
+            (language.id === prev.id || language.referenceId === prev.referenceId)
+        );
         return found || serverLanguages[0];
       });
     }
@@ -381,7 +385,7 @@ export const ProblemDetails: React.FC = () => {
         [selectedLanguage.id]: newCode,
       }));
     },
-    [selectedLanguage.id]
+    [selectedLanguage?.id]
   );
 
   // Handle Language Dropdown Change
@@ -587,7 +591,7 @@ export const ProblemDetails: React.FC = () => {
   }, [handleRunCode, handleSubmitCode]);
 
   // Difficulty badge styling
-  const difficultyName = problem?.difficultyRefName || problem?.difficulty || 'Medium';
+  const difficultyName = problem?.difficultyRefName || problem?.difficulty || '—';
   const difficultyBadgeStyle =
     difficultyName.toLowerCase() === 'basic'
       ? 'text-teal-400 bg-teal-500/10 border-teal-500/30'
@@ -611,10 +615,7 @@ export const ProblemDetails: React.FC = () => {
         isHidden: false,
       }));
     }
-    return [
-      { id: 1, input: '5\n10 20 30 40 50', expectedOutput: '50', explanation: 'Visible sample case 1' },
-      { id: 2, input: '4\n8 3 12 5', expectedOutput: '12', explanation: 'Visible sample case 2' },
-    ];
+    return [];
   }, [problem]);
 
   const editorial = useMemo(() => getProblemEditorial(problem), [problem]);
@@ -631,7 +632,7 @@ export const ProblemDetails: React.FC = () => {
     );
   }
 
-  const activeSampleCase = sampleTestCases[selectedTestCaseIdx] || sampleTestCases[0];
+  const activeSampleCase = sampleTestCases[selectedTestCaseIdx];
   const activeRunCase = executionResult?.testCases?.[selectedTestCaseIdx];
 
   return (
@@ -675,7 +676,7 @@ export const ProblemDetails: React.FC = () => {
           </div>
 
           <h1 className="text-sm sm:text-base font-heading font-bold text-white tracking-tight truncate max-w-xs sm:max-w-md">
-            {problem?.title || `Problem #${numericQuestionId}`}
+            {problem?.title || 'Problem'}
           </h1>
 
           {/* Difficulty Badge */}
@@ -877,7 +878,7 @@ export const ProblemDetails: React.FC = () => {
                     Problem Statement
                   </h3>
                   <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-gray-200 whitespace-pre-line leading-relaxed font-sans text-sm">
-                    {problem?.description || 'Solve the problem according to standard algorithmic constraints.'}
+                    {problem?.description || 'No problem description is available from the backend.'}
                   </div>
                 </div>
 
@@ -887,7 +888,8 @@ export const ProblemDetails: React.FC = () => {
                     Examples
                   </h3>
                   <div className="space-y-3">
-                    {sampleTestCases.map((tc, idx) => (
+                    {sampleTestCases.length > 0 ? (
+                      sampleTestCases.map((tc, idx) => (
                       <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
                         <div className="flex items-center justify-between">
                           <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
@@ -1104,7 +1106,7 @@ export const ProblemDetails: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500 font-mono p-4 bg-[#121113] border border-white/10 rounded-xl">
-                    Featured across premier technical placement drives (TCS, Infosys, Wipro, Accenture, Cognizant).
+                    No company associations were returned for this problem.
                   </p>
                 )}
               </div>
@@ -1333,20 +1335,26 @@ export const ProblemDetails: React.FC = () => {
                     </div>
 
                     {/* Active Sample Case Content */}
-                    <div className="space-y-3 font-mono text-xs">
-                      <div>
-                        <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
-                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                          {activeSampleCase.input}
-                        </pre>
+                    {activeSampleCase ? (
+                      <div className="space-y-3 font-mono text-xs">
+                        <div>
+                          <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
+                          <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
+                            {activeSampleCase.input}
+                          </pre>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
+                          <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap font-bold">
+                            {activeSampleCase.expectedOutput}
+                          </pre>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
-                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap font-bold">
-                          {activeSampleCase.expectedOutput}
-                        </pre>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-500">
+                        No visible test cases were returned for this problem.
+                      </p>
+                    )}
                   </div>
                 )}
 
