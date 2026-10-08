@@ -3,10 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
-import { toggleSolveProblem } from '../redux/problemSlice';
+import { toggleSolveProblem, fetchProblemById } from '../redux/problemSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
-import { apiClient } from '../../../core/api/apiClient';
-import { API_ENDPOINTS } from '../../../core/api/endpoints';
+import { fetchLanguages } from '../../languages/redux/languageSlice';
+import type { Problem } from '../../../core/types/domain';
 import {
   executionService,
   LanguageDropdownItem,
@@ -26,29 +26,6 @@ interface QuestionTestCase {
   typeRefName?: string;
   typeRefCode?: string;
   displayOrder?: number;
-}
-
-interface QuestionDetailsData {
-  id: number | string;
-  title: string;
-  description: string;
-  constraints?: string;
-  difficultyRefName?: string;
-  difficulty?: string;
-  difficultyRefCode?: string;
-  topicRefName?: string;
-  topic?: string;
-  category?: string;
-  qpfRefName?: string;
-  qpfRefCode?: string;
-  qpfRefGroupCode?: string;
-  examPlatform?: string;
-  companies?: Array<string | { id?: number; name?: string; companyName?: string }>;
-  questionHints?: Array<{ id?: number | null; hintText: string; displayOrder?: number }>;
-  hints?: string[];
-  testCases?: QuestionTestCase[];
-  examples?: Array<{ input: string; output: string; explanation?: string }>;
-  codeSnippets?: Record<string, string>;
 }
 
 interface SubmissionRecord {
@@ -131,7 +108,7 @@ solve();
 /**
  * Editorial generator providing takeUforward/LeetCode style DSA breakdowns
  */
-function getProblemEditorial(p: QuestionDetailsData | null): EditorialApproach {
+function getProblemEditorial(p: Problem | null): EditorialApproach {
   const title = (p?.title || '').toLowerCase();
   const topic = (p?.topicRefName || p?.topic || '').toLowerCase();
 
@@ -303,23 +280,25 @@ export const ProblemDetails: React.FC = () => {
   const userRole = user?.role?.toUpperCase();
   const isAdmin = isAuthenticated && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN');
 
-  // Question State
-  const [problem, setProblem] = useState<QuestionDetailsData | null>(null);
-  const [loadingProblem, setLoadingProblem] = useState<boolean>(true);
+  // Server state owned by Redux; only editor/execution/UI state stays local.
+  const { selectedProblem: problem, loading: loadingProblem } = useAppSelector((state) => state.problems);
+  const { languages: serverLanguages, loading: loadingLanguages } = useAppSelector((state) => state.languages);
 
-  // Language Dropdown State with correct reference IDs (Java: 5, Python: 6, C++: 7, JS: 8)
-  const [languages, setLanguages] = useState<LanguageDropdownItem[]>([
-    { id: 1, name: 'Java', referenceId: 5 },
-    { id: 2, name: 'Python', referenceId: 6 },
-    { id: 3, name: 'C++', referenceId: 7 },
-    { id: 4, name: 'JavaScript', referenceId: 8 },
-  ]);
+  const languages: LanguageDropdownItem[] =
+    serverLanguages.length > 0
+      ? serverLanguages
+      : [
+          { id: 1, name: 'Java', referenceId: 5 },
+          { id: 2, name: 'Python', referenceId: 6 },
+          { id: 3, name: 'C++', referenceId: 7 },
+          { id: 4, name: 'JavaScript', referenceId: 8 },
+        ];
+
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem>({
     id: 1,
     name: 'Java',
     referenceId: 5,
   });
-  const [loadingLanguages, setLoadingLanguages] = useState<boolean>(false);
 
   // Editor State
   const [codeByLang, setCodeByLang] = useState<Record<number, string>>({});
@@ -368,79 +347,26 @@ export const ProblemDetails: React.FC = () => {
     return DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
   }, [codeByLang, selectedLanguage.id, monacoLang]);
 
-  // 1. Fetch Languages Dropdown from Backend API
+  // Load shared server state once; Redux owns both resources.
   useEffect(() => {
-    let isMounted = true;
-    const loadLanguages = async () => {
-      setLoadingLanguages(true);
-      try {
-        const data = await executionService.getLanguageDropdown();
-        if (isMounted && Array.isArray(data) && data.length > 0) {
-          setLanguages(data);
-          setSelectedLanguage((prev) => {
-            const found = data.find((l) => l.id === prev.id || l.referenceId === prev.referenceId);
-            return found || data[0];
-          });
-        }
-      } catch (err: any) {
-        console.warn('Language dropdown load fallback:', err);
-      } finally {
-        if (isMounted) setLoadingLanguages(false);
-      }
-    };
+    dispatch(fetchLanguages());
+  }, [dispatch]);
 
-    loadLanguages();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 2. Fetch Question Details from Backend API
   useEffect(() => {
-    let isMounted = true;
-    const fetchQuestionDetails = async () => {
-      setLoadingProblem(true);
-      try {
-        const res: any = await apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(questionIdParam));
-        const data = res?.data || res;
-
-        if (isMounted) {
-          if (data && (data.title || data.description || data.id)) {
-            setProblem(data);
-          } else {
-            setProblem({
-              id: numericQuestionId,
-              title: `Problem #${numericQuestionId}`,
-              description: 'Solve the problem according to standard algorithmic constraints.',
-              difficulty: 'Medium',
-              difficultyRefName: 'Medium',
-              topic: 'Algorithms',
-              topicRefName: 'Algorithms',
-            });
-          }
-        }
-      } catch (err: any) {
-        console.warn('Failed to fetch question details from backend:', err);
-        if (isMounted) {
-          setProblem({
-            id: numericQuestionId,
-            title: `Problem #${numericQuestionId}`,
-            description: 'Solve the problem according to standard algorithmic constraints.',
-            difficulty: 'Medium',
-            difficultyRefName: 'Medium',
-            topic: 'DSA',
-          });
-        }
-      } finally {
-        if (isMounted) setLoadingProblem(false);
-      }
-    };
-
-    fetchQuestionDetails();
+    dispatch(fetchProblemById(questionIdParam));
     if (isAuthenticated) {
       dispatch(fetchBookmarks());
     }
-  }, [questionIdParam, numericQuestionId, isAuthenticated, dispatch]);
+  }, [dispatch, questionIdParam, isAuthenticated]);
+
+  useEffect(() => {
+    if (serverLanguages.length > 0) {
+      setSelectedLanguage((prev) => {
+        const found = serverLanguages.find((language) => language.id === prev.id || language.referenceId === prev.referenceId);
+        return found || serverLanguages[0];
+      });
+    }
+  }, [serverLanguages]);
 
   // Sync title
   useEffect(() => {
