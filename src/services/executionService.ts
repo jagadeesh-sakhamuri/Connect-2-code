@@ -30,6 +30,8 @@ export interface ExecutionResultData {
   totalTestCases: number;
   passedTestCases: number;
   failedTestCases: number;
+  runtimeMs?: number | string;
+  memoryMb?: number | string;
   testCases: ExecutionTestCaseResult[];
 }
 

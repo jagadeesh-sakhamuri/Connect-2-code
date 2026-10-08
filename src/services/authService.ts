@@ -144,47 +144,12 @@ export const authService = {
 
   // Generate Password Reset OTP: POST /api/v1/auth/generatePasswordResetOtp
   async generatePasswordResetOtp(email: string): Promise<BackendApiResponse> {
-    try {
-      const res: any = await apiClient.post(API_ENDPOINTS.AUTH.GENERATE_PASSWORD_RESET_OTP, { email }, { timeout: 60000 });
-      return res;
-    } catch (err: any) {
-      console.warn('Backend generatePasswordResetOtp API error (SMTP mailer offline):', err);
-      // Fallback dev OTP when outbound mail server on Render fails
-      try {
-        sessionStorage.setItem(`c2c_reset_otp_${email.trim().toLowerCase()}`, '123456');
-      } catch {}
-      return {
-        statusCode: 200,
-        message: 'Password reset OTP generated! (Test verification code: 123456)',
-        data: true,
-        errors: null,
-        timestamp: new Date().toISOString(),
-      };
-    }
+    return apiClient.post(API_ENDPOINTS.AUTH.GENERATE_PASSWORD_RESET_OTP, { email }, { timeout: 60000 });
   },
 
   // Verify OTP and Reset Password: POST /api/v1/auth/verifyPasswordResetOtp
   async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<BackendApiResponse> {
-    try {
-      const res: any = await apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
-      return res;
-    } catch (err: any) {
-      console.warn('Backend verifyPasswordResetOtp API error:', err);
-      const emailKey = payload.email.trim().toLowerCase();
-      const savedOtp = typeof window !== 'undefined' ? sessionStorage.getItem(`c2c_reset_otp_${emailKey}`) : null;
-      if (payload.otp === '123456' || (savedOtp && payload.otp === savedOtp)) {
-        try {
-          sessionStorage.removeItem(`c2c_reset_otp_${emailKey}`);
-        } catch {}
-        return {
-          statusCode: 200,
-          message: 'Password Reset Successfully',
-          data: true,
-          errors: null,
-          timestamp: new Date().toISOString(),
-        };
-      }
-      throw err;
-    }
+    return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
   },
+
 };

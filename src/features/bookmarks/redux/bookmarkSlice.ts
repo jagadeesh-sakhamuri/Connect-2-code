@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 export interface BookmarkItem {
   id: string;
@@ -20,7 +21,7 @@ const LOCAL_STORAGE_KEY = 'myjo_bookmarks';
 
 const loadBookmarksFromStorage = (): BookmarkItem[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const saved = userScopedStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       return JSON.parse(saved);
     }
@@ -32,7 +33,7 @@ const loadBookmarksFromStorage = (): BookmarkItem[] => {
 
 const saveBookmarksToStorage = (bookmarks: BookmarkItem[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(bookmarks));
+    userScopedStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(bookmarks));
   } catch (e) {
     console.error('Failed to save bookmarks to storage', e);
   }

@@ -1,12 +1,10 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAppSelector } from '../../app/hooks';
 import { tokenStorage } from '../security/tokenStorage';
 
 export const GuestRoute: React.FC = () => {
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const currentUser = user || tokenStorage.getUser();
-  const hasAuth = isAuthenticated || Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
+  const currentUser = tokenStorage.getUser();
+  const hasAuth = Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
 
   if (hasAuth) {
     const role = String(currentUser?.role || '').toUpperCase();
