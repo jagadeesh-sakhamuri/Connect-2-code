@@ -72,16 +72,38 @@ const companySlice = createSlice({
     builder
       .addCase(fetchCompanies.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchCompanies.fulfilled, (state, action) => {
         state.loading = false;
         state.companies = action.payload;
       })
+      .addCase(fetchCompanies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchCompanyBySlug.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.selectedCompany = null;
+        state.companyProblems = [];
+      })
       .addCase(fetchCompanyBySlug.fulfilled, (state, action) => {
+        state.loading = false;
         state.selectedCompany = action.payload;
+      })
+      .addCase(fetchCompanyBySlug.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchCompanyProblems.pending, (state) => {
+        state.error = null;
       })
       .addCase(fetchCompanyProblems.fulfilled, (state, action) => {
         state.companyProblems = action.payload;
+      })
+      .addCase(fetchCompanyProblems.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });
