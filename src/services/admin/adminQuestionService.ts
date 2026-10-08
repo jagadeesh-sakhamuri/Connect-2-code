@@ -21,7 +21,7 @@ export type QuestionPayload = Question;
 
 /**
  * Dedicated Admin Question Service Layer
- * REAL API ONLY — Explicitly bypasses client-side mock modes (VITE_USE_MOCK).
+ * REAL API ONLY — Routes all requests through the shared API client.
  * Routes 100% of network requests through the shared `apiClient` instance
  * targeting the configured Java Spring Boot REST API.
  */
