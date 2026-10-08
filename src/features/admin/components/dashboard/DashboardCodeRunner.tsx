@@ -130,7 +130,7 @@ export const DashboardCodeRunner: React.FC = () => {
           const mapped = list.map((q: any) => ({
             id: q.id,
             title: q.title || `Question #${q.id}`,
-            difficulty: q.difficultyRefName || q.difficultyName || 'Standard',
+            difficulty: q.difficultyRefName || q.difficultyName || '',
           }));
           setQuestions(mapped);
           setSelectedQuestionId(mapped[0].id);
