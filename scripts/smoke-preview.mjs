@@ -8,7 +8,6 @@ const routes = ['/', '/login', '/practice', '/problems/1', '/companies/tcs'];
 
 const server = spawn('npm', ['run', 'preview', '--', '--host', host, '--port', String(port)], {
   stdio: ['ignore', 'pipe', 'pipe'],
-  shell: process.platform === 'win32',
 });
 
 let output = '';
@@ -19,20 +18,36 @@ server.stderr.on('data', (chunk) => {
   output += chunk.toString();
 });
 
-const stop = () => {
-  if (!server.killed) server.kill('SIGTERM');
+const fetchWithTimeout = async (url) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 };
+
+const stop = () => {
+  if (!server.killed) {
+    server.kill('SIGTERM');
+  }
+};
+
+let exitCode = 0;
 
 try {
   let ready = false;
   for (let attempt = 0; attempt < 30; attempt += 1) {
     try {
-      const response = await fetch(baseUrl);
+      const response = await fetchWithTimeout(baseUrl);
       if (response.ok) {
         ready = true;
         break;
       }
     } catch {}
+
     await delay(500);
   }
 
@@ -41,7 +56,7 @@ try {
   }
 
   for (const route of routes) {
-    const response = await fetch(`${baseUrl}${route}`);
+    const response = await fetchWithTimeout(`${baseUrl}${route}`);
     const body = await response.text();
 
     if (!response.ok) {
@@ -54,6 +69,11 @@ try {
   }
 
   console.log(`Preview smoke test passed for ${routes.length} routes.`);
+} catch (error) {
+  exitCode = 1;
+  console.error(error instanceof Error ? error.message : error);
 } finally {
   stop();
+  await delay(200);
+  process.exit(exitCode);
 }
