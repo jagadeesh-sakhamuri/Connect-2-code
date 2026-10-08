@@ -42,6 +42,9 @@ jobs:
       - name: Refresh dependency lockfile
         run: npm audit fix --package-lock-only --ignore-scripts || true
 
+      - name: Show dependency remediation diff
+        run: git diff -- package.json package-lock.json
+
       - name: Upload refreshed dependency files
         uses: actions/upload-artifact@v7
         with:
