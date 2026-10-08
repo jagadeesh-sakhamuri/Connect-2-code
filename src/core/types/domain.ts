@@ -176,6 +176,19 @@ export interface AdminLanguage {
   isActive?: boolean;
 }
 
+export interface AuthSessionData {
+  id?: string | number;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email: string;
+  role?: string;
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: Omit<AuthSessionData, 'user' | 'token' | 'accessToken' | 'refreshToken'>;
+}
+
 export interface UserProfile {
   id?: string | number;
   firstName?: string;
