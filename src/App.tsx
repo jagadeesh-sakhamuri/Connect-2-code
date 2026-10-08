@@ -5,10 +5,29 @@ import { store } from './app/store';
 import { router } from './routes/appRoutes';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './shared/context/ThemeContext';
+import { useAppDispatch, useAppSelector } from './app/hooks';
+import { hydrateProgress } from './features/progress/redux/progressSlice';
+
+const ProgressHydrator: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+  const scopeKey = isAuthenticated
+    ? String(user?.id ?? user?.email ?? 'authenticated')
+    : 'guest';
+
+  React.useEffect(() => {
+    void dispatch(hydrateProgress());
+  }, [dispatch, scopeKey]);
+
+  return null;
+};
 
 export const App: React.FC = () => {
   return (
     <Provider store={store}>
+      <ProgressHydrator />
       <ThemeProvider>
       <Toaster
         position="top-right"
