@@ -37,6 +37,17 @@ jobs:
       - name: Architecture verification
         run: npm run verify:architecture
 
+      - name: Refresh dependency lockfile
+        run: npm audit fix --package-lock-only --ignore-scripts
+
+      - name: Upload refreshed dependency files
+        uses: actions/upload-artifact@v7
+        with:
+          name: audited-dependency-files
+          path: |
+            package.json
+            package-lock.json
+
       - name: Dependency audit
         run: npm audit --audit-level=high
 
