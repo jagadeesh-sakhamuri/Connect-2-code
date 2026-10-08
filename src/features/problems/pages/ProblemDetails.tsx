@@ -14,6 +14,7 @@ import {
 } from '../../../services/executionService';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { toast } from 'react-hot-toast';
+import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 interface QuestionTestCase {
   id?: number;
@@ -55,8 +56,8 @@ interface SubmissionRecord {
   status: 'Accepted' | 'Wrong Answer';
   passedTestCases: number;
   totalTestCases: number;
-  runtimeMs: number;
-  memoryMb: string;
+  runtimeMs?: number | string;
+  memoryMb?: number | string;
   language: string;
   timestamp: string;
 }
@@ -343,7 +344,7 @@ export const ProblemDetails: React.FC = () => {
   // Submissions history for this session / problem
   const [submissionsHistory, setSubmissionsHistory] = useState<SubmissionRecord[]>(() => {
     try {
-      const saved = localStorage.getItem(`c2c_submissions_${numericQuestionId}`);
+      const saved = userScopedStorage.getItem(`submissions_${numericQuestionId}`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -612,8 +613,8 @@ export const ProblemDetails: React.FC = () => {
         status: isAccepted ? 'Accepted' : 'Wrong Answer',
         passedTestCases: result.passedTestCases,
         totalTestCases: result.totalTestCases,
-        runtimeMs: Math.floor(Math.random() * 4 + 2),
-        memoryMb: (Math.random() * 4 + 41).toFixed(1),
+        runtimeMs: result.runtimeMs,
+        memoryMb: result.memoryMb,
         language: selectedLanguage.name,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -621,7 +622,7 @@ export const ProblemDetails: React.FC = () => {
       setSubmissionsHistory((prev) => {
         const updated = [newRecord, ...prev].slice(0, 10);
         try {
-          localStorage.setItem(`c2c_submissions_${numericQuestionId}`, JSON.stringify(updated));
+          userScopedStorage.setItem(`submissions_${numericQuestionId}`, JSON.stringify(updated));
         } catch {}
         return updated;
       });
@@ -1129,7 +1130,7 @@ export const ProblemDetails: React.FC = () => {
 
                         <div className="flex items-center gap-4 text-gray-400 text-[11px]">
                           <span>{sub.language}</span>
-                          <span className="text-white font-bold">{sub.runtimeMs} ms</span>
+                          <span className="text-white font-bold">{sub.runtimeMs ?? '—'}{sub.runtimeMs !== undefined && sub.runtimeMs !== null ? ' ms' : ''}</span>
                           <span className="text-gray-500">{sub.timestamp}</span>
                         </div>
                       </div>
@@ -1563,17 +1564,17 @@ export const ProblemDetails: React.FC = () => {
                               <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
                                 <span className="text-gray-400 text-[10px] block">RUNTIME</span>
                                 <span className="text-white font-bold text-sm">
-                                  {Math.floor(Math.random() * 4 + 2)} ms
+                                  {executionResult.runtimeMs ?? '—'}{executionResult.runtimeMs !== undefined && executionResult.runtimeMs !== null ? ' ms' : ''}
                                 </span>
-                                <span className="text-[10px] text-emerald-400 block">Beats 89.2%</span>
+                                <span className="text-[10px] text-gray-500 block">{executionResult.runtimeMs !== undefined && executionResult.runtimeMs !== null ? 'Reported by execution service' : 'Not provided'}</span>
                               </div>
 
                               <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
                                 <span className="text-gray-400 text-[10px] block">MEMORY</span>
                                 <span className="text-white font-bold text-sm">
-                                  {(Math.random() * 4 + 41).toFixed(1)} MB
+                                  {executionResult.memoryMb ?? '—'}{executionResult.memoryMb !== undefined && executionResult.memoryMb !== null ? ' MB' : ''}
                                 </span>
-                                <span className="text-[10px] text-emerald-400 block">Beats 78.4%</span>
+                                <span className="text-[10px] text-gray-500 block">{executionResult.memoryMb !== undefined && executionResult.memoryMb !== null ? 'Reported by execution service' : 'Not provided'}</span>
                               </div>
 
                               <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">

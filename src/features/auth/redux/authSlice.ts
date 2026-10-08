@@ -28,12 +28,10 @@ const initialRefreshToken = tokenStorage.getRefreshToken();
 const initialUser = tokenStorage.getUser();
 
 // User is authenticated if they have an active access token, a valid refresh token, or a persisted user profile
-const initialIsAuthenticated = Boolean(
-  initialToken || initialRefreshToken || (initialUser && initialUser.email)
-);
+const initialIsAuthenticated = Boolean(initialToken || initialRefreshToken);
 
 const initialState: AuthState = {
-  user: initialUser,
+  user: initialIsAuthenticated ? initialUser : null,
   token: initialToken,
   refreshToken: initialRefreshToken,
   isAuthenticated: initialIsAuthenticated,
@@ -124,7 +122,7 @@ const authSlice = createSlice({
       const token = tokenStorage.getAccessToken();
       const refreshToken = tokenStorage.getRefreshToken();
       const savedUser = tokenStorage.getUser();
-      const hasAuth = Boolean(token || refreshToken || (savedUser && savedUser.email));
+      const hasAuth = Boolean(token || refreshToken);
       state.isAuthenticated = hasAuth;
       state.user = hasAuth ? savedUser : null;
       state.token = token;
@@ -152,6 +150,8 @@ const authSlice = createSlice({
       .addCase(silentRefreshSession.fulfilled, (state, action) => {
         if (action.payload) {
           state.isAuthenticated = true;
+          state.token = tokenStorage.getAccessToken();
+          state.refreshToken = tokenStorage.getRefreshToken();
           const data = action.payload;
           if (data.user || data.email) {
             const u = data.user || data;
@@ -168,6 +168,14 @@ const authSlice = createSlice({
           }
         }
       })
+      .addCase(silentRefreshSession.rejected, (state) => {
+        state.user = null;
+        state.token = null;
+        state.refreshToken = null;
+        state.isAuthenticated = false;
+        state.loading = false;
+        tokenStorage.clearTokens();
+      })
       // Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
@@ -178,8 +186,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.isAuthModalOpen = false;
         const data = action.payload;
-        state.token = null;
-        state.refreshToken = null;
+        state.token = tokenStorage.getAccessToken();
+        state.refreshToken = tokenStorage.getRefreshToken();
         const userObj = {
           id: data.id,
           firstName: data.firstName,
@@ -205,8 +213,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.isAuthModalOpen = false;
         const data = action.payload;
-        state.token = null;
-        state.refreshToken = null;
+        state.token = tokenStorage.getAccessToken();
+        state.refreshToken = tokenStorage.getRefreshToken();
         const userObj = {
           id: data.id,
           firstName: data.firstName,

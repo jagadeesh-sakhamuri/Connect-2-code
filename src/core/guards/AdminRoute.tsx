@@ -10,11 +10,11 @@ import { tokenStorage } from '../security/tokenStorage';
  * Redirects unauthenticated users to /login and non-admin users to /practice.
  */
 export const AdminRoute: React.FC = () => {
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
   const currentUser = user || tokenStorage.getUser();
-  const hasAuth = isAuthenticated || Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
+  const hasAuth = Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
 
   // 1. Check Authentication Status
   if (!hasAuth) {

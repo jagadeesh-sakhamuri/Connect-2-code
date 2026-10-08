@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { problemService, ProblemFilterParams, ProblemItem } from '../../../services/problemService';
 import { fallbackProblemsData } from '../data/problemsData';
+import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 export interface ProblemState {
   problems: ProblemItem[];
@@ -64,12 +65,12 @@ export const fetchProblemById = createAsyncThunk(
 
 export const fetchProblemBySlug = fetchProblemById;
 
-const SOLVED_STORAGE_KEY = 'myjo_solved_problems';
-const BOOKMARKS_STORAGE_KEY = 'myjo_bookmarks';
+const SOLVED_STORAGE_KEY = 'solved_problems';
+const BOOKMARKS_STORAGE_KEY = 'bookmarks';
 
 const getSolvedStorage = (): Record<string, boolean> => {
   try {
-    const saved = localStorage.getItem(SOLVED_STORAGE_KEY);
+    const saved = userScopedStorage.getItem(SOLVED_STORAGE_KEY);
     return saved ? JSON.parse(saved) : {};
   } catch {
     return {};
@@ -78,7 +79,7 @@ const getSolvedStorage = (): Record<string, boolean> => {
 
 const getBookmarksStorage = (): any[] => {
   try {
-    const saved = localStorage.getItem(BOOKMARKS_STORAGE_KEY);
+    const saved = userScopedStorage.getItem(BOOKMARKS_STORAGE_KEY);
     return saved ? JSON.parse(saved) : [];
   } catch {
     return [];
@@ -93,7 +94,7 @@ export const toggleSolveProblem = createAsyncThunk(
     const updatedStatus = current !== undefined ? !current : true;
     solvedMap[id] = updatedStatus;
     try {
-      localStorage.setItem(SOLVED_STORAGE_KEY, JSON.stringify(solvedMap));
+      userScopedStorage.setItem(SOLVED_STORAGE_KEY, JSON.stringify(solvedMap));
     } catch {}
     return { id, isSolved: updatedStatus };
   }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
+import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 import { toast } from 'react-hot-toast';
 
 interface SheetProblem {
@@ -225,7 +226,7 @@ export const ProblemList: React.FC = () => {
   // Solved state stored in localStorage (no questions API)
   const [solvedMap, setSolvedMap] = useState<Record<string, boolean>>(() => {
     try {
-      const saved = localStorage.getItem('c2c_dsa_sheet_solved');
+      const saved = userScopedStorage.getItem('dsa_sheet_solved');
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -238,12 +239,26 @@ export const ProblemList: React.FC = () => {
     }
   }, [dispatch, isAuthenticated]);
 
+  useEffect(() => {
+    try {
+      const saved = userScopedStorage.getItem('dsa_sheet_solved');
+      setSolvedMap(saved ? JSON.parse(saved) : {});
+    } catch {
+      setSolvedMap({});
+    }
+  }, [isAuthenticated]);
+
   const handleSolveToggle = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAuthenticated) {
+      toast.error('Please log in to track your solved problems');
+      dispatch(openAuthModal({ mode: 'login' }));
+      return;
+    }
     setSolvedMap((prev) => {
       const updated = { ...prev, [id]: !prev[id] };
       try {
-        localStorage.setItem('c2c_dsa_sheet_solved', JSON.stringify(updated));
+        userScopedStorage.setItem('dsa_sheet_solved', JSON.stringify(updated));
       } catch {}
       return updated;
     });

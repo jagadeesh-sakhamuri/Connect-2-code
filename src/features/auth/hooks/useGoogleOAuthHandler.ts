@@ -85,7 +85,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
       // If running inside a popup window, transmit to opener and close self
       if (window.opener && window.opener !== window) {
         try {
-          window.opener.postMessage({ type: MESSAGE_TYPE, refreshToken: tokenVal }, '*');
+          window.opener.postMessage({ type: MESSAGE_TYPE, refreshToken: tokenVal }, window.location.origin);
           setTimeout(() => {
             try {
               window.close();
@@ -105,6 +105,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
   // 2. Listen for messages from popup window
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
       if (event.data?.type === MESSAGE_TYPE && event.data?.refreshToken) {
         completeOAuthLogin(event.data.refreshToken);
       }
