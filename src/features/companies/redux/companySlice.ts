@@ -126,11 +126,11 @@ export const fetchCompanies = createAsyncThunk(
       }
 
       const cached = state.companies.listCache[key];
-      if (cached && Date.now() - cached.fetchedAt < COMPANY_LIST_CACHE_TTL_MS) {
-        return false;
-      }
-
-      return true;
+      return !(
+        cached &&
+        Date.now() - cached.fetchedAt < COMPANY_LIST_CACHE_TTL_MS &&
+        state.companies.companiesRequestKey === key
+      );
     },
   }
 );
@@ -174,7 +174,11 @@ export const fetchCompanyBySlug = createAsyncThunk(
       }
 
       const cached = state.companies.detailCache[key];
-      return !(cached && Date.now() - cached.fetchedAt < COMPANY_DETAIL_CACHE_TTL_MS);
+      return !(
+        cached &&
+        Date.now() - cached.fetchedAt < COMPANY_DETAIL_CACHE_TTL_MS &&
+        state.companies.companyDetailRequestKey === key
+      );
     },
   }
 );
@@ -221,7 +225,11 @@ export const fetchCompanyProblems = createAsyncThunk(
       }
 
       const cached = state.companies.problemsCache[lookup.key];
-      return !(cached && Date.now() - cached.fetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS);
+      return !(
+        cached &&
+        Date.now() - cached.fetchedAt < COMPANY_PROBLEMS_CACHE_TTL_MS &&
+        state.companies.companyProblemsRequestKey === lookup.key
+      );
     },
   }
 );
