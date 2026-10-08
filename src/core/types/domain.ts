@@ -46,6 +46,19 @@ export interface Problem {
   gfgUrl?: string;
   hackerRankUrl?: string;
   description?: string;
+  constraints?: string;
+  difficultyRefName?: string;
+  difficultyRefCode?: string;
+  topicRefName?: string;
+  topicRefCode?: string;
+  qpfRefGroupCode?: string;
+  qpfRefCode?: string;
+  qpfRefName?: string;
+  examPlatform?: string;
+  questionHints?: QuestionHint[];
+  hints?: string[];
+  testCases?: QuestionTestCase[];
+  codeSnippets?: Record<string, string>;
   examples?: Array<{
     input: string;
     output: string;

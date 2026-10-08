@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { updateUserProfile } from '../redux/profileSlice';
+import { fetchUserProfile, updateUserProfile } from '../redux/profileSlice';
 import { Input } from '../../../shared/components/ui/Input';
 import { Button } from '../../../shared/components/ui/Button';
 import { toast } from 'react-hot-toast';
@@ -23,12 +23,14 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export const ProfileSettings: React.FC = () => {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.profile.profile);
+  const profileLoading = useAppSelector((state) => state.profile.loading);
   const authUser = useAppSelector((state) => state.auth.user);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    reset,
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -42,9 +44,39 @@ export const ProfileSettings: React.FC = () => {
     },
   });
 
+  useEffect(() => {
+    void dispatch(fetchUserProfile());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!profile && !authUser) return;
+    reset({
+      fullName: profile?.fullName || authUser?.fullName || '',
+      email: profile?.email || authUser?.email || '',
+      phone: profile?.phone || '',
+      college: profile?.collegeName || '',
+      targetRole: '',
+      githubUrl: profile?.githubUrl || '',
+      linkedinUrl: profile?.linkedinUrl || '',
+    });
+  }, [profile, authUser, reset]);
+
   const onSubmit = async (data: ProfileFormData) => {
-    await dispatch(updateUserProfile(data));
-    toast.success('Profile details updated successfully!');
+    try {
+      const updated = await dispatch(updateUserProfile(data)).unwrap();
+      reset({
+        fullName: updated?.fullName || data.fullName,
+        email: updated?.email || data.email,
+        phone: updated?.phone || data.phone,
+        college: updated?.collegeName || data.college,
+        targetRole: data.targetRole,
+        githubUrl: updated?.githubUrl || data.githubUrl,
+        linkedinUrl: updated?.linkedinUrl || data.linkedinUrl,
+      });
+      toast.success('Profile details updated successfully!');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update profile');
+    }
   };
 
   return (
@@ -64,19 +96,24 @@ export const ProfileSettings: React.FC = () => {
 
       {/* Profile Form Container - Matching Companies Page Div Hover Design */}
       <div className="w-full max-w-3xl px-4 mt-6">
+        {profileLoading && !profile ? (
+          <div className="p-6 bg-[#202225] border border-white/10 rounded-lg text-sm text-gray-400">
+            Loading profile…
+          </div>
+        ) : null}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="p-6 bg-[#202225] hover:bg-[#202225] border border-white/10 rounded-lg flex flex-col gap-5 shadow-md transition-all"
         >
           <div className="flex items-center gap-4 pb-4 border-b border-white/10">
             <img
-              src={profile.avatarUrl}
-              alt={profile.fullName}
+              src={profile?.avatarUrl || ''}
+              alt={profile?.fullName || authUser?.fullName || 'User'}
               className="w-16 h-16 rounded-full border-2 border-[#A3E635]/60 object-cover shadow-sm"
             />
             <div>
-              <h3 className="text-xl font-bold text-white font-heading tracking-tight">{profile.fullName}</h3>
-              <p className="text-xs font-mono text-gray-400 mt-0.5">{profile.email}</p>
+              <h3 className="text-xl font-bold text-white font-heading tracking-tight">{profile?.fullName || authUser?.fullName || 'Your Profile'}</h3>
+              <p className="text-xs font-mono text-gray-400 mt-0.5">{profile?.email || authUser?.email || ''}</p>
             </div>
           </div>
 
