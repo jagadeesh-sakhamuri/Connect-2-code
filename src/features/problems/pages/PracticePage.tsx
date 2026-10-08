@@ -105,7 +105,38 @@ export const PracticePage: React.FC = () => {
     dispatch(fetchCompanies());
   }, [dispatch]);
 
-  // Fetch the current page/filter combination once. Redux deduplicates repeated keys and\n  // the thunk can be aborted when this page leaves the screen or its filters change.\n  useEffect(() => {\n    const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;\n    const difficultyId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;\n    const companyId = selectedCompany && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : undefined;\n\n    const request = dispatch(\n      fetchProblems({\n        search: debouncedSearch.trim() || undefined,\n        searchText: debouncedSearch.trim() || undefined,\n        topic: topicId ? [topicId] : undefined,\n        difficulty: difficultyId ? [difficultyId] : undefined,\n        level: difficultyId ? [difficultyId] : undefined,\n        company: companyId ? [companyId] : undefined,\n        companies: companyId ? [companyId] : undefined,\n        page: currentPage,\n        limit: pageSize,\n      })\n    );\n\n    return () => {\n      request.abort();\n    };\n  }, [dispatch, debouncedSearch, selectedTopic, selectedDifficulty, selectedCompany, currentPage]);\n\n  useEffect(() => {\n    if (isAuthenticated) {\n      dispatch(fetchBookmarks());\n    }\n  }, [dispatch, isAuthenticated]);\n
+  // Fetch the current page/filter combination once. Redux deduplicates repeated keys and
+  // the thunk can be aborted when this page leaves the screen or its filters change.
+  useEffect(() => {
+    const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;
+    const difficultyId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;
+    const companyId = selectedCompany && !isNaN(Number(selectedCompany)) ? Number(selectedCompany) : undefined;
+
+    const request = dispatch(
+      fetchProblems({
+        search: debouncedSearch.trim() || undefined,
+        searchText: debouncedSearch.trim() || undefined,
+        topic: topicId ? [topicId] : undefined,
+        difficulty: difficultyId ? [difficultyId] : undefined,
+        level: difficultyId ? [difficultyId] : undefined,
+        company: companyId ? [companyId] : undefined,
+        companies: companyId ? [companyId] : undefined,
+        page: currentPage,
+        limit: pageSize,
+      })
+    );
+
+    return () => {
+      request.abort();
+    };
+  }, [dispatch, debouncedSearch, selectedTopic, selectedDifficulty, selectedCompany, currentPage]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchBookmarks());
+    }
+  }, [dispatch, isAuthenticated]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setDebouncedSearch(searchInput);
