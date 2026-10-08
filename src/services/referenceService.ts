@@ -1,17 +1,12 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { BackendApiResponse } from './authService';
+import type { ApiResponse } from '../core/types/api';
+import type { ReferenceItem } from '../core/types/domain';
 
-export interface ReferenceItem {
-  id: number;
-  refGroupCode: string;
-  refCode: string;
-  refName: string;
-  isActive: boolean;
-}
+export type { ReferenceItem };
 
 export const referenceService = {
-  async getByGroupCode(refGroupCode: string): Promise<BackendApiResponse<ReferenceItem[]>> {
+  async getByGroupCode(refGroupCode: string): Promise<ApiResponse<ReferenceItem[]>> {
     return apiClient.get(API_ENDPOINTS.REFERENCE.GROUP(refGroupCode));
   },
 };
