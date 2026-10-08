@@ -63,7 +63,7 @@ const normalizeProblemLookup = (
   return {
     id,
     name,
-    key: normalizedId ? \`id:\${normalizedId}|name:\${normalizedName}\` : \`name:\${normalizedName}\`,
+    key: normalizedId ? `id:${normalizedId}|name:${normalizedName}` : `name:${normalizedName}`,
   };
 };
 
