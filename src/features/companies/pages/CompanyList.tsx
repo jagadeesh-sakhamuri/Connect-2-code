@@ -5,14 +5,6 @@ import { fetchCompanies } from '../redux/companySlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 
-const fallbackLogos: Record<string, string> = {
-  accenture: 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg',
-  infosys: 'https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg',
-  'tcs-nqt': 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  tcs: 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  adobe: 'https://gurucodes-data.pages.dev/img/companies/adobe.png',
-};
-
 export const CompanyList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { companies, loading } = useAppSelector((state) => state.companies);
@@ -103,7 +95,7 @@ export const CompanyList: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 m-2 max-w-2xl mt-10 w-full px-4">
           {filteredCompanies.map((company) => {
             const companySlug = company.slug || (company.id ? String(company.id) : company.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-            const logoUrl = company.logo || (company as any).logoUrl || fallbackLogos[companySlug] || fallbackLogos[company.name?.toLowerCase()] || `https://gurucodes-data.pages.dev/img/companies/${companySlug}.png`;
+            const logoUrl = company.logo || company.logoUrl || '';
 
             return (
               <Link
@@ -112,21 +104,23 @@ export const CompanyList: React.FC = () => {
                 className="h-full p-2 border border-white/10 hover:border-white/30 rounded-lg bg-[#121316] hover:bg-[#1a1c22] transition-all group shadow-md"
               >
                 <div className="flex h-full flex-col w-full items-center truncate">
-                  <img
-                    className="rounded-lg object-contain h-32 p-6 bg-white aspect-square w-full shadow-sm"
-                    width="200"
-                    height="200"
-                    alt={company.name}
-                    src={logoUrl}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (fallbackLogos[company.slug] && target.src !== fallbackLogos[company.slug]) {
-                        target.src = fallbackLogos[company.slug];
-                      } else {
-                        target.src = `https://logo.clearbit.com/${company.slug.replace('-nqt', '')}.com`;
-                      }
-                    }}
-                  />
+                  <div className="rounded-lg h-32 bg-white aspect-square w-full shadow-sm flex items-center justify-center p-6">
+                    <div className="w-full h-full flex items-center justify-center text-gray-600">
+                      <i className="fa-solid fa-building text-4xl"></i>
+                    </div>
+                    {logoUrl && (
+                      <img
+                        className="absolute rounded-lg object-contain h-32 p-6 aspect-square w-full"
+                        width="200"
+                        height="200"
+                        alt={company.name}
+                        src={logoUrl}
+                        onError={(e) => {
+                          e.currentTarget.remove();
+                        }}
+                      />
+                    )}
+                  </div>
                   <div className="text-wrap w-full text-center mb-3 mt-3">
                     <p className="text-lg font-semibold text-white font-sans tracking-tight">
                       {company.name}
