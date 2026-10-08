@@ -3,7 +3,7 @@ import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchCompanyBySlug, fetchCompanyProblems } from '../redux/companySlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
-import { toggleSolvedProblem } from '../../problems/redux/progressSlice';
+import { toggleSolvedProblem } from '../../../progress/redux/progressSlice';
 import { toggleBookmarkItem } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { tokenStorage } from '../../../core/security/tokenStorage';
