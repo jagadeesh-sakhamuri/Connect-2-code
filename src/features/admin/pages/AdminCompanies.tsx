@@ -252,6 +252,7 @@ export const AdminCompanies: React.FC = () => {
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSaveCompany}
         initialData={selectedCompany}
+        availableCompanies={companies}
         submitting={submitting}
       />
 
