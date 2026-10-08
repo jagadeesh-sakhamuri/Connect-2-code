@@ -18,6 +18,7 @@
     "noEmit": true
   },
   "include": [
+    "src/vite-env.d.ts",
     "src/app/hooks.ts",
     "src/app/store.ts",
     "src/app/rootReducer.ts",
@@ -42,7 +43,6 @@
     "src/services/problemService.ts",
     "src/services/profileService.ts",
     "src/services/referenceService.ts",
-    "src/services/questionService.ts",
-    "src/vite-env.d.ts"
+    "src/services/questionService.ts"
   ]
 }
