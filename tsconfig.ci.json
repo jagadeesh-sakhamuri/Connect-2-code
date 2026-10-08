@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowImportingTsExtensions": false,
@@ -13,5 +17,31 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
+  "include": [
+    "src/app/hooks.ts",
+    "src/app/store.ts",
+    "src/app/rootReducer.ts",
+    "src/core/**/*.ts",
+    "src/features/auth/redux/authSlice.ts",
+    "src/features/auth/hooks/useGoogleOAuthHandler.ts",
+    "src/features/bookmarks/redux/bookmarkSlice.ts",
+    "src/features/companies/pages/CompanyDetails.tsx",
+    "src/features/companies/redux/companySlice.ts",
+    "src/features/languages/redux/languageSlice.ts",
+    "src/features/problems/pages/PracticePage.tsx",
+    "src/features/problems/pages/ProblemDetails.tsx",
+    "src/features/problems/pages/ProblemList.tsx",
+    "src/features/problems/redux/problemSlice.ts",
+    "src/features/profile/pages/ProfileSettings.tsx",
+    "src/features/profile/redux/profileSlice.ts",
+    "src/features/progress/redux/progressSlice.ts",
+    "src/features/references/redux/referenceSlice.ts",
+    "src/services/authService.ts",
+    "src/services/companyService.ts",
+    "src/services/executionService.ts",
+    "src/services/problemService.ts",
+    "src/services/profileService.ts",
+    "src/services/referenceService.ts",
+    "src/services/questionService.ts"
+  ]
 }
