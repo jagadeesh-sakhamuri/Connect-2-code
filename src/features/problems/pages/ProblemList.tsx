@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { toast } from 'react-hot-toast';
-import { toggleSolvedProblem } from '../redux/progressSlice';
+import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
 
 interface SheetProblem {
   id: string;
