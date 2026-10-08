@@ -91,9 +91,9 @@ const problemProgressSlice = createSlice({
         state.solvedByProblemId = action.payload;
       })
       .addCase(toggleSolvedProblem.fulfilled, (state, action) => {
-      state.solvedByProblemId[action.payload.problemId] = action.payload.isSolved;
-      persistProgress(state.solvedByProblemId);
-    });
+        state.solvedByProblemId[action.payload.problemId] = action.payload.isSolved;
+        persistProgress(state.solvedByProblemId);
+      });
   },
 });
 
