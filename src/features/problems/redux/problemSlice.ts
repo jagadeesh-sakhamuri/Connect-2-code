@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { problemService } from '../../../services/problemService';
 import { isRequestCanceled } from '../../../core/api/apiClient';
 import type { Problem, ProblemFilter } from '../../../core/types/domain';
-import { fallbackProblemsData } from '../data/problemsData';
 
 const PROBLEM_LIST_CACHE_TTL_MS = 60_000;
 const PROBLEM_DETAIL_CACHE_TTL_MS = 5 * 60_000;
@@ -247,18 +246,7 @@ const problemSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) || action.error.message || 'Failed to fetch problems';
 
-        if (state.problems.length === 0) {
-          const fallbackProblems = fallbackProblemsData;
-          state.problems = applyLocalProblemState(fallbackProblems);
-          const total = fallbackProblems.length;
-          const limit = state.pagination.limit || 20;
-          state.pagination = {
-            page: 1,
-            total,
-            limit,
-            totalPages: Math.ceil(total / limit) || 1,
-          };
-        }
+        state.problems = [];
       })
       .addCase(fetchProblemById.pending, (state, action) => {
         state.loading = true;
@@ -293,17 +281,7 @@ const problemSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) || action.error.message || 'Failed to fetch problem detail';
 
-        if (!state.selectedProblem) {
-          const fallback = fallbackProblemsData.find(
-            (problem) =>
-              problem.id?.toLowerCase() === String(action.meta.arg).toLowerCase() ||
-              problem.slug?.toLowerCase() === String(action.meta.arg).toLowerCase()
-          ) || fallbackProblemsData[0];
-
-          if (fallback) {
-            state.selectedProblem = applyLocalProblemState([fallback])[0];
-          }
-        }
+        state.selectedProblem = null;
       });
   },
 });

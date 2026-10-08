@@ -242,29 +242,22 @@ for (int i = 0; i < n; i++) {
     };
   }
 
-  // General algorithmic fallback based on topic
+  // No verified editorial is available for unrecognized problems.
   return {
-    intuition: `Break down the problem into smaller invariant subproblems. For ${topic || 'algorithms'}, determine the optimal data structure that satisfies the runtime constraints.`,
+    intuition: 'Editorial content is not available for this problem.',
     bruteForce: {
-      title: 'Exhaustive Search / Simulation',
-      description: 'Explore all possible combinations or simulate step-by-step.',
-      timeComplexity: 'O(N²) or O(2^N)',
-      spaceComplexity: 'O(1)',
+      title: 'Editorial unavailable',
+      description: 'No verified brute-force approach has been provided for this problem.',
+      timeComplexity: '—',
+      spaceComplexity: '—',
     },
     optimal: {
-      title: 'Optimized Algorithmic Approach',
-      description:
-        'Leverage two pointers, hash mapping, binary search, or dynamic programming to avoid redundant computation.',
-      timeComplexity: 'O(N) or O(N log N)',
-      spaceComplexity: 'O(1) to O(N)',
-      pseudocode: `// Process input efficiently
-// Maintain state invariants
-// Handle boundary and null inputs early`,
+      title: 'Editorial unavailable',
+      description: 'No verified optimal approach has been provided for this problem.',
+      timeComplexity: '—',
+      spaceComplexity: '—',
     },
-    tips: [
-      'Analyze the constraints: N <= 10^5 indicates an O(N) or O(N log N) algorithm is required.',
-      'Check edge cases: empty input, single element, negative numbers, or duplicates.',
-    ],
+    tips: [],
   };
 }
 
@@ -285,21 +278,9 @@ export const ProblemDetails: React.FC = () => {
   const { selectedProblem: problem, loading: loadingProblem } = useAppSelector((state) => state.problems);
   const { languages: serverLanguages, loading: loadingLanguages } = useAppSelector((state) => state.languages);
 
-  const languages: LanguageDropdownItem[] =
-    serverLanguages.length > 0
-      ? serverLanguages
-      : [
-          { id: 1, name: 'Java', referenceId: 5 },
-          { id: 2, name: 'Python', referenceId: 6 },
-          { id: 3, name: 'C++', referenceId: 7 },
-          { id: 4, name: 'JavaScript', referenceId: 8 },
-        ];
+  const languages = serverLanguages;
 
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem>({
-    id: 1,
-    name: 'Java',
-    referenceId: 5,
-  });
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem | null>(null);
 
   // Editor State
   const [codeByLang, setCodeByLang] = useState<Record<number, string>>({});
@@ -333,20 +314,21 @@ export const ProblemDetails: React.FC = () => {
 
   // Map language name to Monaco language
   const monacoLang = useMemo(() => {
-    const name = selectedLanguage.name.toLowerCase();
+    const name = selectedLanguage?.name.toLowerCase() || '';
     if (name.includes('python')) return 'python';
     if (name.includes('c++') || name.includes('cpp')) return 'cpp';
     if (name.includes('javascript') || name.includes('js')) return 'javascript';
-    return 'java';
-  }, [selectedLanguage.name]);
+    return selectedLanguage ? 'java' : 'plaintext';
+  }, [selectedLanguage]);
 
   // Current active code in editor
   const currentCode = useMemo(() => {
+    if (!selectedLanguage) return '';
     if (codeByLang[selectedLanguage.id] !== undefined) {
       return codeByLang[selectedLanguage.id];
     }
     return DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
-  }, [codeByLang, selectedLanguage.id, monacoLang]);
+  }, [codeByLang, selectedLanguage, monacoLang]);
 
   // Load shared server state once; Redux owns both resources.
   useEffect(() => {
@@ -369,7 +351,11 @@ export const ProblemDetails: React.FC = () => {
   useEffect(() => {
     if (serverLanguages.length > 0) {
       setSelectedLanguage((prev) => {
-        const found = serverLanguages.find((language) => language.id === prev.id || language.referenceId === prev.referenceId);
+        const found = serverLanguages.find(
+          (language) =>
+            prev &&
+            (language.id === prev.id || language.referenceId === prev.referenceId)
+        );
         return found || serverLanguages[0];
       });
     }
@@ -385,13 +371,14 @@ export const ProblemDetails: React.FC = () => {
   // Handle Editor Code Change
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
+      if (!selectedLanguage) return;
       const newCode = value || '';
       setCodeByLang((prev) => ({
         ...prev,
         [selectedLanguage.id]: newCode,
       }));
     },
-    [selectedLanguage.id]
+    [selectedLanguage?.id]
   );
 
   // Handle Language Dropdown Change
@@ -422,6 +409,7 @@ export const ProblemDetails: React.FC = () => {
 
   // Reset Code
   const handleResetCode = () => {
+    if (!selectedLanguage) return;
     const template = DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
     setCodeByLang((prev) => ({
       ...prev,
@@ -466,7 +454,12 @@ export const ProblemDetails: React.FC = () => {
 
   // RUN CODE (Visible Sample Test Cases only)
   const handleRunCode = useCallback(async () => {
-    if (isExecuting) return;
+    if (isExecuting || !selectedLanguage) {
+      if (!selectedLanguage) {
+        toast.error('No supported execution language is available');
+      }
+      return;
+    }
 
     setIsExecuting(true);
     setExecutionType('run');
@@ -508,7 +501,12 @@ export const ProblemDetails: React.FC = () => {
 
   // SUBMIT CODE (Evaluation across all test cases - TEST CASES ARE HIDDEN)
   const handleSubmitCode = useCallback(async () => {
-    if (isExecuting) return;
+    if (isExecuting || !selectedLanguage) {
+      if (!selectedLanguage) {
+        toast.error('No supported execution language is available');
+      }
+      return;
+    }
 
     setIsExecuting(true);
     setExecutionType('submit');
@@ -586,7 +584,7 @@ export const ProblemDetails: React.FC = () => {
   }, [handleRunCode, handleSubmitCode]);
 
   // Difficulty badge styling
-  const difficultyName = problem?.difficultyRefName || problem?.difficulty || 'Medium';
+  const difficultyName = problem?.difficultyRefName || problem?.difficulty || '—';
   const difficultyBadgeStyle =
     difficultyName.toLowerCase() === 'basic'
       ? 'text-teal-400 bg-teal-500/10 border-teal-500/30'
@@ -610,10 +608,7 @@ export const ProblemDetails: React.FC = () => {
         isHidden: false,
       }));
     }
-    return [
-      { id: 1, input: '5\n10 20 30 40 50', expectedOutput: '50', explanation: 'Visible sample case 1' },
-      { id: 2, input: '4\n8 3 12 5', expectedOutput: '12', explanation: 'Visible sample case 2' },
-    ];
+    return [];
   }, [problem]);
 
   const editorial = useMemo(() => getProblemEditorial(problem), [problem]);
@@ -630,7 +625,7 @@ export const ProblemDetails: React.FC = () => {
     );
   }
 
-  const activeSampleCase = sampleTestCases[selectedTestCaseIdx] || sampleTestCases[0];
+  const activeSampleCase = sampleTestCases[selectedTestCaseIdx];
   const activeRunCase = executionResult?.testCases?.[selectedTestCaseIdx];
 
   return (
@@ -674,7 +669,7 @@ export const ProblemDetails: React.FC = () => {
           </div>
 
           <h1 className="text-sm sm:text-base font-heading font-bold text-white tracking-tight truncate max-w-xs sm:max-w-md">
-            {problem?.title || `Problem #${numericQuestionId}`}
+            {problem?.title || 'Problem'}
           </h1>
 
           {/* Difficulty Badge */}
@@ -876,7 +871,7 @@ export const ProblemDetails: React.FC = () => {
                     Problem Statement
                   </h3>
                   <div className="p-4 bg-[#121113] border border-white/10 rounded-xl text-gray-200 whitespace-pre-line leading-relaxed font-sans text-sm">
-                    {problem?.description || 'Solve the problem according to standard algorithmic constraints.'}
+                    {problem?.description || 'No problem description is available from the backend.'}
                   </div>
                 </div>
 
@@ -885,39 +880,45 @@ export const ProblemDetails: React.FC = () => {
                   <h3 className="text-xs uppercase font-mono font-bold text-gray-400 tracking-wider mb-2">
                     Examples
                   </h3>
-                  <div className="space-y-3">
-                    {sampleTestCases.map((tc, idx) => (
-                      <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(tc.input);
-                              toast.success('Input copied!');
-                            }}
-                            className="text-gray-500 hover:text-white transition-colors text-[10px] cursor-pointer flex items-center gap-1"
-                          >
-                            <i className="fa-solid fa-copy"></i>
-                            <span>Copy</span>
-                          </button>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Input: </span>
-                          <span className="text-white whitespace-pre-wrap">{tc.input}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-400">Output: </span>
-                          <span className="text-[#A3E635] font-bold whitespace-pre-wrap">{tc.expectedOutput}</span>
-                        </div>
-                        {tc.explanation && (
-                          <div className="pt-1.5 border-t border-white/5 text-gray-400 text-[11px] font-sans">
-                            <span className="font-mono text-gray-500">Explanation: </span>
-                            {tc.explanation}
+                  {sampleTestCases.length > 0 ? (
+                    <div className="space-y-3">
+                      {sampleTestCases.map((tc, idx) => (
+                        <div key={idx} className="p-3.5 bg-[#121113] border border-white/10 rounded-xl space-y-2 font-mono text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[#A3E635] font-bold">Example {idx + 1}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(tc.input);
+                                toast.success('Input copied!');
+                              }}
+                              className="text-gray-500 hover:text-white transition-colors text-[10px] cursor-pointer flex items-center gap-1"
+                            >
+                              <i className="fa-solid fa-copy"></i>
+                              <span>Copy</span>
+                            </button>
                           </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                          <div>
+                            <span className="text-gray-400">Input: </span>
+                            <span className="text-white whitespace-pre-wrap">{tc.input}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Output: </span>
+                            <span className="text-[#A3E635] font-bold whitespace-pre-wrap">{tc.expectedOutput}</span>
+                          </div>
+                          {tc.explanation && (
+                            <div className="pt-1.5 border-t border-white/5 text-gray-400 text-[11px] font-sans">
+                              <span className="font-mono text-gray-500">Explanation: </span>
+                              {tc.explanation}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-500">
+                      No visible examples were returned for this problem.
+                    </p>
+                  )}
                 </div>
 
                 {/* Constraints */}
@@ -1103,7 +1104,7 @@ export const ProblemDetails: React.FC = () => {
                   </div>
                 ) : (
                   <p className="text-xs text-gray-500 font-mono p-4 bg-[#121113] border border-white/10 rounded-xl">
-                    Featured across premier technical placement drives (TCS, Infosys, Wipro, Accenture, Cognizant).
+                    No company associations were returned for this problem.
                   </p>
                 )}
               </div>
@@ -1151,16 +1152,22 @@ export const ProblemDetails: React.FC = () => {
               <div className="flex items-center gap-2">
                 <select
                   id="languageSelect"
-                  value={selectedLanguage.id}
+                  value={selectedLanguage?.id ?? ''}
                   onChange={handleLanguageChange}
-                  disabled={loadingLanguages || isExecuting}
+                  disabled={loadingLanguages || isExecuting || languages.length === 0}
                   className="bg-[#222428] border border-white/15 text-white font-mono text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#A3E635]/60 cursor-pointer shadow-xs"
                 >
-                  {languages.map((l) => (
+                  {languages.length === 0 ? (
+                    <option value="" disabled>
+                      {loadingLanguages ? 'Loading languages…' : 'No languages available'}
+                    </option>
+                  ) : (
+                    languages.map((l) => (
                     <option key={l.id} value={l.id} className="bg-[#222428] text-white">
                       {l.name}
                     </option>
-                  ))}
+                    ))
+                  )}
                 </select>
                 <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
                   {monacoLang.toUpperCase()}
@@ -1325,20 +1332,26 @@ export const ProblemDetails: React.FC = () => {
                     </div>
 
                     {/* Active Sample Case Content */}
-                    <div className="space-y-3 font-mono text-xs">
-                      <div>
-                        <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
-                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                          {activeSampleCase.input}
-                        </pre>
+                    {activeSampleCase ? (
+                      <div className="space-y-3 font-mono text-xs">
+                        <div>
+                          <span className="text-gray-400 block mb-1 text-[11px]">Input:</span>
+                          <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-gray-200 overflow-x-auto whitespace-pre-wrap">
+                            {activeSampleCase.input}
+                          </pre>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
+                          <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap font-bold">
+                            {activeSampleCase.expectedOutput}
+                          </pre>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-gray-400 block mb-1 text-[11px]">Expected Output:</span>
-                        <pre className="p-3 bg-[#121113] border border-white/10 rounded-xl text-[#A3E635] overflow-x-auto whitespace-pre-wrap font-bold">
-                          {activeSampleCase.expectedOutput}
-                        </pre>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="p-4 bg-[#121113] border border-white/10 rounded-xl text-xs text-gray-500">
+                        No visible test cases were returned for this problem.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -1513,7 +1526,7 @@ export const ProblemDetails: React.FC = () => {
                               <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
                                 <span className="text-gray-400 text-[10px] block">LANGUAGE</span>
                                 <span className="text-[#A3E635] font-bold text-sm truncate block">
-                                  {selectedLanguage.name}
+                                  {selectedLanguage?.name || '—'}
                                 </span>
                                 <span className="text-[10px] text-gray-500 block">Verified</span>
                               </div>

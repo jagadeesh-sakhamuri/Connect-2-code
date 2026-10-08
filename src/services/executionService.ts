@@ -12,23 +12,6 @@ export type { CodeExecutionPayload, ExecutionTestCaseResult };
 export type LanguageDropdownItem = Language;
 export type ExecutionResultData = ExecutionResult;
 
-// Default fallback mappings between Table ID and Reference Library ID
-const DEFAULT_ID_TO_REF: Record<number, number> = {
-  1: 5, // Java: Table ID 1 -> referenceId 5
-  2: 6, // Python: Table ID 2 -> referenceId 6
-  3: 7, // C++: Table ID 3 -> referenceId 7
-  4: 8, // JavaScript: Table ID 4 -> referenceId 8
-};
-
-const DEFAULT_NAME_TO_REF: Record<string, number> = {
-  java: 5,
-  python: 6,
-  'c++': 7,
-  cpp: 7,
-  javascript: 8,
-  js: 8,
-};
-
 let cachedLanguages: LanguageDropdownItem[] | null = null;
 let languageFetchPromise: Promise<LanguageDropdownItem[]> | null = null;
 
@@ -55,7 +38,10 @@ export const executionService = {
           const list: LanguageDropdownItem[] = data.map((item: any) => ({
             id: Number(item.id),
             name: item.languageName || item.name || 'Unknown',
-            referenceId: Number(item.referenceId || DEFAULT_ID_TO_REF[item.id] || item.id),
+            referenceId:
+              item.referenceId !== undefined && item.referenceId !== null
+                ? Number(item.referenceId)
+                : undefined,
             judge0LanguageId: item.judge0LanguageId ? Number(item.judge0LanguageId) : undefined,
             version: item.version,
           }));
@@ -73,7 +59,10 @@ export const executionService = {
           const list: LanguageDropdownItem[] = data.map((item: any) => ({
             id: Number(item.id),
             name: item.name || 'Unknown',
-            referenceId: DEFAULT_ID_TO_REF[Number(item.id)] || Number(item.id),
+            referenceId:
+              item.referenceId !== undefined && item.referenceId !== null
+                ? Number(item.referenceId)
+                : undefined,
           }));
           cachedLanguages = list;
           return list;
@@ -82,14 +71,7 @@ export const executionService = {
         console.warn('Language dropdown fetch fallback to defaults:', err);
       }
 
-      const defaultList: LanguageDropdownItem[] = [
-        { id: 1, name: 'Java', referenceId: 5, judge0LanguageId: 62, version: 'Java 17' },
-        { id: 2, name: 'Python', referenceId: 6, judge0LanguageId: 71, version: 'Python 3' },
-        { id: 3, name: 'C++', referenceId: 7, judge0LanguageId: 54, version: 'C++ 17' },
-        { id: 4, name: 'JavaScript', referenceId: 8, judge0LanguageId: 63, version: 'JavaScript' },
-      ];
-      cachedLanguages = defaultList;
-      return defaultList;
+      throw new Error('Supported languages could not be loaded from the backend');
     })().finally(() => {
       languageFetchPromise = null;
     });
@@ -128,15 +110,11 @@ export const executionService = {
       }
     }
 
-    // Fallback to static mapping
-    if (DEFAULT_ID_TO_REF[numericId]) {
-      return DEFAULT_ID_TO_REF[numericId];
-    }
-    if (languageName && DEFAULT_NAME_TO_REF[languageName.toLowerCase()]) {
-      return DEFAULT_NAME_TO_REF[languageName.toLowerCase()];
-    }
-
-    return numericId;
+    throw new Error(
+      languageName
+        ? `No backend reference mapping found for language: ${languageName}`
+        : `No backend reference mapping found for language id: ${numericId}`
+    );
   },
 
   /**

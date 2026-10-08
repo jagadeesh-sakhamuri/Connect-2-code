@@ -35,13 +35,13 @@ export const mapProblemDto = (
     rawValue.category ||
     rawValue.topic ||
     context.fallbackTopic ||
-    'General';
+    '';
   const difficulty =
     rawValue.difficultyName ||
     rawValue.difficultyRefName ||
     rawValue.difficulty ||
     rawValue.level ||
-    'Medium';
+    '';
 
   return {
     id: String(rawId),
@@ -58,10 +58,14 @@ export const mapProblemDto = (
     topic: String(topic),
     topicId: rawValue.topicId !== undefined ? Number(rawValue.topicId) : undefined,
     companies: readCompanies(rawValue.companies, context.fallbackCompany),
-    acceptanceRate: String(rawValue.acceptanceRate || '75%'),
+    acceptanceRate:
+      rawValue.acceptanceRate !== undefined && rawValue.acceptanceRate !== null
+        ? String(rawValue.acceptanceRate)
+        : '—',
     isSolved: !!rawValue.isSolved,
     isBookmarked: !!rawValue.isBookmarked,
-    isOwnProblem: rawValue.isOwnProblem !== undefined ? !!rawValue.isOwnProblem : true,
+    isOwnProblem:
+      rawValue.isOwnProblem !== undefined ? !!rawValue.isOwnProblem : undefined,
     leetCodeUrl: rawValue.leetCodeUrl ? String(rawValue.leetCodeUrl) : undefined,
     gfgUrl: rawValue.gfgUrl ? String(rawValue.gfgUrl) : undefined,
     hackerRankUrl: rawValue.hackerRankUrl ? String(rawValue.hackerRankUrl) : undefined,

@@ -9,14 +9,6 @@ import { openAuthModal } from '../../auth/redux/authSlice';
 import { tokenStorage } from '../../../core/security/tokenStorage';
 import { toast } from 'react-hot-toast';
 
-const fallbackLogos: Record<string, string> = {
-  accenture: 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg',
-  infosys: 'https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg',
-  'tcs-nqt': 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  tcs: 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  adobe: 'https://gurucodes-data.pages.dev/img/companies/adobe.png',
-};
-
 export const CompanyDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
@@ -94,14 +86,9 @@ export const CompanyDetails: React.FC = () => {
     company.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') ||
     (company.id ? String(company.id) : '') ||
     slug ||
-    'tcs';
+    '';
 
-  const logoUrl =
-    company.logo ||
-    fallbackLogos[companySlug] ||
-    fallbackLogos[company.name?.toLowerCase() || ''] ||
-    fallbackLogos[String(company.id)] ||
-    `https://gurucodes-data.pages.dev/img/companies/${companySlug}.png`;
+  const logoUrl = company.logo || company.logoUrl || '';
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full font-sans text-gray-200 py-6 px-4 sm:px-6 lg:px-8">
@@ -124,20 +111,20 @@ export const CompanyDetails: React.FC = () => {
         <div className="absolute top-0 right-0 w-80 h-80 bg-[#A3E635]/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="flex items-center gap-5 relative z-10">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white p-3 flex items-center justify-center border border-white/20 shadow-md shrink-0 overflow-hidden">
-            <img
-              src={logoUrl}
-              alt={company.name}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (fallbackLogos[companySlug] && target.src !== fallbackLogos[companySlug]) {
-                  target.src = fallbackLogos[companySlug];
-                } else {
-                  target.src = `https://logo.clearbit.com/${companySlug.replace('-nqt', '')}.com`;
-                }
-              }}
-            />
+          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white p-3 flex items-center justify-center border border-white/20 shadow-md shrink-0 overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center text-gray-600">
+              <i className="fa-solid fa-building text-3xl"></i>
+            </div>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={company.name}
+                className="absolute inset-0 w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.remove();
+                }}
+              />
+            )}
           </div>
 
           <div>
@@ -145,9 +132,9 @@ export const CompanyDetails: React.FC = () => {
               {company.name} <span className="text-[#A3E635]">Placement Guide</span>
             </h1>
             <p className="text-xs sm:text-sm text-gray-400 font-sans flex flex-wrap items-center gap-2">
-              <span>{company.industry || 'Information Technology'}</span>
+              <span>{company.industry || '—'}</span>
               <span>•</span>
-              <span>HQ: {company.headquarters || 'Global'}</span>
+              <span>HQ: {company.headquarters || '—'}</span>
             </p>
           </div>
         </div>

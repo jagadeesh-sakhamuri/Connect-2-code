@@ -15,46 +15,6 @@ import { fetchCompanies } from '../../companies/redux/companySlice';
 import { useGoogleOAuthHandler } from '../../auth/hooks/useGoogleOAuthHandler';
 import { toast } from 'react-hot-toast';
 
-const DEFAULT_TOPICS: ReferenceItem[] = [
-  { id: 9, refGroupCode: 'TOPIC', refCode: 'ARRAY', refName: 'Arrays', isActive: true },
-  { id: 10, refGroupCode: 'TOPIC', refCode: 'STRING', refName: 'Strings', isActive: true },
-  { id: 11, refGroupCode: 'TOPIC', refCode: 'LINKEDLIST', refName: 'Linked List', isActive: true },
-  { id: 12, refGroupCode: 'TOPIC', refCode: 'STACK', refName: 'Stack', isActive: true },
-  { id: 13, refGroupCode: 'TOPIC', refCode: 'QUEUE', refName: 'Queue', isActive: true },
-  { id: 14, refGroupCode: 'TOPIC', refCode: 'TREE', refName: 'Tree', isActive: true },
-  { id: 15, refGroupCode: 'TOPIC', refCode: 'GRAPH', refName: 'Graph', isActive: true },
-  { id: 16, refGroupCode: 'TOPIC', refCode: 'DYNAMICPROGRAMMING', refName: 'Dynamic Programming', isActive: true },
-  { id: 17, refGroupCode: 'TOPIC', refCode: 'HASHING', refName: 'Hashing', isActive: true },
-  { id: 18, refGroupCode: 'TOPIC', refCode: 'SORTING', refName: 'Sorting', isActive: true },
-  { id: 19, refGroupCode: 'TOPIC', refCode: 'SEARCHING', refName: 'Searching', isActive: true },
-];
-
-const DEFAULT_COMPANIES = [
-  { id: 1, name: 'TCS' },
-  { id: 2, name: 'Infosys' },
-  { id: 3, name: 'Wipro' },
-  { id: 4, name: 'Accenture' },
-  { id: 5, name: 'Cognizant' },
-  { id: 6, name: 'Capgemini' },
-  { id: 7, name: 'Tech Mahindra' },
-  { id: 8, name: 'HCLTech' },
-  { id: 9, name: 'IBM' },
-  { id: 10, name: 'Microsoft' },
-  { id: 11, name: 'Amazon' },
-  { id: 12, name: 'Google' },
-  { id: 13, name: 'Meta' },
-  { id: 14, name: 'Oracle' },
-  { id: 15, name: 'Deloitte' },
-  { id: 16, name: 'EY' },
-  { id: 17, name: 'KPMG' },
-  { id: 18, name: 'PwC' },
-  { id: 19, name: 'Zoho' },
-  { id: 20, name: 'Freshworks' },
-  { id: 21, name: 'ServiceNow' },
-  { id: 22, name: 'Salesforce' },
-  { id: 23, name: 'Adobe' },
-];
-
 export const PracticePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { problems, loading, pagination } = useAppSelector((state) => state.problems);
@@ -76,20 +36,9 @@ export const PracticePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 20;
 
-  // Reference/company server state is owned by Redux. Static values remain only as
-  // temporary UI fallbacks until Phase 6 removes the legacy fallback datasets.
-  const difficulties: ReferenceItem[] =
-    referenceGroups.DIFF && referenceGroups.DIFF.length > 0
-      ? referenceGroups.DIFF
-      : [
-          { id: 1, refGroupCode: 'DIFF', refCode: 'DIFF_BASIC', refName: 'Basic', isActive: true },
-          { id: 2, refGroupCode: 'DIFF', refCode: 'DIFF_EASY', refName: 'Easy', isActive: true },
-          { id: 3, refGroupCode: 'DIFF', refCode: 'DIFF_MED', refName: 'Medium', isActive: true },
-          { id: 4, refGroupCode: 'DIFF', refCode: 'DIFF_HARD', refName: 'Hard', isActive: true },
-        ];
-  const topics: ReferenceItem[] =
-    referenceGroups.TOPIC && referenceGroups.TOPIC.length > 0 ? referenceGroups.TOPIC : DEFAULT_TOPICS;
-  const companies = serverCompanies.length > 0 ? serverCompanies : DEFAULT_COMPANIES;
+  const difficulties: ReferenceItem[] = referenceGroups.DIFF ?? [];
+  const topics: ReferenceItem[] = referenceGroups.TOPIC ?? [];
+  const companies = serverCompanies;
 
   // Debounce search input by 300ms
   useEffect(() => {
