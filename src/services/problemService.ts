@@ -1,4 +1,4 @@
-import { apiClient } from '../core/api/apiClient';
+import { apiClient, isRequestCanceled } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { ApiResponse } from '../core/types/api';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
@@ -302,7 +302,7 @@ function filterFallbackProblems(params: ProblemFilterParams = {}): ApiResponse<P
 }
 
 export const problemService = {
-  async getProblems(params: ProblemFilterParams = {}): Promise<ApiResponse<ProblemItem[]>> {
+  async getProblems(params: ProblemFilterParams = {}, signal?: AbortSignal): Promise<ApiResponse<ProblemItem[]>> {
     const pageNum = params.page ? Math.max(0, params.page - 1) : 0;
     const pageSize = params.limit || 20;
 
@@ -335,7 +335,7 @@ export const problemService = {
     };
 
     try {
-      const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload);
+      const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload, { signal });
       const rawData = res?.data || res;
       let list: any[] = [];
       let total = 0;
@@ -394,6 +394,9 @@ export const problemService = {
         };
       }
     } catch (err) {
+      if (isRequestCanceled(err)) {
+        throw err;
+      }
       console.warn('Backend questions API unavailable, loading curated practice dataset:', err);
     }
 
@@ -401,9 +404,9 @@ export const problemService = {
     return filterFallbackProblems(params);
   },
 
-  async getProblemById(id: string | number): Promise<ApiResponse<ProblemItem | null>> {
+  async getProblemById(id: string | number, signal?: AbortSignal): Promise<ApiResponse<ProblemItem | null>> {
     try {
-      const res: any = await apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(id));
+      const res: any = await apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(id), { signal });
       const data = res?.data || res;
       if (data && (data.id || data.title)) {
         return {
@@ -447,6 +450,9 @@ export const problemService = {
         };
       }
     } catch (err) {
+      if (isRequestCanceled(err)) {
+        throw err;
+      }
       console.warn('Backend question detail API unavailable, using fallback problem data:', err);
     }
 
