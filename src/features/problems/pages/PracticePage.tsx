@@ -138,7 +138,7 @@ export const PracticePage: React.FC = () => {
         type: 'PROBLEM',
         title: problem.title,
         difficulty: problem.difficulty,
-        category: problem.category || problem.topic || 'DSA',
+        category: problem.category || problem.topic || '',
       })
     );
     toast.success('Bookmark updated');
