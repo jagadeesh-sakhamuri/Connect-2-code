@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { authService, LoginPayload } from '../../../services/authService';
 import { tokenStorage } from '../../../core/security/tokenStorage';
+import type { AuthSessionData } from '../../../core/types/domain';
 
 export interface UserProfile {
   id?: number | string;
@@ -43,7 +44,7 @@ const initialState: AuthState = {
 
 export const silentRefreshSession = createAsyncThunk(
   'auth/silentRefresh',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue }): Promise<AuthSessionData | null> => {
     try {
       const refreshToken = tokenStorage.getRefreshToken();
       if (!refreshToken) return null;
@@ -57,7 +58,7 @@ export const silentRefreshSession = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   'auth/login',
-  async (payload: LoginPayload, { rejectWithValue }) => {
+  async (payload: LoginPayload, { rejectWithValue }): Promise<AuthSessionData> => {
     try {
       const res = await authService.login(payload);
       if (res.statusCode === 200 && res.data) {
@@ -99,7 +100,7 @@ export const verifyPasswordResetOtpThunk = createAsyncThunk(
 
 export const loginWithGoogleRefreshToken = createAsyncThunk(
   'auth/loginWithGoogleRefreshToken',
-  async (refreshToken: string, { rejectWithValue }) => {
+  async (refreshToken: string, { rejectWithValue }): Promise<AuthSessionData> => {
     try {
       const response = await authService.exchangeRefreshToken(refreshToken);
       return response.data;
