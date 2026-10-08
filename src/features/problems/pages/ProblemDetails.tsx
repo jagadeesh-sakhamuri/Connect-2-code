@@ -285,21 +285,9 @@ export const ProblemDetails: React.FC = () => {
   const { selectedProblem: problem, loading: loadingProblem } = useAppSelector((state) => state.problems);
   const { languages: serverLanguages, loading: loadingLanguages } = useAppSelector((state) => state.languages);
 
-  const languages: LanguageDropdownItem[] =
-    serverLanguages.length > 0
-      ? serverLanguages
-      : [
-          { id: 1, name: 'Java', referenceId: 5 },
-          { id: 2, name: 'Python', referenceId: 6 },
-          { id: 3, name: 'C++', referenceId: 7 },
-          { id: 4, name: 'JavaScript', referenceId: 8 },
-        ];
+  const languages = serverLanguages;
 
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem>({
-    id: 1,
-    name: 'Java',
-    referenceId: 5,
-  });
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageDropdownItem | null>(null);
 
   // Editor State
   const [codeByLang, setCodeByLang] = useState<Record<number, string>>({});
@@ -333,20 +321,21 @@ export const ProblemDetails: React.FC = () => {
 
   // Map language name to Monaco language
   const monacoLang = useMemo(() => {
-    const name = selectedLanguage.name.toLowerCase();
+    const name = selectedLanguage?.name.toLowerCase() || '';
     if (name.includes('python')) return 'python';
     if (name.includes('c++') || name.includes('cpp')) return 'cpp';
     if (name.includes('javascript') || name.includes('js')) return 'javascript';
-    return 'java';
-  }, [selectedLanguage.name]);
+    return selectedLanguage ? 'java' : 'plaintext';
+  }, [selectedLanguage]);
 
   // Current active code in editor
   const currentCode = useMemo(() => {
+    if (!selectedLanguage) return '';
     if (codeByLang[selectedLanguage.id] !== undefined) {
       return codeByLang[selectedLanguage.id];
     }
     return DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
-  }, [codeByLang, selectedLanguage.id, monacoLang]);
+  }, [codeByLang, selectedLanguage, monacoLang]);
 
   // Load shared server state once; Redux owns both resources.
   useEffect(() => {
@@ -385,6 +374,7 @@ export const ProblemDetails: React.FC = () => {
   // Handle Editor Code Change
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
+      if (!selectedLanguage) return;
       const newCode = value || '';
       setCodeByLang((prev) => ({
         ...prev,
@@ -422,6 +412,7 @@ export const ProblemDetails: React.FC = () => {
 
   // Reset Code
   const handleResetCode = () => {
+    if (!selectedLanguage) return;
     const template = DEFAULT_STARTER_CODE[monacoLang] || DEFAULT_STARTER_CODE.java;
     setCodeByLang((prev) => ({
       ...prev,
@@ -466,7 +457,12 @@ export const ProblemDetails: React.FC = () => {
 
   // RUN CODE (Visible Sample Test Cases only)
   const handleRunCode = useCallback(async () => {
-    if (isExecuting) return;
+    if (isExecuting || !selectedLanguage) {
+      if (!selectedLanguage) {
+        toast.error('No supported execution language is available');
+      }
+      return;
+    }
 
     setIsExecuting(true);
     setExecutionType('run');
@@ -508,7 +504,12 @@ export const ProblemDetails: React.FC = () => {
 
   // SUBMIT CODE (Evaluation across all test cases - TEST CASES ARE HIDDEN)
   const handleSubmitCode = useCallback(async () => {
-    if (isExecuting) return;
+    if (isExecuting || !selectedLanguage) {
+      if (!selectedLanguage) {
+        toast.error('No supported execution language is available');
+      }
+      return;
+    }
 
     setIsExecuting(true);
     setExecutionType('submit');
@@ -1151,16 +1152,23 @@ export const ProblemDetails: React.FC = () => {
               <div className="flex items-center gap-2">
                 <select
                   id="languageSelect"
-                  value={selectedLanguage.id}
+,
+                  value={selectedLanguage?.id ?? ''}
                   onChange={handleLanguageChange}
-                  disabled={loadingLanguages || isExecuting}
+                  disabled={loadingLanguages || isExecuting || languages.length === 0}
                   className="bg-[#222428] border border-white/15 text-white font-mono text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#A3E635]/60 cursor-pointer shadow-xs"
                 >
-                  {languages.map((l) => (
+                  {languages.length === 0 ? (
+                    <option value="" disabled>
+                      {loadingLanguages ? 'Loading languages…' : 'No languages available'}
+                    </option>
+                  ) : (
+                    languages.map((l) => (
                     <option key={l.id} value={l.id} className="bg-[#222428] text-white">
                       {l.name}
                     </option>
-                  ))}
+                    ))
+                  )}
                 </select>
                 <span className="text-[11px] font-mono text-gray-500 hidden sm:inline">
                   {monacoLang.toUpperCase()}
@@ -1513,7 +1521,7 @@ export const ProblemDetails: React.FC = () => {
                               <div className="p-3 bg-[#18191c] border border-white/10 rounded-xl">
                                 <span className="text-gray-400 text-[10px] block">LANGUAGE</span>
                                 <span className="text-[#A3E635] font-bold text-sm truncate block">
-                                  {selectedLanguage.name}
+                                  {selectedLanguage?.name || '—'}
                                 </span>
                                 <span className="text-[10px] text-gray-500 block">Verified</span>
                               </div>
