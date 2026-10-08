@@ -645,29 +645,6 @@ export const ProblemDetails: React.FC = () => {
             <span>Problems</span>
           </Link>
 
-          {/* Prev / Next Question Navigation */}
-          <div className="flex items-center bg-[#222428] border border-white/10 rounded-lg overflow-hidden">
-            <button
-              onClick={() => numericQuestionId > 1 && navigate(`/problems/${numericQuestionId - 1}`)}
-              disabled={numericQuestionId <= 1}
-              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-              title="Previous Problem"
-            >
-              <i className="fa-solid fa-angle-left text-xs"></i>
-            </button>
-            <span className="text-[11px] font-mono text-gray-500 px-1 border-x border-white/5">
-              #{numericQuestionId}
-            </span>
-            <button
-              onClick={() => numericQuestionId < 22 && navigate(`/problems/${numericQuestionId + 1}`)}
-              disabled={numericQuestionId >= 22}
-              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-              title="Next Problem"
-            >
-              <i className="fa-solid fa-angle-right text-xs"></i>
-            </button>
-          </div>
-
           <h1 className="text-sm sm:text-base font-heading font-bold text-white tracking-tight truncate max-w-xs sm:max-w-md">
             {problem?.title || 'Problem'}
           </h1>
