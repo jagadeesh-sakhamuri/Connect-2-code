@@ -6,7 +6,6 @@ import { tokenStorage } from '../core/security/tokenStorage';
 import { NeetCodeNavbar } from '../shared/components/ui/NeetCodeNavbar';
 import { Footer } from '../shared/components/ui/Footer';
 import { Login } from '../features/auth/pages/Login';
-import { ScrollRestoration } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 export const MainLayout: React.FC = () => {
@@ -39,9 +38,7 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <>
-      <ScrollRestoration />
-      <div className="min-h-screen bg-[var(--background)] text-[#f4f4f4] flex flex-col font-sans relative m-0 p-0 overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--background)] text-[#f4f4f4] flex flex-col font-sans relative m-0 p-0 overflow-x-hidden">
       {/* Top Navbar */}
       <NeetCodeNavbar user={user} onLogout={handleLogout} />
 
@@ -57,7 +54,6 @@ export const MainLayout: React.FC = () => {
       {showModal && (
         <Login onCloseModal={handleCloseModal} />
       )}
-      </div>
-    </>
+    </div>
   );
 };
