@@ -104,7 +104,7 @@ export const CompanyList: React.FC = () => {
                 className="h-full p-2 border border-white/10 hover:border-white/30 rounded-lg bg-[#121316] hover:bg-[#1a1c22] transition-all group shadow-md"
               >
                 <div className="flex h-full flex-col w-full items-center truncate">
-                  <div className="rounded-lg h-32 bg-white aspect-square w-full shadow-sm flex items-center justify-center p-6">
+                  <div className="relative rounded-lg h-32 bg-white aspect-square w-full shadow-sm flex items-center justify-center p-6">
                     <div className="w-full h-full flex items-center justify-center text-gray-600">
                       <i className="fa-solid fa-building text-4xl"></i>
                     </div>
