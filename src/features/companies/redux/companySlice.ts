@@ -49,13 +49,18 @@ const normalizeProblemLookup = (
   let id: string | number | undefined;
   let name: string | undefined;
 
-  if (typeof payload === 'object' && payload !== null) {
+  if (typeof payload === 'number') {
+    id = payload;
+  } else if (typeof payload === 'string') {
+    const value = payload.trim();
+    if (value !== '' && !Number.isNaN(Number(value))) {
+      id = value;
+    } else {
+      name = value;
+    }
+  } else if (typeof payload === 'object' && payload !== null) {
     id = payload.id;
     name = payload.name;
-  } else if (typeof payload === 'number' || (!isNaN(Number(payload)) && String(payload).trim() !== '')) {
-    id = payload;
-  } else {
-    name = String(payload);
   }
 
   const normalizedId = id !== undefined ? String(id).trim().toLowerCase() : '';
@@ -69,7 +74,7 @@ const normalizeProblemLookup = (
 
 export const fetchCompanies = createAsyncThunk(
   'companies/fetchList',
-  async (search: string | undefined, { rejectWithValue, getState, signal }) => {
+  async (search: string | undefined = undefined, { rejectWithValue, getState, signal }) => {
     const key = getCompanyListKey(search);
     const state = getState() as { companies: CompanyState };
 
