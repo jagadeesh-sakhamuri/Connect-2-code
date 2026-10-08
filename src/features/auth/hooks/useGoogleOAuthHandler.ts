@@ -4,7 +4,6 @@ import { useAppDispatch } from '../../../app/hooks';
 import { loginWithGoogleRefreshToken, closeAuthModal } from '../redux/authSlice';
 import { toast } from 'react-hot-toast';
 
-const GOOGLE_AUTH_URL = 'https://codingplatform-tdt0.onrender.com/oauth2/authorization/google';
 const MESSAGE_TYPE = 'C2C_GOOGLE_OAUTH_SUCCESS';
 
 // Module-level guard to prevent concurrent duplicate exchanges across hook instances
