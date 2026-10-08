@@ -104,7 +104,7 @@ export const PracticePage: React.FC = () => {
   useEffect(() => {
     dispatch(fetchReferenceGroup('DIFF'));
     dispatch(fetchReferenceGroup('TOPIC'));
-    dispatch(fetchCompanies());
+    dispatch(fetchCompanies(undefined));
   }, [dispatch]);
 
   // Fetch the current page/filter combination once. Redux deduplicates repeated keys and
