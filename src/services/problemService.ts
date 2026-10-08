@@ -2,44 +2,10 @@ import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { ApiResponse } from '../core/types/api';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
+import type { Problem, ProblemFilter } from '../core/types/domain';
 
-export interface ProblemItem {
-  id: string;
-  title: string;
-  slug: string;
-  difficulty: string;
-  difficultyId?: number;
-  category: string;
-  topic: string;
-  topicId?: number;
-  companies: string[];
-  acceptanceRate: string;
-  isSolved: boolean;
-  isBookmarked: boolean;
-  isOwnProblem?: boolean;
-  leetCodeUrl?: string;
-  gfgUrl?: string;
-  hackerRankUrl?: string;
-  description?: string;
-  examples?: Array<{
-    input: string;
-    output: string;
-    explanation?: string;
-  }>;
-}
-
-export interface ProblemFilterParams {
-  category?: string;
-  topic?: number[] | string | number | null;
-  difficulty?: number[] | string | number | null;
-  level?: number[] | string | number | null;
-  search?: string | null;
-  searchText?: string | null;
-  company?: number[] | string | number | null;
-  companies?: number[] | string[] | null;
-  page?: number;
-  limit?: number;
-}
+export type ProblemItem = Problem;
+export type ProblemFilterParams = ProblemFilter;
 
 export const DIFF_NAME_TO_ID: Record<string, number> = {
   basic: 1,
