@@ -1,9 +1,13 @@
 /**
- * Token Storage Abstraction Layer using JavaScript Cookies and localStorage dual-persistence
- * Centralized token operations for accessToken, refreshToken, and User Profile.
- * 
- * Note: Uses document.cookie with Path=/ and SameSite=Lax, and mirrors to localStorage
- * to ensure persistent authentication across browser refreshes and tab navigations.
+ * Browser-side authentication storage.
+ *
+ * Tokens are kept in JavaScript-readable cookies because the current backend
+ * returns them to the SPA. They are deliberately NOT mirrored into localStorage:
+ * this reduces persistent token exposure to storage enumeration and keeps one
+ * canonical browser token location.
+ *
+ * The backend should eventually move refresh-token handling to an HttpOnly,
+ * Secure cookie; the frontend cannot add HttpOnly to a cookie created by JS.
  */
 
 const ACCESS_TOKEN_KEY = 'accessToken';
@@ -12,10 +16,17 @@ const USER_PROFILE_KEY = 'user_profile';
 
 const LOCAL_STORAGE_PREFIX = 'c2c_';
 
+function cookieSecurityAttributes(): string {
+  return typeof window !== 'undefined' && window.location.protocol === 'https:'
+    ? '; Secure'
+    : '';
+}
+
 function setCookie(name: string, value: string, maxAgeSeconds: number): void {
   try {
     const encodedValue = encodeURIComponent(value);
-    document.cookie = `${name}=${encodedValue}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    document.cookie =
+      `${name}=${encodedValue}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax${cookieSecurityAttributes()}`;
   } catch {}
 }
 
@@ -23,8 +34,8 @@ function getCookie(name: string): string | null {
   try {
     const nameEQ = name + '=';
     const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i].trim();
+    for (let i = 0; i < ca.length; i += 1) {
+      const c = ca[i].trim();
       if (c.indexOf(nameEQ) === 0) {
         return decodeURIComponent(c.substring(nameEQ.length));
       }
@@ -35,7 +46,8 @@ function getCookie(name: string): string | null {
 
 function removeCookie(name: string): void {
   try {
-    document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+    document.cookie =
+      `${name}=; path=/; max-age=0; SameSite=Lax${cookieSecurityAttributes()}`;
   } catch {}
 }
 
@@ -60,37 +72,31 @@ function removeLocalItem(key: string): void {
 }
 
 export const tokenStorage = {
-  // Access Token Operations (Short-lived cookie 15 min, mirrored in localStorage)
   getAccessToken(): string | null {
-    return getCookie(ACCESS_TOKEN_KEY) || getLocalItem(ACCESS_TOKEN_KEY);
+    return getCookie(ACCESS_TOKEN_KEY);
   },
 
   setAccessToken(token: string, maxAgeSeconds: number = 900): void {
     setCookie(ACCESS_TOKEN_KEY, token, maxAgeSeconds);
-    setLocalItem(ACCESS_TOKEN_KEY, token);
   },
 
   removeAccessToken(): void {
     removeCookie(ACCESS_TOKEN_KEY);
-    removeLocalItem(ACCESS_TOKEN_KEY);
   },
 
-  // Refresh Token Operations (Long-lived, 7 days = 604800 seconds)
   getRefreshToken(): string | null {
-    return getCookie(REFRESH_TOKEN_KEY) || getLocalItem(REFRESH_TOKEN_KEY);
+    return getCookie(REFRESH_TOKEN_KEY);
   },
 
   setRefreshToken(token: string, maxAgeSeconds: number = 604800): void {
     setCookie(REFRESH_TOKEN_KEY, token, maxAgeSeconds);
-    setLocalItem(REFRESH_TOKEN_KEY, token);
   },
 
   removeRefreshToken(): void {
     removeCookie(REFRESH_TOKEN_KEY);
-    removeLocalItem(REFRESH_TOKEN_KEY);
   },
 
-  // User Profile Operations (Persisted in cookie + localStorage for session restoration)
+  // User profile is UI/session metadata, not an authentication credential.
   getUser(): any | null {
     const raw = getCookie(USER_PROFILE_KEY) || getLocalItem(USER_PROFILE_KEY);
     if (raw) {
@@ -112,7 +118,6 @@ export const tokenStorage = {
     removeLocalItem(USER_PROFILE_KEY);
   },
 
-  // Clear all authentication tokens and user cookies + storage
   clearTokens(): void {
     this.removeAccessToken();
     this.removeRefreshToken();
