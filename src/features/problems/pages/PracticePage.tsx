@@ -373,7 +373,7 @@ export const PracticePage: React.FC = () => {
                               : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                           }`}
                         >
-                          {problem.difficulty || 'Medium'}
+                          {problem.difficulty || '—'}
                         </span>
 
                         {/* Category / Topic Tag */}
