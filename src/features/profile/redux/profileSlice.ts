@@ -1,8 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { profileService, UserProfileData } from '../../../services/profileService';
+import { profileService } from '../../../services/profileService';
+import type { UserProfile } from '../../../core/types/domain';
 
 export interface ProfileState {
-  profile: UserProfileData | null;
+  profile: UserProfile | null;
   loading: boolean;
   error: string | null;
 }
@@ -20,7 +21,7 @@ export const fetchUserProfile = createAsyncThunk('profile/fetch', async () => {
 
 export const updateUserProfile = createAsyncThunk(
   'profile/update',
-  async (payload: Partial<UserProfileData>) => {
+  async (payload: Partial<UserProfile>) => {
     const res = await profileService.updateProfile(payload);
     return res.data;
   }
