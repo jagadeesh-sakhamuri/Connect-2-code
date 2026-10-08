@@ -102,7 +102,7 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
         {!isEditing && (
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Quick Preset Selection
+              Existing Backend Companies
             </label>
             <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto p-2 rounded-xl bg-[#121317] border border-white/5">
               {availableCompanies.map((company) => (
