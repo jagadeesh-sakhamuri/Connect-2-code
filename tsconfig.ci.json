@@ -13,7 +13,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
     "noEmit": true
   },

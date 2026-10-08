@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './shared/context/ThemeContext';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { hydrateProgress } from './features/progress/redux/progressSlice';
+import { AppErrorBoundary } from './shared/components/errors/AppErrorBoundary';
 
 const ProgressHydrator: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -53,7 +54,9 @@ export const App: React.FC = () => {
           },
         }}
       />
-      <RouterProvider router={router} />
+      <AppErrorBoundary>
+        <RouterProvider router={router} />
+      </AppErrorBoundary>
       </ThemeProvider>
     </Provider>
   );

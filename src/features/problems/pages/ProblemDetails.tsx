@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
@@ -263,7 +263,6 @@ for (int i = 0; i < n; i++) {
 
 export const ProblemDetails: React.FC = () => {
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
-  const navigate = useNavigate();
   const questionIdParam = id || slug || '1';
   const numericQuestionId = Number(questionIdParam) || 1;
 
@@ -445,7 +444,7 @@ export const ProblemDetails: React.FC = () => {
           type: 'PROBLEM',
           title: problem.title,
           difficulty: problem.difficultyRefName || problem.difficulty || 'Medium',
-          category: problem.topicRefName || problem.topic || 'DSA',
+          category: problem.topicRefName || problem.topic || '',
         })
       );
       toast.success(isBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
@@ -644,29 +643,6 @@ export const ProblemDetails: React.FC = () => {
             <i className="fa-solid fa-chevron-left text-[11px] text-[#A3E635]"></i>
             <span>Problems</span>
           </Link>
-
-          {/* Prev / Next Question Navigation */}
-          <div className="flex items-center bg-[#222428] border border-white/10 rounded-lg overflow-hidden">
-            <button
-              onClick={() => numericQuestionId > 1 && navigate(`/problems/${numericQuestionId - 1}`)}
-              disabled={numericQuestionId <= 1}
-              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-              title="Previous Problem"
-            >
-              <i className="fa-solid fa-angle-left text-xs"></i>
-            </button>
-            <span className="text-[11px] font-mono text-gray-500 px-1 border-x border-white/5">
-              #{numericQuestionId}
-            </span>
-            <button
-              onClick={() => numericQuestionId < 22 && navigate(`/problems/${numericQuestionId + 1}`)}
-              disabled={numericQuestionId >= 22}
-              className="px-2 py-1.5 text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-colors cursor-pointer"
-              title="Next Problem"
-            >
-              <i className="fa-solid fa-angle-right text-xs"></i>
-            </button>
-          </div>
 
           <h1 className="text-sm sm:text-base font-heading font-bold text-white tracking-tight truncate max-w-xs sm:max-w-md">
             {problem?.title || 'Problem'}
@@ -1537,15 +1513,7 @@ export const ProblemDetails: React.FC = () => {
                               <span className="text-xs text-gray-400 font-sans">
                                 Submitted just now
                               </span>
-                              {numericQuestionId < 22 && (
-                                <button
-                                  onClick={() => navigate(`/problems/${numericQuestionId + 1}`)}
-                                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] hover:bg-[#8ece28] text-black text-xs font-bold font-sans rounded-xl transition-all shadow-md cursor-pointer"
-                                >
-                                  <span>Next Problem</span>
-                                  <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                                </button>
-                              )}
+
                             </div>
                           </div>
                         ) : (

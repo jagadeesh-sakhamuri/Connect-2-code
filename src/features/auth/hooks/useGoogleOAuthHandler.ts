@@ -10,6 +10,7 @@ const MESSAGE_TYPE = 'C2C_GOOGLE_OAUTH_SUCCESS';
 // Module-level guard to prevent concurrent duplicate exchanges across hook instances
 let isProcessingExchange = false;
 let processedToken: string | null = null;
+let oauthPopupWindow: Window | null = null;
 
 export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void }) {
   const dispatch = useAppDispatch();
@@ -28,6 +29,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
       try {
         const result = await dispatch(loginWithGoogleRefreshToken(refreshToken));
         if (loginWithGoogleRefreshToken.fulfilled.match(result)) {
+          oauthPopupWindow = null;
           const userObj = result.payload;
           const userName = userObj?.firstName || userObj?.fullName || 'User';
           toast.success(`Welcome ${userName}! Signed in with Google.`);
@@ -85,6 +87,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
       // If running inside a popup window, transmit to opener and close self
       if (window.opener && window.opener !== window) {
         try {
+          oauthPopupWindow = window;
           window.opener.postMessage({ type: MESSAGE_TYPE, refreshToken: tokenVal }, window.location.origin);
           setTimeout(() => {
             try {
@@ -93,6 +96,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
           }, 150);
           return;
         } catch (e) {
+          oauthPopupWindow = null;
           console.warn('Failed to message parent window from popup:', e);
         }
       }
@@ -106,6 +110,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
+      if (oauthPopupWindow && event.source !== oauthPopupWindow) return;
       if (event.data?.type === MESSAGE_TYPE && event.data?.refreshToken) {
         completeOAuthLogin(event.data.refreshToken);
       }
@@ -134,6 +139,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
     if (!popup || popup.closed || typeof popup.closed === 'undefined') {
       window.location.href = GOOGLE_AUTH_URL;
     } else {
+      oauthPopupWindow = popup;
       popup.focus?.();
     }
   }, []);

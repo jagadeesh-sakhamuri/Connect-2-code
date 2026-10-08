@@ -845,3 +845,16 @@ html.light input.bg-\[\#090A0C\]\/80 {
   color: #0f172a !important;
 }
 
+
+
+/* Respect user motion preferences across the SPA. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

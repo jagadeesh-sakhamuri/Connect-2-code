@@ -35,7 +35,7 @@ export const CompanyDetails: React.FC = () => {
   useEffect(() => {
     if (companyId === undefined && !companyName) return;
 
-    const request = dispatch(fetchCompanyProblems({ id: companyId, name: companyName }));
+    const request = dispatch(fetchCompanyProblems({ id: companyId ?? undefined, name: companyName }));
     return () => {
       request.abort();
     };
@@ -65,7 +65,7 @@ export const CompanyDetails: React.FC = () => {
         type: 'PROBLEM',
         title: q.title,
         difficulty: q.difficulty,
-        category: q.topic || company?.name || 'DSA',
+        category: q.topic || company?.name || '',
       })
     );
     toast.success('Bookmark updated');
@@ -289,7 +289,7 @@ export const CompanyDetails: React.FC = () => {
                           : 'text-rose-400 bg-rose-500/10 border-rose-500/20'
                       }`}
                     >
-                      {q.difficulty || 'Easy'}
+                      {q.difficulty || '—'}
                     </span>
 
                     {/* Solve Problem Button */}

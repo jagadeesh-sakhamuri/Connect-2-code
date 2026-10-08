@@ -102,7 +102,7 @@ export const QuestionDetailsModal: React.FC<QuestionDetailsModalProps> = ({
               {question.isActive !== false ? 'Active' : 'Inactive'}
             </AdminBadge>
             <AdminBadge variant={getDifficultyVariant(question.difficultyRefName)}>
-              {question.difficultyRefName || 'Standard'}
+              {question.difficultyRefName || '—'}
             </AdminBadge>
             {question.topicRefName && (
               <AdminBadge variant="primary">{question.topicRefName}</AdminBadge>
