@@ -2,7 +2,6 @@ import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import type { ApiResponse } from '../../core/types/api';
 import type { Company, Problem } from '../../core/types/domain';
-import type { Company } from '../../core/types/domain';
 
 export type CompanyItem = Company;
 
