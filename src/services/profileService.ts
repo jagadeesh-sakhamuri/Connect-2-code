@@ -1,22 +1,9 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
-import { ApiResponse } from '../core/types/api';
+import type { ApiResponse } from '../core/types/api';
+import type { UserProfile } from '../core/types/domain';
 
-export interface UserProfileData {
-  id?: string | number;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  email: string;
-  collegeName?: string;
-  graduationYear?: number | string;
-  phone?: string;
-  githubUrl?: string;
-  linkedinUrl?: string;
-  leetcodeUrl?: string;
-  bio?: string;
-  avatarUrl?: string;
-}
+export type UserProfileData = UserProfile;
 
 export const profileService = {
   async getProfile(): Promise<ApiResponse<UserProfileData>> {
