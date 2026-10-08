@@ -2,47 +2,12 @@ import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import { QuestionPayload, QuestionTestCase } from '../questionService';
 import { executionService } from '../executionService';
+import type { PageRequest, QuestionListRequest, QuestionListItem as DomainQuestionListItem, QuestionPage } from '../../core/types/domain';
 
-export interface PageRequestPayload {
-  pageNumber: number;
-  pageSize: number;
-  sortBy: string;
-  sortDirection: 'ASC' | 'DESC';
-}
-
-export interface QuestionListRequestPayload {
-  level: number[] | null;
-  companies: number[] | null;
-  topic: number[] | null;
-  searchText: string | null;
-  pageRequest: PageRequestPayload;
-}
-
-export interface QuestionListItem {
-  id: number;
-  title: string;
-  description: string;
-  difficultyId?: number;
-  difficultyName?: string;
-  topicId?: number;
-  topicName?: string;
-  isOwnProblem?: boolean;
-  isActive?: boolean;
-}
-
-export interface PaginatedQuestionResponse {
-  content: QuestionListItem[];
-  pageable?: any;
-  last: boolean;
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
-  sort?: any;
-  numberOfElements: number;
-  first: boolean;
-  empty: boolean;
-}
+export type PageRequestPayload = PageRequest;
+export type QuestionListRequestPayload = QuestionListRequest;
+export type QuestionListItem = DomainQuestionListItem;
+export type PaginatedQuestionResponse = QuestionPage;
 
 /**
  * Dedicated Admin Question Service Layer
