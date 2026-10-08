@@ -79,7 +79,7 @@ export const authService = {
   },
 
   // Logout: POST /api/v1/auth/logout
-  async logout(): Promise<ApiResponse> {
+  async logout(): Promise<ApiResponse<string>> {
     const refreshToken = tokenStorage.getRefreshToken();
     try {
       if (refreshToken) {
@@ -100,7 +100,7 @@ export const authService = {
   },
 
   // Refresh Token: POST /api/v1/auth/refresh
-  async refreshToken(): Promise<ApiResponse> {
+  async refreshToken(): Promise<ApiResponse<AuthResponseData>> {
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) {
       throw new Error('No refresh token available in cookie');
@@ -129,7 +129,7 @@ export const authService = {
   },
 
   // Exchange Google OAuth Refresh Token: POST /api/v1/auth/refresh
-  async exchangeRefreshToken(refreshToken: string): Promise<ApiResponse> {
+  async exchangeRefreshToken(refreshToken: string): Promise<ApiResponse<AuthResponseData>> {
     if (!refreshToken) {
       throw new Error('No refresh token provided');
     }
@@ -156,12 +156,12 @@ export const authService = {
   },
 
   // Generate Password Reset OTP: POST /api/v1/auth/generatePasswordResetOtp
-  async generatePasswordResetOtp(email: string): Promise<ApiResponse> {
+  async generatePasswordResetOtp(email: string): Promise<ApiResponse<unknown>> {
     return apiClient.post(API_ENDPOINTS.AUTH.GENERATE_PASSWORD_RESET_OTP, { email }, { timeout: 60000 });
   },
 
   // Verify OTP and Reset Password: POST /api/v1/auth/verifyPasswordResetOtp
-  async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<ApiResponse> {
+  async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<ApiResponse<unknown>> {
     return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
   },
 
