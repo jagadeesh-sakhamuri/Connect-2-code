@@ -8,9 +8,9 @@ export interface ApiResponse<T = unknown> {
   statusCode: number;
   message: string;
   data: T;
+  meta?: PaginationMeta;
   errors?: string[] | null;
   timestamp?: string | null;
-}
 
 export interface ApiErrorResponse {
   statusCode: number;
