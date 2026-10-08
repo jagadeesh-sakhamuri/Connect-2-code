@@ -116,3 +116,4 @@ export function useGoogleOAuthHandler() {
       window.removeEventListener('message', handleMessage);
     };
   }, [completeOAuthLogin]);
+}
