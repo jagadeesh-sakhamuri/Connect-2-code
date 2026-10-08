@@ -78,20 +78,15 @@ solve();
 export const DashboardCodeRunner: React.FC = () => {
   // Question options & selection
   const [questions, setQuestions] = useState<Array<{ id: number; title: string; difficulty?: string }>>([]);
-  const [selectedQuestionId, setSelectedQuestionId] = useState<number>(20);
-  const [manualQuestionId, setManualQuestionId] = useState<string>('20');
+  const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
+  const [manualQuestionId, setManualQuestionId] = useState<string>('');
 
   // Languages from GET /api/v1/language/dropdown
-  const [languages, setLanguages] = useState<LanguageDropdownItem[]>([
-    { id: 1, name: 'Java' },
-    { id: 2, name: 'Python' },
-    { id: 3, name: 'C++' },
-    { id: 4, name: 'JavaScript' },
-  ]);
-  const [selectedLanguageId, setSelectedLanguageId] = useState<number>(1);
+  const [languages, setLanguages] = useState<LanguageDropdownItem[]>([]);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(null);
 
   // Editor code
-  const [sourceCode, setSourceCode] = useState<string>(DEFAULT_STARTER_CODES.Java);
+  const [sourceCode, setSourceCode] = useState<string>('');
 
   // Execution states
   const [isRunning, setIsRunning] = useState<boolean>(false);
@@ -143,7 +138,7 @@ export const DashboardCodeRunner: React.FC = () => {
         }
       })
       .catch((err) => {
-        console.warn('Dashboard questions fetch fallback:', err);
+        console.warn('Dashboard questions fetch failed:', err);
       });
   }, []);
 
@@ -182,13 +177,15 @@ export const DashboardCodeRunner: React.FC = () => {
       ? 'python'
       : selectedLangObj?.name?.toLowerCase() === 'javascript'
       ? 'javascript'
-      : 'java';
+      : selectedLangObj?.name?.toLowerCase() === 'java'
+      ? 'java'
+      : 'plaintext';
 
   // 1. Admin TEST CODE (POST /api/v1/admin/testCode)
   // Executes visible sample test cases only
   const handleRunSampleCases = async () => {
     const qId = Number(manualQuestionId || selectedQuestionId);
-    if (!qId || isNaN(qId)) {
+    if (!qId || isNaN(qId) || selectedLanguageId === null || languages.length === 0) {
       toast.error('Please enter a valid Question ID');
       return;
     }
@@ -201,7 +198,7 @@ export const DashboardCodeRunner: React.FC = () => {
     try {
       const res = await adminQuestionService.adminTestCode({
         questionId: qId,
-        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
+        languageId: selectedLangObj?.referenceId ?? selectedLanguageId,
         sourceCode,
       });
 
@@ -309,7 +306,7 @@ export const DashboardCodeRunner: React.FC = () => {
               </label>
               {questions.length > 0 ? (
                 <select
-                  value={selectedQuestionId}
+                  value={selectedQuestionId ?? ''}
                   onChange={handleQuestionSelectChange}
                   className="w-full bg-[#121316] text-gray-200 border border-white/10 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#A3E635] cursor-pointer"
                 >
@@ -320,7 +317,7 @@ export const DashboardCodeRunner: React.FC = () => {
                   ))}
                 </select>
               ) : (
-                <span className="text-gray-500 text-xs">Loading questions...</span>
+                <span className="text-gray-500 text-xs">No questions available from the backend.</span>
               )}
             </div>
 
@@ -344,7 +341,7 @@ export const DashboardCodeRunner: React.FC = () => {
               Active Language (/api/v1/language/dropdown):
             </label>
             <select
-              value={selectedLanguageId}
+              value={selectedLanguageId ?? ''}
               onChange={handleLanguageChange}
               className="w-full bg-[#121316] text-gray-200 border border-white/10 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#A3E635] cursor-pointer"
             >
@@ -361,7 +358,7 @@ export const DashboardCodeRunner: React.FC = () => {
             {/* Run Code (Sample Cases) */}
             <button
               onClick={handleRunSampleCases}
-              disabled={isRunning || isSubmitting}
+              disabled={isRunning || isSubmitting || selectedQuestionId === null || selectedLanguageId === null}
               className="px-4 py-2 bg-[#181A20] hover:bg-[#22252D] text-gray-200 border border-white/15 hover:border-[#A3E635]/50 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
               title="Runs visible sample test cases only (POST /api/v1/admin/testCode)"
             >
@@ -376,7 +373,7 @@ export const DashboardCodeRunner: React.FC = () => {
             {/* Submit Code (All Test Cases) */}
             <button
               onClick={handleSubmitAllCases}
-              disabled={isRunning || isSubmitting}
+              disabled={isRunning || isSubmitting || selectedQuestionId === null || selectedLanguageId === null}
               className="px-4 py-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-[#A3E635]/20 disabled:opacity-50"
               title="Runs full suite including corner & hidden cases (POST /api/v1/admin/submitCode)"
             >
