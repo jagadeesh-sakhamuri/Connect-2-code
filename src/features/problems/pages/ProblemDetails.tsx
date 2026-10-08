@@ -242,29 +242,22 @@ for (int i = 0; i < n; i++) {
     };
   }
 
-  // General algorithmic fallback based on topic
+  // No verified editorial is available for unrecognized problems.
   return {
-    intuition: `Break down the problem into smaller invariant subproblems. For ${topic || 'algorithms'}, determine the optimal data structure that satisfies the runtime constraints.`,
+    intuition: 'Editorial content is not available for this problem.',
     bruteForce: {
-      title: 'Exhaustive Search / Simulation',
-      description: 'Explore all possible combinations or simulate step-by-step.',
-      timeComplexity: 'O(N²) or O(2^N)',
-      spaceComplexity: 'O(1)',
+      title: 'Editorial unavailable',
+      description: 'No verified brute-force approach has been provided for this problem.',
+      timeComplexity: '—',
+      spaceComplexity: '—',
     },
     optimal: {
-      title: 'Optimized Algorithmic Approach',
-      description:
-        'Leverage two pointers, hash mapping, binary search, or dynamic programming to avoid redundant computation.',
-      timeComplexity: 'O(N) or O(N log N)',
-      spaceComplexity: 'O(1) to O(N)',
-      pseudocode: `// Process input efficiently
-// Maintain state invariants
-// Handle boundary and null inputs early`,
+      title: 'Editorial unavailable',
+      description: 'No verified optimal approach has been provided for this problem.',
+      timeComplexity: '—',
+      spaceComplexity: '—',
     },
-    tips: [
-      'Analyze the constraints: N <= 10^5 indicates an O(N) or O(N log N) algorithm is required.',
-      'Check edge cases: empty input, single element, negative numbers, or duplicates.',
-    ],
+    tips: [],
   };
 }
 
