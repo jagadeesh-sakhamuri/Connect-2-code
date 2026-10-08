@@ -155,7 +155,7 @@ export const fetchProblems = createAsyncThunk(
           page: res.meta?.page ?? params?.page ?? 1,
           total,
           limit,
-          totalPages: res.meta?.totalPages ?? Math.ceil(total / limit) || 1,
+          totalPages: res.meta?.totalPages ?? (Math.ceil(total / limit) || 1),
         },
         fetchedAt: Date.now(),
       };
