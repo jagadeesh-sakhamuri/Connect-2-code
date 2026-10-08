@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../core/api/endpoints';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
 import type { ApiResponse } from '../core/types/api';
 import type { Company, Problem } from '../core/types/domain';
+import { mapProblemDto } from '../core/mappers/problemMapper';
 
 export type CompanyItem = Company;
 
@@ -363,28 +364,13 @@ export const companyService = {
 
         if (list.length > 0) {
           for (const item of list) {
-            const title = item.title || item.name || '';
-            const normTitle = title.toLowerCase().trim();
-            if (!seenTitles.has(normTitle)) {
-              seenTitles.add(normTitle);
-              problemsList.push({
-                id: String(item.id || item._id),
-                title,
-                slug: item.slug || String(item.id),
-                difficulty:
-                  item.difficultyName || item.difficultyRefName || item.difficulty || item.level || 'Easy',
-                topic: item.topicName || item.topicRefName || item.category || item.topic || nameStr || 'General',
-                category: item.topicName || item.topicRefName || item.category || nameStr || 'DSA',
-                companies: Array.isArray(item.companies)
-                  ? item.companies.map((c: any) => (typeof c === 'object' ? c.name || c.companyName || '' : String(c)))
-                  : nameStr
-                  ? [nameStr]
-                  : [],
-                isSolved: !!item.isSolved,
-                isBookmarked: !!item.isBookmarked,
-              });
+            const problem = mapProblemDto(item, { fallbackCompany: nameStr });
+            if (!seenTitles.has(problem.title.toLowerCase().trim())) {
+              seenTitles.add(problem.title.toLowerCase().trim());
+              problemsList.push(problem);
             }
           }
+        }}
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
@@ -410,7 +396,7 @@ export const companyService = {
           },
         };
 
-        const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload);
+        const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload, { signal });
         const raw = res?.data || res;
         const list = Array.isArray(raw?.content)
           ? raw.content
@@ -422,26 +408,13 @@ export const companyService = {
 
         if (list.length > 0) {
           for (const item of list) {
-            const title = item.title || item.name || '';
-            const normTitle = title.toLowerCase().trim();
-            if (!seenTitles.has(normTitle)) {
-              seenTitles.add(normTitle);
-              problemsList.push({
-                id: String(item.id || item._id),
-                title,
-                slug: item.slug || String(item.id),
-                difficulty:
-                  item.difficultyName || item.difficultyRefName || item.difficulty || item.level || 'Easy',
-                topic: item.topicName || item.topicRefName || item.category || item.topic || nameStr || 'General',
-                category: item.topicName || item.topicRefName || item.category || nameStr || 'DSA',
-                companies: Array.isArray(item.companies)
-                  ? item.companies.map((c: any) => (typeof c === 'object' ? c.name || c.companyName || '' : String(c)))
-                  : [nameStr],
-                isSolved: !!item.isSolved,
-                isBookmarked: !!item.isBookmarked,
-              });
+            const problem = mapProblemDto(item, { fallbackCompany: nameStr });
+            if (!seenTitles.has(problem.title.toLowerCase().trim())) {
+              seenTitles.add(problem.title.toLowerCase().trim());
+              problemsList.push(problem);
             }
           }
+        }}
         }
       } catch (err) {
         if (isRequestCanceled(err)) {
@@ -460,20 +433,11 @@ export const companyService = {
       );
 
       for (const q of matchedCurated) {
-        const normTitle = q.title.toLowerCase().trim();
+        const problem = mapProblemDto(q, { fallbackCompany: targetName });
+        const normTitle = problem.title.toLowerCase().trim();
         if (!seenTitles.has(normTitle)) {
           seenTitles.add(normTitle);
-          problemsList.push({
-            id: q.id,
-            title: q.title,
-            slug: q.slug || q.id,
-            difficulty: q.difficulty || 'Easy',
-            topic: q.topic || targetName,
-            category: q.topic || 'DSA',
-            companies: q.companies,
-            isSolved: false,
-            isBookmarked: false,
-          });
+          problemsList.push(problem);
         }
       }
     }
@@ -482,20 +446,11 @@ export const companyService = {
     if (problemsList.length === 0) {
       const fallbackSubset = fallbackProblemsData.slice(0, 10);
       for (const p of fallbackSubset) {
-        const normTitle = p.title.toLowerCase().trim();
+        const problem = mapProblemDto(p, { fallbackCompany: targetName, fallbackTopic: targetName || 'General' });
+        const normTitle = problem.title.toLowerCase().trim();
         if (!seenTitles.has(normTitle)) {
           seenTitles.add(normTitle);
-          problemsList.push({
-            id: p.id,
-            title: p.title,
-            slug: p.slug || p.id,
-            difficulty: p.difficulty || 'Medium',
-            topic: p.topic || p.category || targetName || 'General',
-            category: p.category || targetName || 'DSA',
-            companies: p.companies || [targetName || 'TCS'],
-            isSolved: !!p.isSolved,
-            isBookmarked: !!p.isBookmarked,
-          });
+          problemsList.push(problem);
         }
       }
     }
