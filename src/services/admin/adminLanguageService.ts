@@ -1,18 +1,11 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import { executionService } from '../executionService';
+import type { ApiResponse } from '../../core/types/api';
 import type { AdminLanguage, Language } from '../../core/types/domain';
 
 export type AdminLanguageItem = AdminLanguage;
 export type LanguageDropdownItem = Language;
-
-export interface LanguageApiResponse<T = any> {
-  status?: number;
-  statusCode?: number;
-  message: string;
-  data: T;
-  errors?: string[] | null;
-}
 
 /**
  * Dedicated Admin Language Service Layer
@@ -58,7 +51,7 @@ export const adminLanguageService = {
     judge0LanguageId: number;
     version?: string;
     isActive?: boolean;
-  }): Promise<LanguageApiResponse<AdminLanguageItem>> {
+  }): Promise<ApiResponse<AdminLanguageItem>> {
     const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
     return res?.data || res;
   },
@@ -73,7 +66,7 @@ export const adminLanguageService = {
     judge0LanguageId: number;
     version?: string;
     isActive?: boolean;
-  }): Promise<LanguageApiResponse<AdminLanguageItem>> {
+  }): Promise<ApiResponse<AdminLanguageItem>> {
     const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
     return res?.data || res;
   },
