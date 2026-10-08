@@ -66,14 +66,9 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
   onClose,
   question,
 }) => {
-  const [languages, setLanguages] = useState<Array<{ id: number; name: string }>>([
-    { id: 1, name: 'Java' },
-    { id: 2, name: 'Python' },
-    { id: 3, name: 'C++' },
-    { id: 4, name: 'JavaScript' },
-  ]);
-  const [selectedLanguageId, setSelectedLanguageId] = useState<number>(1);
-  const [sourceCode, setSourceCode] = useState<string>(STARTER_CODES.Java);
+  const [languages, setLanguages] = useState<Array<{ id: number; name: string }>>([]);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(null);
+  const [sourceCode, setSourceCode] = useState<string>('');
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [result, setResult] = useState<ExecutionResultData | null>(null);
@@ -90,7 +85,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
           setLanguages(list);
           setSelectedLanguageId(list[0].id);
           const langName = list[0].name;
-          setSourceCode(STARTER_CODES[langName] || STARTER_CODES.Java);
+          setSourceCode(STARTER_CODES[langName] || '');
         }
       });
       setResult(null);
@@ -125,7 +120,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
     setResult(null);
   };
 
-  const selectedLangObj = languages.find((l) => l.id === selectedLanguageId) || languages[0];
+  const selectedLangObj = languages.find((l) => l.id === selectedLanguageId);
   const monacoLang =
     selectedLangObj.name.toLowerCase() === 'c++'
       ? 'cpp'
@@ -133,17 +128,19 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
       ? 'python'
       : selectedLangObj.name.toLowerCase() === 'javascript'
       ? 'javascript'
-      : 'java';
+      : selectedLangObj?.name?.toLowerCase() === 'java'
+      ? 'java'
+      : 'plaintext';
 
   // Admin RUN (Sample / Visible Test Cases)
   const handleAdminRun = async () => {
-    if (!question?.id) return;
+    if (!question?.id || selectedLanguageId === null || !selectedLangObj) return;
     setIsRunning(true);
     setResult(null);
     try {
       const res = await adminQuestionService.adminTestCode({
         questionId: Number(question.id),
-        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId ?? selectedLanguageId,
         sourceCode,
       });
       const data = res?.data || res;
@@ -178,7 +175,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
     try {
       const res = await adminQuestionService.adminSubmitCode({
         questionId: Number(question.id),
-        languageId: (selectedLangObj as any)?.referenceId || selectedLanguageId,
+        languageId: (selectedLangObj as any)?.referenceId ?? selectedLanguageId,
         sourceCode,
       });
       const data = res?.data || res;
@@ -347,7 +344,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
               <span>Language:</span>
             </label>
             <select
-              value={selectedLanguageId}
+              value={selectedLanguageId ?? ''}
               onChange={handleLanguageChange}
               className="bg-[#090A0C] text-gray-200 border border-white/10 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-[#A3E635] cursor-pointer"
             >
@@ -363,7 +360,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
             {/* Run Code Button */}
             <button
               onClick={handleAdminRun}
-              disabled={isRunning || isSubmitting}
+              disabled={isRunning || isSubmitting || selectedLanguageId === null || languages.length === 0}
               className="px-3.5 py-1.5 bg-[#181A20] hover:bg-[#22252D] text-gray-200 border border-white/10 hover:border-[#A3E635]/50 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               title="Executes visible sample test cases only (POST /api/v1/admin/testCode)"
             >
