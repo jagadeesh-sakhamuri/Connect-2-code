@@ -1,29 +1,11 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import { executionService } from '../executionService';
+import type { ApiResponse } from '../../core/types/api';
+import type { AdminLanguage, Language } from '../../core/types/domain';
 
-export interface AdminLanguageItem {
-  id?: number;
-  referenceId: number;
-  languageName?: string;
-  judge0LanguageId: number;
-  version?: string;
-  isActive?: boolean;
-}
-
-export interface LanguageDropdownItem {
-  id: number;
-  name: string;
-  referenceId?: number;
-}
-
-export interface LanguageApiResponse<T = any> {
-  status?: number;
-  statusCode?: number;
-  message: string;
-  data: T;
-  errors?: string[] | null;
-}
+export type AdminLanguageItem = AdminLanguage;
+export type LanguageDropdownItem = Language;
 
 /**
  * Dedicated Admin Language Service Layer
@@ -69,9 +51,8 @@ export const adminLanguageService = {
     judge0LanguageId: number;
     version?: string;
     isActive?: boolean;
-  }): Promise<LanguageApiResponse<AdminLanguageItem>> {
-    const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
-    return res?.data || res;
+  }): Promise<ApiResponse<AdminLanguageItem>> {
+    return apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
   },
 
   /**
@@ -84,18 +65,16 @@ export const adminLanguageService = {
     judge0LanguageId: number;
     version?: string;
     isActive?: boolean;
-  }): Promise<LanguageApiResponse<AdminLanguageItem>> {
-    const res: any = await apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
-    return res?.data || res;
+  }): Promise<ApiResponse<AdminLanguageItem>> {
+    return apiClient.post(API_ENDPOINTS.LANGUAGE.BASE, payload);
   },
 
   /**
    * DELETE /api/v1/language/:id
    * Performs soft delete (sets isActive = false)
    */
-  async deleteLanguage(id: number | string): Promise<LanguageApiResponse<null>> {
-    const res: any = await apiClient.delete(API_ENDPOINTS.LANGUAGE.DETAILS(id));
-    return res?.data || res;
+  async deleteLanguage(id: number | string): Promise<ApiResponse<null>> {
+    return apiClient.delete(API_ENDPOINTS.LANGUAGE.DETAILS(id));
   },
 };
 

@@ -1,26 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { companyService } from '../../../services/companyService';
+import type { Company, Problem } from '../../../core/types/domain';
 
-export interface CompanyItem {
-  id: string | number;
-  name: string;
-  slug: string;
-  logo?: string;
-  industry?: string;
-  problemCount?: number;
-  description?: string;
-  websiteUrl?: string;
-  difficultyBreakdown?: {
-    easy: number;
-    medium: number;
-    hard: number;
-  };
-}
+export type CompanyItem = Company;
 
 export interface CompanyState {
   companies: CompanyItem[];
   selectedCompany: CompanyItem | null;
-  companyProblems: any[];
+  companyProblems: Problem[];
   loading: boolean;
   error: string | null;
 }

@@ -1,6 +1,7 @@
 import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { tokenStorage } from '../core/security/tokenStorage';
+import type { ApiResponse } from '../core/types/api';
 
 export interface LoginPayload {
   email: string;
@@ -21,7 +22,7 @@ export interface VerifyOtpPayload {
   password?: string;
 }
 
-export interface BackendApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   statusCode: number;
   message: string;
   data: T;
@@ -32,7 +33,7 @@ export interface BackendApiResponse<T = any> {
 export const authService = {
   // SignUp: POST /api/v1/signUp (Does NOT require OTP)
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
-  async signUp(payload: SignUpPayload & { labelUserName?: string; userName?: string }): Promise<BackendApiResponse> {
+  async signUp(payload: SignUpPayload & { labelUserName?: string; userName?: string }): Promise<ApiResponse> {
     const rawLabel = payload.email ? payload.email.split('@')[0] : `${payload.firstName}${payload.lastName}`;
     const sanitizedLabel = rawLabel.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || `user${Date.now()}`;
 
@@ -47,7 +48,7 @@ export const authService = {
 
   // Login: POST /api/v1/auth/login
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
-  async login(payload: LoginPayload): Promise<BackendApiResponse> {
+  async login(payload: LoginPayload): Promise<ApiResponse> {
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, { timeout: 120000 });
     if (response && response.data) {
       if (response.data.token) {
@@ -66,7 +67,7 @@ export const authService = {
   },
 
   // Logout: POST /api/v1/auth/logout
-  async logout(): Promise<BackendApiResponse> {
+  async logout(): Promise<ApiResponse> {
     const refreshToken = tokenStorage.getRefreshToken();
     try {
       if (refreshToken) {
@@ -87,7 +88,7 @@ export const authService = {
   },
 
   // Refresh Token: POST /api/v1/auth/refresh
-  async refreshToken(): Promise<BackendApiResponse> {
+  async refreshToken(): Promise<ApiResponse> {
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) {
       throw new Error('No refresh token available in cookie');
@@ -116,7 +117,7 @@ export const authService = {
   },
 
   // Exchange Google OAuth Refresh Token: POST /api/v1/auth/refresh
-  async exchangeRefreshToken(refreshToken: string): Promise<BackendApiResponse> {
+  async exchangeRefreshToken(refreshToken: string): Promise<ApiResponse> {
     if (!refreshToken) {
       throw new Error('No refresh token provided');
     }
@@ -143,12 +144,12 @@ export const authService = {
   },
 
   // Generate Password Reset OTP: POST /api/v1/auth/generatePasswordResetOtp
-  async generatePasswordResetOtp(email: string): Promise<BackendApiResponse> {
+  async generatePasswordResetOtp(email: string): Promise<ApiResponse> {
     return apiClient.post(API_ENDPOINTS.AUTH.GENERATE_PASSWORD_RESET_OTP, { email }, { timeout: 60000 });
   },
 
   // Verify OTP and Reset Password: POST /api/v1/auth/verifyPasswordResetOtp
-  async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<BackendApiResponse> {
+  async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<ApiResponse> {
     return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
   },
 
