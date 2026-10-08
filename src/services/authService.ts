@@ -2,6 +2,7 @@ import { apiClient } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { tokenStorage } from '../core/security/tokenStorage';
 import type { ApiResponse } from '../core/types/api';
+import type { AuthSessionData } from '../core/types/domain';
 
 export interface AuthResponseData {
   id?: number | string;
