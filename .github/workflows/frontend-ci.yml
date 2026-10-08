@@ -13,6 +13,9 @@ on:
 permissions:
   contents: read
 
+permissions:
+  contents: write
+
 jobs:
   frontend:
     name: Lint, typecheck, build, and preview smoke test
@@ -56,6 +59,17 @@ jobs:
       - name: Dependency audit
         run: npm audit --audit-level=high
 
+      - name: Commit regenerated dependency lockfile
+        if: github.event_name == 'pull_request' && github.head_ref != ''
+        run: |
+          if git diff --quiet -- package-lock.json package.json; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json package.json
+          git commit -m "chore(deps): refresh audited dependency lockfile"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
       - name: Typecheck
         run: npx --yes -p typescript@5.9.3 tsc -p tsconfig.ci.json --noEmit
 
