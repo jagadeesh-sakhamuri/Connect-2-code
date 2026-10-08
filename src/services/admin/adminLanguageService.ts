@@ -73,9 +73,8 @@ export const adminLanguageService = {
    * DELETE /api/v1/language/:id
    * Performs soft delete (sets isActive = false)
    */
-  async deleteLanguage(id: number | string): Promise<LanguageApiResponse<null>> {
-    const res: any = await apiClient.delete(API_ENDPOINTS.LANGUAGE.DETAILS(id));
-    return res?.data || res;
+  async deleteLanguage(id: number | string): Promise<ApiResponse<null>> {
+    return apiClient.delete(API_ENDPOINTS.LANGUAGE.DETAILS(id));
   },
 };
 
