@@ -7,8 +7,9 @@ import { openAuthModal } from '../../auth/redux/authSlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Pagination } from '../../../shared/components/ui/Pagination';
-import { referenceService, ReferenceItem } from '../../../services/referenceService';
-import { companyService } from '../../../services/companyService';
+import type { ReferenceItem } from '../../../core/types/domain';
+import { fetchReferenceGroup } from '../../references/redux/referenceSlice';
+import { fetchCompanies } from '../../companies/redux/companySlice';
 // import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
 import { useGoogleOAuthHandler } from '../../auth/hooks/useGoogleOAuthHandler';
 import { toast } from 'react-hot-toast';
@@ -58,6 +59,8 @@ export const PracticePage: React.FC = () => {
   const { problems, loading, pagination } = useAppSelector((state) => state.problems);
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const referenceGroups = useAppSelector((state) => state.references.groups);
+  const serverCompanies = useAppSelector((state) => state.companies.companies);
 
   // Intercept Google OAuth callback if backend redirected to /practice?refreshToken=...
   useGoogleOAuthHandler();
@@ -71,15 +74,20 @@ export const PracticePage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 20;
 
-  // Reference Library Filter Data from Backend API with Basic, Easy, Medium, Hard
-  const [difficulties, setDifficulties] = useState<ReferenceItem[]>([
-    { id: 1, refGroupCode: 'DIFF', refCode: 'DIFF_BASIC', refName: 'Basic', isActive: true },
-    { id: 2, refGroupCode: 'DIFF', refCode: 'DIFF_EASY', refName: 'Easy', isActive: true },
-    { id: 3, refGroupCode: 'DIFF', refCode: 'DIFF_MED', refName: 'Medium', isActive: true },
-    { id: 4, refGroupCode: 'DIFF', refCode: 'DIFF_HARD', refName: 'Hard', isActive: true },
-  ]);
-  const [topics, setTopics] = useState<ReferenceItem[]>(DEFAULT_TOPICS);
-  const [companies, setCompanies] = useState<Array<{ id: number; name: string }>>(DEFAULT_COMPANIES);
+  // Reference/company server state is owned by Redux. Static values remain only as
+  // temporary UI fallbacks until Phase 6 removes the legacy fallback datasets.
+  const difficulties: ReferenceItem[] =
+    referenceGroups.DIFF && referenceGroups.DIFF.length > 0
+      ? referenceGroups.DIFF
+      : [
+          { id: 1, refGroupCode: 'DIFF', refCode: 'DIFF_BASIC', refName: 'Basic', isActive: true },
+          { id: 2, refGroupCode: 'DIFF', refCode: 'DIFF_EASY', refName: 'Easy', isActive: true },
+          { id: 3, refGroupCode: 'DIFF', refCode: 'DIFF_MED', refName: 'Medium', isActive: true },
+          { id: 4, refGroupCode: 'DIFF', refCode: 'DIFF_HARD', refName: 'Hard', isActive: true },
+        ];
+  const topics: ReferenceItem[] =
+    referenceGroups.TOPIC && referenceGroups.TOPIC.length > 0 ? referenceGroups.TOPIC : DEFAULT_TOPICS;
+  const companies = serverCompanies.length > 0 ? serverCompanies : DEFAULT_COMPANIES;
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -90,41 +98,16 @@ export const PracticePage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // 1. Fetch Reference Library & Companies for Filter Dropdowns
+  // Load filter catalog data through Redux instead of calling services from the page.
   useEffect(() => {
-    const fetchFilterData = async () => {
-      try {
-        const [diffRes, topicRes, compRes] = await Promise.allSettled([
-          referenceService.getByGroupCode('DIFF'),
-          referenceService.getByGroupCode('TOPIC'),
-          companyService.getCompanies(),
-        ]);
-
-        if (diffRes.status === 'fulfilled') {
-          const diffList = diffRes.value?.data || (Array.isArray(diffRes.value) ? diffRes.value : []);
-          if (Array.isArray(diffList) && diffList.length > 0) setDifficulties(diffList);
-        }
-
-        if (topicRes.status === 'fulfilled') {
-          const topicList = topicRes.value?.data || (Array.isArray(topicRes.value) ? topicRes.value : []);
-          if (Array.isArray(topicList) && topicList.length > 0) setTopics(topicList);
-        }
-
-        if (compRes.status === 'fulfilled') {
-          const compList = compRes.value?.data || (Array.isArray(compRes.value) ? compRes.value : []);
-          if (Array.isArray(compList) && compList.length > 0) setCompanies(compList);
-        }
-      } catch (err) {
-        console.warn('Filter API fetch fallback:', err);
-      }
-    };
-    fetchFilterData();
-  }, []);
+    dispatch(fetchReferenceGroup('DIFF'));
+    dispatch(fetchReferenceGroup('TOPIC'));
+    dispatch(fetchCompanies());
+  }, [dispatch]);
 
   // 2. Fetch Questions with Filter Parameters
-  const loadQuestions = useCallback(
-    (targetPage?: number) => {
-      const pageToLoad = targetPage !== undefined ? targetPage : currentPage;
+  const loadQuestions = useCallback(() => {
+      const pageToLoad = currentPage;
 
       const topicId = selectedTopic && !isNaN(Number(selectedTopic)) ? Number(selectedTopic) : undefined;
       const diffId = selectedDifficulty && !isNaN(Number(selectedDifficulty)) ? Number(selectedDifficulty) : undefined;
@@ -181,7 +164,6 @@ export const PracticePage: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    loadQuestions(newPage);
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
