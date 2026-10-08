@@ -12,7 +12,7 @@ let isProcessingExchange = false;
 let processedToken: string | null = null;
 let oauthPopupWindow: Window | null = null;
 
-export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void }) {
+export function useGoogleOAuthHandler() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -35,10 +35,6 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
           toast.success(`Welcome ${userName}! Signed in with Google.`);
           dispatch(closeAuthModal());
 
-          if (options?.onLoginSuccess) {
-            options.onLoginSuccess();
-          }
-
           const userRole = String(userObj?.role || '').toUpperCase();
           const isAdmin = userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN');
 
@@ -58,7 +54,7 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
         isProcessingExchange = false;
       }
     },
-    [dispatch, navigate, options]
+    [dispatch, navigate]
   );
 
   // 1. Intercept URL search params or hash (?refreshToken=... or #refreshToken=...) on mount
@@ -121,28 +117,3 @@ export function useGoogleOAuthHandler(options?: { onLoginSuccess?: () => void })
       window.removeEventListener('message', handleMessage);
     };
   }, [completeOAuthLogin]);
-
-  // 3. Initiate Google OAuth popup (with direct redirect fallback)
-  const initiateGoogleLogin = useCallback(() => {
-    const width = 500;
-    const height = 650;
-    const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
-    const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
-
-    const popup = window.open(
-      GOOGLE_AUTH_URL,
-      'google_oauth_popup',
-      `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes,scrollbars=yes`
-    );
-
-    // If popup was blocked or couldn't open (e.g. strict popup blocker or mobile browser)
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      window.location.href = GOOGLE_AUTH_URL;
-    } else {
-      oauthPopupWindow = popup;
-      popup.focus?.();
-    }
-  }, []);
-
-  return { initiateGoogleLogin, completeOAuthLogin };
-}
