@@ -119,6 +119,11 @@ apiClient.interceptors.response.use(
     return resData;
   },
   async (error) => {
+    // Preserve AbortController cancellation so callers can distinguish a canceled request from an API failure.
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     const originalRequest = error.config;
     const reqUrl = originalRequest?.url || '';
 
