@@ -1,19 +1,13 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
+import type { Company } from '../../core/types/domain';
+
+export type CompanyItem = Company;
 
 /**
  * Verified Strict Company API Contract
  * Strictly maps to backend Spring Boot REST DTO fields.
  */
-export interface CompanyItem {
-  id?: number | null;
-  name: string;
-  websiteUrl?: string;
-  logoUrl?: string;
-  description?: string;
-  isActive?: boolean;
-}
-
 /**
  * Dedicated Admin Company Service Layer
  * REAL API ONLY — Bypasses mock data entirely.
