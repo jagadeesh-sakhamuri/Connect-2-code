@@ -35,7 +35,7 @@ export const CompanyDetails: React.FC = () => {
   useEffect(() => {
     if (companyId === undefined && !companyName) return;
 
-    const request = dispatch(fetchCompanyProblems({ id: companyId, name: companyName }));
+    const request = dispatch(fetchCompanyProblems({ id: companyId ?? undefined, name: companyName }));
     return () => {
       request.abort();
     };
