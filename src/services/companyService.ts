@@ -1,4 +1,4 @@
-import { apiClient } from '../core/api/apiClient';
+import { apiClient, isRequestCanceled } from '../core/api/apiClient';
 import { API_ENDPOINTS } from '../core/api/endpoints';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
 import type { ApiResponse } from '../core/types/api';
@@ -201,9 +201,9 @@ const CURATED_COMPANY_QUESTIONS: Array<{
 ];
 
 export const companyService = {
-  async getCompanies(search?: string): Promise<ApiResponse<Company[]>> {
+  async getCompanies(search?: string, signal?: AbortSignal): Promise<ApiResponse<Company[]>> {
     try {
-      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.BASE, { params: { search } });
+      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.BASE, { params: { search }, signal });
       const rawData = res?.data || res || [];
       const list = Array.isArray(rawData) ? rawData : (Array.isArray(rawData.content) ? rawData.content : []);
       if (list.length > 0) {
@@ -228,6 +228,9 @@ export const companyService = {
         };
       }
     } catch (err) {
+      if (isRequestCanceled(err)) {
+        throw err;
+      }
       console.warn('Backend getCompanies failed, falling back to cached companies list:', err);
     }
 
@@ -244,9 +247,9 @@ export const companyService = {
     };
   },
 
-  async getCompanyBySlug(slug: string): Promise<ApiResponse<Company>> {
+  async getCompanyBySlug(slug: string, signal?: AbortSignal): Promise<ApiResponse<Company>> {
     try {
-      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(slug));
+      const res: any = await apiClient.get(API_ENDPOINTS.COMPANY.DETAILS(slug), { signal });
       const compData = res?.data || res;
       if (compData && (compData.id || compData.name)) {
         const name = compData.name || compData.companyName || '';
@@ -268,11 +271,14 @@ export const companyService = {
         };
       }
     } catch (err) {
+      if (isRequestCanceled(err)) {
+        throw err;
+      }
       console.warn('Backend getCompanyBySlug direct call failed:', err);
     }
 
     try {
-      const allCompRes = await this.getCompanies();
+      const allCompRes = await this.getCompanies(undefined, signal);
       const matched = (allCompRes.data || []).find(
         (c: any) =>
           String(c.id) === String(slug) ||
@@ -290,6 +296,9 @@ export const companyService = {
         };
       }
     } catch (err) {
+      if (isRequestCanceled(err)) {
+        throw err;
+      }
       console.warn('Company fallback matching failed:', err);
     }
 
@@ -309,7 +318,8 @@ export const companyService = {
 
   async getCompanyProblems(
     companyIdOrName?: string | number,
-    companyName?: string
+    companyName?: string,
+    signal?: AbortSignal
   ): Promise<ApiResponse<Problem[]>> {
     let compIdNum =
       companyIdOrName !== undefined && !isNaN(Number(companyIdOrName)) ? Number(companyIdOrName) : undefined;
@@ -341,7 +351,7 @@ export const companyService = {
           },
         };
 
-        const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload);
+        const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload, { signal });
         const raw = res?.data || res;
         const list = Array.isArray(raw?.content)
           ? raw.content
@@ -377,6 +387,9 @@ export const companyService = {
           }
         }
       } catch (err) {
+        if (isRequestCanceled(err)) {
+          throw err;
+        }
         console.warn('Backend query by company ID failed:', err);
       }
     }
@@ -431,6 +444,9 @@ export const companyService = {
           }
         }
       } catch (err) {
+        if (isRequestCanceled(err)) {
+          throw err;
+        }
         console.warn('Backend query by company name failed:', err);
       }
     }
