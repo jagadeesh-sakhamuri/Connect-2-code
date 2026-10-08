@@ -1152,7 +1152,6 @@ export const ProblemDetails: React.FC = () => {
               <div className="flex items-center gap-2">
                 <select
                   id="languageSelect"
-,
                   value={selectedLanguage?.id ?? ''}
                   onChange={handleLanguageChange}
                   disabled={loadingLanguages || isExecuting || languages.length === 0}
