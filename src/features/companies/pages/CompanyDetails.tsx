@@ -9,14 +9,6 @@ import { openAuthModal } from '../../auth/redux/authSlice';
 import { tokenStorage } from '../../../core/security/tokenStorage';
 import { toast } from 'react-hot-toast';
 
-const fallbackLogos: Record<string, string> = {
-  accenture: 'https://upload.wikimedia.org/wikipedia/commons/c/cd/Accenture.svg',
-  infosys: 'https://upload.wikimedia.org/wikipedia/commons/9/95/Infosys_logo.svg',
-  'tcs-nqt': 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  tcs: 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-  adobe: 'https://gurucodes-data.pages.dev/img/companies/adobe.png',
-};
-
 export const CompanyDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
@@ -125,19 +117,19 @@ export const CompanyDetails: React.FC = () => {
 
         <div className="flex items-center gap-5 relative z-10">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white p-3 flex items-center justify-center border border-white/20 shadow-md shrink-0 overflow-hidden">
-            <img
-              src={logoUrl}
-              alt={company.name}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (fallbackLogos[companySlug] && target.src !== fallbackLogos[companySlug]) {
-                  target.src = fallbackLogos[companySlug];
-                } else {
-                  target.src = `https://logo.clearbit.com/${companySlug.replace('-nqt', '')}.com`;
-                }
-              }}
-            />
+            <div className="w-full h-full flex items-center justify-center text-gray-600">
+              <i className="fa-solid fa-building text-3xl"></i>
+            </div>
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={company.name}
+                className="absolute inset-0 w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.remove();
+                }}
+              />
+            )}
           </div>
 
           <div>
