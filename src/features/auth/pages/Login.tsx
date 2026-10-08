@@ -13,7 +13,7 @@ import {
 import { authService } from '../../../services/authService';
 import { toast } from 'react-hot-toast';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
-import { useGoogleOAuthHandler } from '../hooks/useGoogleOAuthHandler';
+import { useGoogleOAuthLogin } from '../hooks/useGoogleOAuthLogin';
 
 // 1. Login Validation Schema
 const loginSchema = z.object({
@@ -153,7 +153,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
     }
   };
 
-  const { initiateGoogleLogin } = useGoogleOAuthHandler({ onLoginSuccess: handleClose });
+  const { initiateGoogleLogin } = useGoogleOAuthLogin();
 
   // --------------------------------------------------------------------------
   // LOGIN SUBMIT

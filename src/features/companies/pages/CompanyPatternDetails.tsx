@@ -1,61 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { examPatternsData } from '../data/examPatternsData';
+import { EmptyState } from '../../../shared/components/ui/EmptyState';
 
 export const CompanyPatternDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [activeTab, setActiveTab] = useState<'breakdown' | 'syllabus' | 'stages' | 'strategy'>('breakdown');
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [slug]);
-
-  const defaultPattern = {
-    id: 'default',
-    slug: slug || 'tcs-nqt',
-    companySlug: slug || 'tcs-nqt',
-    name: 'Company Placement Exam Pattern',
-    fullName: 'Company Placement Recruitment Exam Pattern',
-    logoUrl: 'https://cdn.worldvectorlogo.com/logos/tata-consultancy-services.svg',
-    logoTag: 'RECRUITMENT',
-    category: 'IT & Software',
-    duration: '180 Mins',
-    questionsCount: '100+ Questions',
-    roles: 'Software Engineer & Technical Roles',
-    sections: [
-      { num: 1, name: 'Numerical Ability & Quantitative Aptitude', questions: '26 Questions', time: '40 Mins', marking: '+1 / -0.25', difficulty: 'Medium' },
-      { num: 2, name: 'Reasoning Ability & Logical Thinking', questions: '30 Questions', time: '50 Mins', marking: '+1 / -0.25', difficulty: 'Medium' },
-      { num: 3, name: 'Verbal Ability & English Comprehension', questions: '24 Questions', time: '30 Mins', marking: '+1 / 0', difficulty: 'Easy-Medium' },
-      { num: 4, name: 'Hands-on Coding & Algorithm Assessment', questions: '2 Questions', time: '60 Mins', marking: 'Automated Evaluation', difficulty: 'Medium-Hard' }
-    ],
-    syllabus: [
-      {
-        title: 'Quantitative & Aptitude',
-        topics: [{ name: 'Number System' }, { name: 'Percentages' }, { name: 'Profit & Loss' }, { name: 'Time & Work' }, { name: 'Data Interpretation' }]
-      },
-      {
-        title: 'Logical & Verbal Ability',
-        topics: [{ name: 'Syllogisms' }, { name: 'Coding-Decoding' }, { name: 'Reading Comprehension' }, { name: 'Sentence Correction' }]
-      },
-      {
-        title: 'Technical & Coding',
-        topics: [{ name: 'Arrays & Strings' }, { name: 'Trees & Graphs' }, { name: 'Dynamic Programming' }, { name: 'SQL & DBMS' }]
-      }
-    ],
-    stages: [
-      { step: 1, title: 'Online Assessment (OA)', roundType: 'Elimination Round', description: 'Includes Aptitude, Logical Reasoning, Verbal, and Hands-on Coding questions.' },
-      { step: 2, title: 'Technical Interview', roundType: 'Core Domain', description: 'In-depth evaluation of Data Structures, Algorithms, Project Architecture, and CS Fundamentals.' },
-      { step: 3, title: 'HR & Behavioral Interview', roundType: 'Final Fitment', description: 'Assesses cultural fit, communication skills, career orientation, and willingness to relocate.' }
-    ],
-    prepStrategy: {
-      cutoffInsight: 'Focus on accuracy in Numerical and Coding sections to clear threshold cutoffs.',
-      doList: ['Solve past 3 years memory-based questions.', 'Practice section-wise time management.'],
-      dontList: ['Do not spend more than 2 minutes per aptitude question.', 'Do not skip hands-on coding tests.']
-    }
-  };
-
   const foundPattern = examPatternsData.find((p) => p.slug === slug || p.companySlug === slug);
-  const pattern: any = foundPattern ? { ...defaultPattern, ...foundPattern } : defaultPattern;
+
+  if (!foundPattern) {
+    return (
+      <div className="w-full max-w-5xl mx-auto py-16 px-4">
+        <EmptyState
+          title="Exam pattern not found"
+          description="This company exam pattern is not available in the product data yet. No fallback pattern is shown."
+          actionText="Back to Exam Patterns"
+          onAction={() => window.history.back()}
+        />
+      </div>
+    );
+  }
+
+  const pattern: any = foundPattern;
   const cleanRoles = pattern.roles || 'Software Engineer & Technical Roles';
 
   const safeArray = (data: any) => {

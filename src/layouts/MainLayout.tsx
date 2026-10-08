@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { logoutUser, closeAuthModal, initializeAuth, silentRefreshSession } from '../features/auth/redux/authSlice';
-import { useGoogleOAuthHandler } from '../features/auth/hooks/useGoogleOAuthHandler';
 import { tokenStorage } from '../core/security/tokenStorage';
 import { NeetCodeNavbar } from '../shared/components/ui/NeetCodeNavbar';
 import { Footer } from '../shared/components/ui/Footer';
@@ -13,9 +12,6 @@ export const MainLayout: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Mount global Google OAuth listener to handle OAuth redirects anywhere across the app
-  useGoogleOAuthHandler();
 
   const { user, isAuthModalOpen } = useAppSelector((state) => state.auth);
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/signup';
@@ -28,11 +24,6 @@ export const MainLayout: React.FC = () => {
       dispatch(silentRefreshSession());
     }
   }, [dispatch]);
-
-  // Scroll to top on route change
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
 
   const handleLogout = async () => {
     await dispatch(logoutUser());
