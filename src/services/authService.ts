@@ -3,6 +3,26 @@ import { API_ENDPOINTS } from '../core/api/endpoints';
 import { tokenStorage } from '../core/security/tokenStorage';
 import type { ApiResponse } from '../core/types/api';
 
+export interface AuthResponseData {
+  id?: number | string;
+  firstName?: string;
+  lastName?: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: {
+    id?: number | string;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+  };
+}
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -25,7 +45,7 @@ export interface VerifyOtpPayload {
 export const authService = {
   // SignUp: POST /api/v1/signUp (Does NOT require OTP)
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
-  async signUp(payload: SignUpPayload & { labelUserName?: string; userName?: string }): Promise<ApiResponse> {
+  async signUp(payload: SignUpPayload & { labelUserName?: string; userName?: string }): Promise<ApiResponse<AuthResponseData>> {
     const rawLabel = payload.email ? payload.email.split('@')[0] : `${payload.firstName}${payload.lastName}`;
     const sanitizedLabel = rawLabel.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || `user${Date.now()}`;
 
@@ -40,7 +60,7 @@ export const authService = {
 
   // Login: POST /api/v1/auth/login
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
-  async login(payload: LoginPayload): Promise<ApiResponse> {
+  async login(payload: LoginPayload): Promise<ApiResponse<AuthResponseData>> {
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, { timeout: 120000 });
     if (response && response.data) {
       if (response.data.token) {
