@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
-import { fetchProblems, toggleSolveProblem, resetFilters } from '../redux/problemSlice';
+import { fetchProblems, resetFilters } from '../redux/problemSlice';
+import { toggleSolvedProblem } from '../redux/progressSlice';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
@@ -61,6 +62,7 @@ export const PracticePage: React.FC = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const referenceGroups = useAppSelector((state) => state.references.groups);
   const serverCompanies = useAppSelector((state) => state.companies.companies);
+  const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
 
   // Intercept Google OAuth callback if backend redirected to /practice?refreshToken=...
   useGoogleOAuthHandler();
@@ -170,7 +172,7 @@ export const PracticePage: React.FC = () => {
       dispatch(openAuthModal({ mode: 'login' }));
       return;
     }
-    dispatch(toggleSolveProblem(id));
+    dispatch(toggleSolvedProblem({ id }));
     toast.success('Problem solved status updated');
   };
 
@@ -206,12 +208,12 @@ export const PracticePage: React.FC = () => {
 
   // Client-side Tab Filtering for Answered / Bookmarked
   const displayedProblems = problems.filter((p) => {
-    if (activeSheetTab === 'answered') return p.isSolved;
+    if (activeSheetTab === 'answered') return solvedByProblemId[p.id] ?? p.isSolved;
     if (activeSheetTab === 'bookmarked') return p.isBookmarked || bookmarks.some((b) => b.itemId === p.id);
     return true;
   });
 
-  const solvedCount = problems.filter((p) => p.isSolved).length;
+  const solvedCount = problems.filter((p) => solvedByProblemId[p.id] ?? p.isSolved).length;
   const progressPercent = Math.round((solvedCount / (problems.length || 1)) * 100);
 
   return (
@@ -381,9 +383,9 @@ export const PracticePage: React.FC = () => {
                     <button
                       onClick={(e) => handleSolveToggle(problem.id, e)}
                       className={`text-lg transition-colors shrink-0 cursor-pointer ${
-                        problem.isSolved ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
+                        (solvedByProblemId[problem.id] ?? problem.isSolved) ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
                       }`}
-                      title={problem.isSolved ? 'Mark as Not Answered' : 'Mark as Answered'}
+                      title={(solvedByProblemId[problem.id] ?? problem.isSolved) ? 'Mark as Not Answered' : 'Mark as Answered'}
                     >
                       <i className={`fa-solid ${problem.isSolved ? 'fa-circle-check' : 'fa-circle'}`}></i>
                     </button>
