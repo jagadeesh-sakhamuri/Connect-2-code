@@ -42,6 +42,7 @@
     "src/services/problemService.ts",
     "src/services/profileService.ts",
     "src/services/referenceService.ts",
-    "src/services/questionService.ts"
+    "src/services/questionService.ts",
+    "src/vite-env.d.ts"
   ]
 }
