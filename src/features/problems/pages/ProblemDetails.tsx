@@ -445,7 +445,7 @@ export const ProblemDetails: React.FC = () => {
           type: 'PROBLEM',
           title: problem.title,
           difficulty: problem.difficultyRefName || problem.difficulty || 'Medium',
-          category: problem.topicRefName || problem.topic || 'DSA',
+          category: problem.topicRefName || problem.topic || '',
         })
       );
       toast.success(isBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
@@ -1537,15 +1537,7 @@ export const ProblemDetails: React.FC = () => {
                               <span className="text-xs text-gray-400 font-sans">
                                 Submitted just now
                               </span>
-                              {numericQuestionId < 22 && (
-                                <button
-                                  onClick={() => navigate(`/problems/${numericQuestionId + 1}`)}
-                                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] hover:bg-[#8ece28] text-black text-xs font-bold font-sans rounded-xl transition-all shadow-md cursor-pointer"
-                                >
-                                  <span>Next Problem</span>
-                                  <i className="fa-solid fa-arrow-right text-[10px]"></i>
-                                </button>
-                              )}
+
                             </div>
                           </div>
                         ) : (
