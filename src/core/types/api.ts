@@ -11,6 +11,7 @@ export interface ApiResponse<T = unknown> {
   meta?: PaginationMeta;
   errors?: string[] | null;
   timestamp?: string | null;
+}
 
 export interface ApiErrorResponse {
   statusCode: number;
