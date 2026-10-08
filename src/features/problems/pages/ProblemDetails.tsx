@@ -4,6 +4,7 @@ import Editor from '@monaco-editor/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
 import { fetchProblemById } from '../redux/problemSlice';
+import { markSolvedProblem } from '../../progress/redux/progressSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { fetchLanguages } from '../../languages/redux/languageSlice';
 import type { Problem } from '../../../core/types/domain';
@@ -531,7 +532,7 @@ export const ProblemDetails: React.FC = () => {
         result = await executionService.submitCode(payload);
         if (result.failedTestCases === 0 && result.passedTestCases > 0) {
           toast.success('Accepted! All test cases passed!');
-          dispatch(toggleSolveProblem(String(numericQuestionId)));
+          dispatch(markSolvedProblem({ id: String(numericQuestionId) }));
         } else {
           toast.error(`Submission: ${result.failedTestCases} test case(s) failed`);
         }
