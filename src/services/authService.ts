@@ -22,14 +22,6 @@ export interface VerifyOtpPayload {
   password?: string;
 }
 
-export interface ApiResponse<T = any> {
-  statusCode: number;
-  message: string;
-  data: T;
-  errors: string[] | null;
-  timestamp: string;
-}
-
 export const authService = {
   // SignUp: POST /api/v1/signUp (Does NOT require OTP)
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
