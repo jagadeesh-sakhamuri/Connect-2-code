@@ -1,5 +1,7 @@
 import type { Problem } from '../types/domain';
 
+type ProblemDto = Record<string, unknown> | Problem;
+
 interface ProblemMappingContext {
   fallbackCompany?: string;
   fallbackTopic?: string;
@@ -22,22 +24,23 @@ const readCompanies = (value: unknown, fallbackCompany?: string): string[] => {
 };
 
 export const mapProblemDto = (
-  value: Record<string, unknown>,
+  value: ProblemDto,
   context: ProblemMappingContext = {}
 ): Problem => {
-  const rawId = value.id ?? value._id ?? '';
+  const rawValue = value as Record<string, unknown>;
+  const rawId = rawValue.id ?? rawValue._id ?? '';
   const topic =
-    value.topicName ||
-    value.topicRefName ||
-    value.category ||
-    value.topic ||
+    rawValue.topicName ||
+    rawValue.topicRefName ||
+    rawValue.category ||
+    rawValue.topic ||
     context.fallbackTopic ||
     'General';
   const difficulty =
-    value.difficultyName ||
-    value.difficultyRefName ||
-    value.difficulty ||
-    value.level ||
+    rawValue.difficultyName ||
+    rawValue.difficultyRefName ||
+    rawValue.difficulty ||
+    rawValue.level ||
     'Medium';
 
   return {
