@@ -304,7 +304,7 @@ const problemSlice = createSlice({
             state.selectedProblem = applyLocalProblemState([fallback])[0];
           }
         }
-      }));
+      });
   },
 });
 
