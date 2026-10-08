@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { RootState } from '../../../app/store';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
 export interface BookmarkItem {
@@ -51,15 +52,19 @@ export const fetchBookmarks = createAsyncThunk('bookmarks/fetchList', async () =
 
 export const toggleBookmarkItem = createAsyncThunk(
   'bookmarks/toggle',
-  async (payload: {
-    itemId: string;
-    type?: 'PROBLEM' | 'COMPANY' | 'APTITUDE';
-    title?: string;
-    difficulty?: string;
-    category?: string;
-  }) => {
+  async (
+    payload: {
+      itemId: string;
+      type?: 'PROBLEM' | 'COMPANY' | 'APTITUDE';
+      title?: string;
+      difficulty?: string;
+      category?: string;
+    },
+    { getState }
+  ) => {
     const { itemId, type = 'PROBLEM', title, difficulty, category } = payload;
-    const current = loadBookmarksFromStorage();
+    // Redux is the runtime source of truth; storage is only the persistence layer.
+    const current = (getState() as RootState).bookmarks.bookmarks;
     const exists = current.some((b) => b.itemId === itemId);
 
     let updated: BookmarkItem[];
