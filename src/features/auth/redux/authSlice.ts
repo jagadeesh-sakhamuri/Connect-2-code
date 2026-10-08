@@ -219,8 +219,8 @@ const authSlice = createSlice({
           id: data.id,
           firstName: data.firstName,
           lastName: data.lastName,
-          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
-          email: data.email,
+          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'User',
+          email: String(data.email || ''),
           role: data.role,
         };
         state.user = userObj;
