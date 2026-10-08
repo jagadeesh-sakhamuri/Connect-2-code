@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { toggleBookmarkItem, fetchBookmarks } from '../../bookmarks/redux/bookmarkSlice';
-import { toggleSolveProblem, fetchProblemById } from '../redux/problemSlice';
+import { fetchProblemById } from '../redux/problemSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { fetchLanguages } from '../../languages/redux/languageSlice';
 import type { Problem } from '../../../core/types/domain';
