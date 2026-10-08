@@ -1,21 +1,10 @@
 import { apiClient } from '../../core/api/apiClient';
 import { API_ENDPOINTS } from '../../core/api/endpoints';
 import { executionService } from '../executionService';
+import type { AdminLanguage, Language } from '../../core/types/domain';
 
-export interface AdminLanguageItem {
-  id?: number;
-  referenceId: number;
-  languageName?: string;
-  judge0LanguageId: number;
-  version?: string;
-  isActive?: boolean;
-}
-
-export interface LanguageDropdownItem {
-  id: number;
-  name: string;
-  referenceId?: number;
-}
+export type AdminLanguageItem = AdminLanguage;
+export type LanguageDropdownItem = Language;
 
 export interface LanguageApiResponse<T = any> {
   status?: number;
