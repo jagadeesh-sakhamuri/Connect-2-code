@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from '../core/api/endpoints';
 import { ApiResponse } from '../core/types/api';
 import { fallbackProblemsData } from '../features/problems/data/problemsData';
 import type { Problem, ProblemFilter } from '../core/types/domain';
+import { mapProblemDto } from '../core/mappers/problemMapper';
 
 export type ProblemItem = Problem;
 export type ProblemFilterParams = ProblemFilter;
@@ -356,30 +357,7 @@ export const problemService = {
       }
 
       if (isBackendResponse) {
-        const mappedList: ProblemItem[] = list.map((item: any) => ({
-          id: String(item.id || item._id),
-          title: item.title || item.name || '',
-          slug: item.slug || String(item.id),
-          difficulty: item.difficultyName || item.difficultyRefName || item.difficulty || item.level || 'Medium',
-          difficultyId: item.difficultyId || item.levelId,
-          category: item.topicName || item.topicRefName || item.category || item.topic || 'General',
-          topic: item.topicName || item.topicRefName || item.topic || 'General',
-          topicId: item.topicId,
-          companies: Array.isArray(item.companies)
-            ? item.companies.map((c: any) => (typeof c === 'object' ? c.name || c.companyName || '' : String(c)))
-            : item.companyName
-            ? [item.companyName]
-            : [],
-          acceptanceRate: item.acceptanceRate || '75%',
-          isSolved: !!item.isSolved,
-          isBookmarked: !!item.isBookmarked,
-          isOwnProblem: item.isOwnProblem !== undefined ? item.isOwnProblem : true,
-          leetCodeUrl: item.leetCodeUrl,
-          gfgUrl: item.gfgUrl,
-          hackerRankUrl: item.hackerRankUrl,
-          description: item.description || '',
-          examples: item.examples,
-        }));
+        const mappedList: ProblemItem[] = list.map((item: any) => mapProblemDto(item));
 
         return {
           statusCode: 200,
@@ -412,41 +390,7 @@ export const problemService = {
         return {
           statusCode: 200,
           message: 'Problem details fetched',
-          data: {
-            id: String(data.id || id),
-            title: data.title || data.name || '',
-            slug: data.slug || String(data.id || id),
-            difficulty: data.difficultyName || data.difficultyRefName || data.difficulty || 'Medium',
-            difficultyId: data.difficultyId,
-            category: data.topicName || data.topicRefName || data.category || 'General',
-            topic: data.topicName || data.topicRefName || data.topic || 'General',
-            topicId: data.topicId,
-            companies: Array.isArray(data.companies)
-              ? data.companies.map((c: any) => (typeof c === 'object' ? c.name || c.companyName || '' : String(c)))
-              : [],
-            acceptanceRate: data.acceptanceRate || '75%',
-            isSolved: !!data.isSolved,
-            isBookmarked: !!data.isBookmarked,
-            isOwnProblem: data.isOwnProblem !== undefined ? data.isOwnProblem : true,
-            leetCodeUrl: data.leetCodeUrl,
-            gfgUrl: data.gfgUrl,
-            hackerRankUrl: data.hackerRankUrl,
-            description: data.description || '',
-            constraints: data.constraints,
-            difficultyRefName: data.difficultyRefName,
-            difficultyRefCode: data.difficultyRefCode,
-            topicRefName: data.topicRefName,
-            topicRefCode: data.topicRefCode,
-            qpfRefGroupCode: data.qpfRefGroupCode,
-            qpfRefCode: data.qpfRefCode,
-            qpfRefName: data.qpfRefName,
-            examPlatform: data.examPlatform,
-            questionHints: data.questionHints,
-            hints: data.hints,
-            testCases: data.testCases,
-            codeSnippets: data.codeSnippets,
-            examples: data.examples,
-          },
+          data: mapProblemDto(data, { fallbackTopic: 'General' }),
         };
       }
     } catch (err) {
