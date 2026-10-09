@@ -43,6 +43,12 @@ const signupSchema = z
   });
 type SignupFormData = z.infer<typeof signupSchema>;
 
+interface NavigationLocationState {
+  from?: {
+    pathname?: string;
+  };
+}
+
 interface AuthPageProps {
   defaultMode?: 'login' | 'signup' | 'forgot';
   onCloseModal?: () => void;
@@ -172,7 +178,8 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
         onCloseModal();
       }
 
-      const fromPath = (location.state as any)?.from?.pathname;
+      const navLocationState = location.state as NavigationLocationState | null;
+      const fromPath = navLocationState?.from?.pathname;
       if (isAdmin) {
         navigate('/admin/dashboard');
       } else if (fromPath && fromPath !== '/login' && fromPath !== '/signup') {

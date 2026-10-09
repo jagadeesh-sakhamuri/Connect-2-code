@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { authService, LoginPayload } from '../../../services/authService';
+import { createSlice, createAsyncThunk, isAnyOf, type PayloadAction } from '@reduxjs/toolkit';
+import { authService, type LoginPayload } from '../../../services/authService';
 import { tokenStorage } from '../../../core/security/tokenStorage';
 
 export interface UserProfile {
@@ -230,16 +230,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Logout
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.token = null;
-        state.refreshToken = null;
-        state.isAuthenticated = false;
-        state.loading = false;
-        state.error = null;
-        tokenStorage.clearTokens();
-      });
+      // Logout - Unconditional token and state cleanup (F-035)
+      .addMatcher(
+        isAnyOf(logoutUser.fulfilled, logoutUser.rejected),
+        (state) => {
+          state.user = null;
+          state.token = null;
+          state.refreshToken = null;
+          state.isAuthenticated = false;
+          state.loading = false;
+          state.error = null;
+          tokenStorage.clearTokens();
+        }
+      );
   },
 });
 

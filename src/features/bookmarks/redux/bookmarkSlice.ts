@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { RootState } from '../../../app/store';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
+import { userQuestionService } from '../../../services/userQuestionService';
+import { tokenStorage } from '../../../core/security/tokenStorage';
 
 export interface BookmarkItem {
   id: string;
@@ -16,6 +18,8 @@ export interface BookmarkState {
   bookmarks: BookmarkItem[];
   loading: boolean;
   error: string | null;
+  currentRequestId: string | null;
+  activeUserId: string | number | null;
 }
 
 const LOCAL_STORAGE_KEY = 'myjo_bookmarks';
@@ -40,15 +44,73 @@ const saveBookmarksToStorage = (bookmarks: BookmarkItem[]) => {
   }
 };
 
+const getInitialActiveUserId = (): string | number | null => {
+  try {
+    const user = tokenStorage.getUser();
+    return user?.id ?? null;
+  } catch {
+    return null;
+  }
+};
+
 const initialState: BookmarkState = {
   bookmarks: loadBookmarksFromStorage(),
   loading: false,
   error: null,
+  currentRequestId: null,
+  activeUserId: getInitialActiveUserId(),
 };
 
-export const fetchBookmarks = createAsyncThunk('bookmarks/fetchList', async () => {
-  return loadBookmarksFromStorage();
-});
+export const fetchBookmarks = createAsyncThunk(
+  'bookmarks/fetchList',
+  async (_, { getState }) => {
+    const local = loadBookmarksFromStorage();
+    const state = getState() as RootState;
+    const userId = state.auth?.user?.id;
+    const isAuthenticated = state.auth?.isAuthenticated;
+
+    if (isAuthenticated && userId) {
+      try {
+        const serverBookmarks = await userQuestionService.getBookmarkedQuestions(userId);
+        if (Array.isArray(serverBookmarks)) {
+          const mappedServer: BookmarkItem[] = serverBookmarks.map((item: any) => ({
+            id: `bm-q-${item.questionId || item.id}`,
+            itemId: String(item.questionId || item.id),
+            type: 'PROBLEM' as const,
+            title: item.title || item.questionTitle || `Problem #${item.questionId || item.id}`,
+            difficulty: item.difficulty || item.difficultyLevel,
+            category: item.category || item.topic,
+            savedAt: item.savedAt || new Date().toISOString(),
+          }));
+
+          // Preserve non-problem bookmarks (e.g. COMPANY, APTITUDE) from client storage
+          const nonProblemBookmarks = local.filter((b) => b.type !== 'PROBLEM');
+          const merged = [...mappedServer, ...nonProblemBookmarks];
+          return {
+            userId,
+            bookmarks: merged,
+          };
+        }
+      } catch (err) {
+        console.warn('Failed to load bookmarks from server; falling back to local storage', err);
+      }
+    }
+
+    return {
+      userId: userId || null,
+      bookmarks: local,
+    };
+  },
+  {
+    condition: (_, { getState }) => {
+      const state = getState() as RootState;
+      if (state.bookmarks?.loading) {
+        return false;
+      }
+      return true;
+    },
+  }
+);
 
 export const toggleBookmarkItem = createAsyncThunk(
   'bookmarks/toggle',
@@ -60,13 +122,33 @@ export const toggleBookmarkItem = createAsyncThunk(
       difficulty?: string;
       category?: string;
     },
-    { getState }
+    { getState, rejectWithValue }
   ) => {
     const { itemId, type = 'PROBLEM', title, difficulty, category } = payload;
-    // Redux is the runtime source of truth; storage is only the persistence layer.
-    const current = (getState() as RootState).bookmarks.bookmarks;
+    const state = getState() as RootState;
+    const current = state.bookmarks.bookmarks;
     const exists = current.some((b) => b.itemId === itemId);
+    const userId = state.auth?.user?.id;
+    const isAuthenticated = state.auth?.isAuthenticated;
 
+    // Cloud synchronization for PROBLEM bookmarks when authenticated
+    if (type === 'PROBLEM' && isAuthenticated && userId) {
+      try {
+        if (exists) {
+          await userQuestionService.unbookmarkQuestion(userId, itemId);
+        } else {
+          await userQuestionService.bookmarkQuestion(userId, itemId);
+        }
+      } catch (apiErr: any) {
+        const msg =
+          apiErr?.message ||
+          (apiErr?.errors && apiErr.errors[0]) ||
+          'Failed to update bookmark on server';
+        return rejectWithValue(msg);
+      }
+    }
+
+    // On successful server sync or for local unauthenticated usage, update state & storage
     let updated: BookmarkItem[];
     if (exists) {
       updated = current.filter((b) => b.itemId !== itemId);
@@ -91,16 +173,120 @@ export const toggleBookmarkItem = createAsyncThunk(
 const bookmarkSlice = createSlice({
   name: 'bookmarks',
   initialState,
-  reducers: {},
+  reducers: {
+    clearBookmarkError(state) {
+      state.error = null;
+    },
+    clearBookmarks(state) {
+      state.currentRequestId = null;
+      state.activeUserId = getInitialActiveUserId();
+      state.bookmarks = [];
+      saveBookmarksToStorage([]);
+      state.loading = false;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchBookmarks.pending, (state, action) => {
+        state.loading = true;
+        state.error = null;
+        state.currentRequestId = action.meta.requestId;
+      })
       .addCase(fetchBookmarks.fulfilled, (state, action) => {
-        state.bookmarks = action.payload;
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        if (!isCurrent) {
+          // Ignore late or superseded response
+          return;
+        }
+
+        const bookmarks = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload?.bookmarks || [];
+        const targetUserId =
+          !Array.isArray(action.payload) && action.payload?.userId !== undefined
+            ? action.payload.userId
+              ? String(action.payload.userId)
+              : null
+            : state.activeUserId
+            ? String(state.activeUserId)
+            : null;
+        const currentActiveUserId = state.activeUserId ? String(state.activeUserId) : null;
+
+        if (targetUserId !== currentActiveUserId) {
+          // Target user no longer matches the active session user
+          return;
+        }
+
+        state.loading = false;
+        state.currentRequestId = null;
+        state.bookmarks = bookmarks;
+        saveBookmarksToStorage(bookmarks);
+      })
+      .addCase(fetchBookmarks.rejected, (state, action) => {
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        if (!isCurrent) {
+          // Ignore late rejection
+          return;
+        }
+
+        state.loading = false;
+        state.currentRequestId = null;
+        state.error = (action.payload as string) || action.error.message || 'Failed to fetch bookmarks';
       })
       .addCase(toggleBookmarkItem.fulfilled, (state, action) => {
         state.bookmarks = action.payload;
-      });
+        state.error = null;
+      })
+      .addCase(toggleBookmarkItem.rejected, (state, action) => {
+        state.error = (action.payload as string) || 'Failed to toggle bookmark';
+      })
+      // Reset and re-scope bookmarks on auth lifecycle events (logout, login) (F-010)
+      .addMatcher(
+        (action) =>
+          action.type === 'auth/logout/fulfilled' ||
+          action.type === 'auth/logout/rejected',
+        (state) => {
+          state.currentRequestId = null;
+          state.activeUserId = null;
+          state.bookmarks = loadBookmarksFromStorage();
+          state.loading = false;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        (action) =>
+          action.type === 'auth/login/fulfilled' ||
+          action.type === 'auth/loginWithGoogleRefreshToken/fulfilled',
+        (state, action: any) => {
+          state.currentRequestId = null;
+          state.activeUserId = action.payload?.id ?? action.payload?.user?.id ?? null;
+          state.bookmarks = loadBookmarksFromStorage();
+          state.loading = false;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        (action) => action.type === 'auth/initializeAuth',
+        (state) => {
+          state.currentRequestId = null;
+          state.activeUserId = getInitialActiveUserId();
+          state.bookmarks = loadBookmarksFromStorage();
+          state.loading = false;
+          state.error = null;
+        }
+      )
+      .addMatcher(
+        (action) => action.type === 'auth/silentRefresh/fulfilled',
+        (state, action: any) => {
+          const user = action.payload?.user || action.payload;
+          if (user?.id) {
+            state.activeUserId = user.id;
+          }
+        }
+      );
   },
 });
 
+export const { clearBookmarkError, clearBookmarks } = bookmarkSlice.actions;
 export default bookmarkSlice.reducer;

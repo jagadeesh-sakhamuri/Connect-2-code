@@ -35,6 +35,7 @@ export interface ProblemState {
   pagination: ProblemPagination;
   activeListKey: string | null;
   activeDetailKey: string | null;
+  currentRequestId: string | null;
   listCache: Record<string, ProblemListCacheEntry>;
   detailCache: Record<string, ProblemDetailCacheEntry>;
 }
@@ -58,6 +59,7 @@ const initialState: ProblemState = {
   },
   activeListKey: null,
   activeDetailKey: null,
+  currentRequestId: null,
   listCache: {},
   detailCache: {},
 };
@@ -87,7 +89,50 @@ const getProblemDetailKey = (id: string | number): string => String(id).trim().t
 const isFresh = (fetchedAt: number, ttlMs: number): boolean =>
   fetchedAt > 0 && Date.now() - fetchedAt < ttlMs;
 
-const applyLocalProblemState = (problems: Problem[]): Problem[] => problems;
+export const sanitizeProblemFilters = (params?: ProblemFilter): ProblemFilter | undefined => {
+  if (!params) return undefined;
+  const sanitized: ProblemFilter = {};
+  if (params.page !== undefined) sanitized.page = params.page;
+  if (params.limit !== undefined) sanitized.limit = params.limit;
+
+  const search = params.searchText?.trim() || params.search?.trim();
+  if (search) {
+    sanitized.searchText = search;
+    sanitized.search = search;
+  }
+
+  if (params.category?.trim()) sanitized.category = params.category.trim();
+
+  const cleanArray = (val: unknown): (number | string)[] | undefined => {
+    if (!val) return undefined;
+    const items = Array.isArray(val) ? val : [val];
+    const cleaned = items
+      .map((item) => (typeof item === 'string' ? item.trim() : item))
+      .filter((item) => {
+        if (item === undefined || item === null || item === '') return false;
+        if (typeof item === 'number') return Number.isFinite(item) && item > 0;
+        return true;
+      });
+    return cleaned.length > 0 ? (cleaned as (number | string)[]) : undefined;
+  };
+
+  const difficulty = cleanArray(params.difficulty ?? params.level);
+  if (difficulty) {
+    sanitized.difficulty = difficulty as any;
+    sanitized.level = difficulty as any;
+  }
+
+  const topic = cleanArray(params.topic);
+  if (topic) sanitized.topic = topic as any;
+
+  const companies = cleanArray(params.companies ?? params.company);
+  if (companies) {
+    sanitized.companies = companies as any;
+    sanitized.company = companies as any;
+  }
+
+  return sanitized;
+};
 
 const trimCache = <T extends { fetchedAt: number }>(
   cache: Record<string, T>,
@@ -97,10 +142,15 @@ const trimCache = <T extends { fetchedAt: number }>(
   return Object.fromEntries(entries.slice(0, maxEntries));
 };
 
+let activeListSignal: AbortSignal | null = null;
+let activeDetailSignal: AbortSignal | null = null;
+
 export const fetchProblems = createAsyncThunk(
   'problems/fetchList',
   async (params: ProblemFilter | undefined, { rejectWithValue, getState, signal }) => {
-    const key = getProblemListKey(params);
+    activeListSignal = signal;
+    const sanitizedParams = sanitizeProblemFilters(params);
+    const key = getProblemListKey(sanitizedParams);
     const state = getState() as { problems: ProblemState };
     const cached = state.problems.listCache[key];
 
@@ -114,7 +164,7 @@ export const fetchProblems = createAsyncThunk(
     }
 
     try {
-      const res = await problemService.getProblems(params, signal);
+      const res = await problemService.getProblems(sanitizedParams, signal);
       const problems = Array.isArray(res.data) ? res.data : [];
       const total = res.meta?.total ?? problems.length;
       const limit = res.meta?.limit ?? params?.limit ?? 20;
@@ -144,6 +194,9 @@ export const fetchProblems = createAsyncThunk(
       const cached = state.problems.listCache[key];
 
       if (state.problems.loading && state.problems.activeListKey === key) {
+        if (activeListSignal && activeListSignal.aborted) {
+          return true;
+        }
         return false;
       }
 
@@ -155,6 +208,7 @@ export const fetchProblems = createAsyncThunk(
 export const fetchProblemById = createAsyncThunk(
   'problems/fetchById',
   async (id: string, { rejectWithValue, getState, signal }) => {
+    activeDetailSignal = signal;
     const key = getProblemDetailKey(id);
     const state = getState() as { problems: ProblemState };
     const cached = state.problems.detailCache[key];
@@ -188,10 +242,24 @@ export const fetchProblemById = createAsyncThunk(
       const cached = state.problems.detailCache[key];
 
       if (state.problems.loading && state.problems.activeDetailKey === key) {
+        if (activeDetailSignal && activeDetailSignal.aborted) {
+          return true;
+        }
         return false;
       }
 
-      return !(cached && isFresh(cached.fetchedAt, PROBLEM_DETAIL_CACHE_TTL_MS) && state.problems.activeDetailKey === key);
+      if (
+        state.problems.selectedProblem &&
+        (getProblemDetailKey(state.problems.selectedProblem.id) === key ||
+          (state.problems.selectedProblem.slug &&
+            getProblemDetailKey(state.problems.selectedProblem.slug) === key)) &&
+        cached &&
+        isFresh(cached.fetchedAt, PROBLEM_DETAIL_CACHE_TTL_MS)
+      ) {
+        return false;
+      }
+
+      return true;
     },
   }
 );
@@ -217,6 +285,7 @@ const problemSlice = createSlice({
     builder
       .addCase(fetchProblems.pending, (state, action) => {
         state.loading = true;
+        state.currentRequestId = action.meta.requestId;
         state.error = null;
         state.activeListKey = getProblemListKey(action.meta.arg);
       })
@@ -230,26 +299,49 @@ const problemSlice = createSlice({
           MAX_LIST_CACHE_ENTRIES
         );
 
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        if (isCurrent) {
+          state.loading = false;
+          state.currentRequestId = null;
+        }
+
         if (state.activeListKey !== key) {
           return;
         }
 
-        state.loading = false;
-        state.problems = applyLocalProblemState(problems);
+        state.problems = problems;
         state.pagination = pagination;
       })
       .addCase(fetchProblems.rejected, (state, action) => {
-        if (action.meta.aborted || state.activeListKey !== getProblemListKey(action.meta.arg)) {
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        const key = getProblemListKey(action.meta.arg);
+
+        if (action.meta.aborted) {
+          if (isCurrent) {
+            state.loading = false;
+            state.currentRequestId = null;
+            if (state.activeListKey === key) {
+              state.activeListKey = null;
+            }
+          }
           return;
         }
 
-        state.loading = false;
-        state.error = (action.payload as string) || action.error.message || 'Failed to fetch problems';
+        if (isCurrent) {
+          state.loading = false;
+          state.currentRequestId = null;
+        }
 
+        if (state.activeListKey !== key) {
+          return;
+        }
+
+        state.error = (action.payload as string) || action.error.message || 'Failed to fetch problems';
         state.problems = [];
       })
       .addCase(fetchProblemById.pending, (state, action) => {
         state.loading = true;
+        state.currentRequestId = action.meta.requestId;
         state.error = null;
         state.activeDetailKey = getProblemDetailKey(action.meta.arg);
         state.selectedProblem = null;
@@ -264,23 +356,43 @@ const problemSlice = createSlice({
           MAX_DETAIL_CACHE_ENTRIES
         );
 
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        if (isCurrent) {
+          state.loading = false;
+          state.currentRequestId = null;
+        }
+
         if (state.activeDetailKey !== key) {
           return;
         }
 
-        state.loading = false;
-        state.selectedProblem = problem
-          ? applyLocalProblemState([problem])[0]
-          : null;
+        state.selectedProblem = problem || null;
       })
       .addCase(fetchProblemById.rejected, (state, action) => {
-        if (action.meta.aborted || state.activeDetailKey !== getProblemDetailKey(action.meta.arg)) {
+        const isCurrent = state.currentRequestId === action.meta.requestId;
+        const key = getProblemDetailKey(action.meta.arg);
+
+        if (action.meta.aborted) {
+          if (isCurrent) {
+            state.loading = false;
+            state.currentRequestId = null;
+            if (state.activeDetailKey === key) {
+              state.activeDetailKey = null;
+            }
+          }
           return;
         }
 
-        state.loading = false;
-        state.error = (action.payload as string) || action.error.message || 'Failed to fetch problem detail';
+        if (isCurrent) {
+          state.loading = false;
+          state.currentRequestId = null;
+        }
 
+        if (state.activeDetailKey !== key) {
+          return;
+        }
+
+        state.error = (action.payload as string) || action.error.message || 'Failed to fetch problem detail';
         state.selectedProblem = null;
       });
   },

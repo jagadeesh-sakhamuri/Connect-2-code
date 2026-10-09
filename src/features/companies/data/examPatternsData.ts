@@ -44,6 +44,7 @@ export interface CompanyExamPattern {
   category: 'Service Giant' | 'Product Global' | 'Consulting & Core' | 'FinTech & Quant';
   logoTag: string;
   logoUrl: string;
+  logo?: string;
   roles: string;
   hiringRoles: HiringRole[];
   ctcPackage: string;

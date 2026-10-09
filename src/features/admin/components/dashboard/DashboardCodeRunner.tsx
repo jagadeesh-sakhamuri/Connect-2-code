@@ -59,6 +59,7 @@ int main() {
     return 0;
 }
 `,
+  // Monaco starter template for user solution (standard output for Judge0 execution):
   JavaScript: `const fs = require('fs');
 
 function solve() {
@@ -202,10 +203,10 @@ export const DashboardCodeRunner: React.FC = () => {
         sourceCode,
       });
 
-      const data = res?.data || res;
+      const data = (res as any)?.data || res;
       setResult(data);
-      setExecutionMessage(res?.message || 'Code Executed Successfully (Sample Test Cases)');
-      toast.success(res?.message || 'Admin test completed on sample test cases!');
+      setExecutionMessage((res as any)?.message || 'Code Executed Successfully (Sample Test Cases)');
+      toast.success((res as any)?.message || 'Admin test completed on sample test cases!');
     } catch (err: any) {
       const msg = err?.message || 'Admin testCode execution failed';
       toast.error(msg);
@@ -249,10 +250,10 @@ export const DashboardCodeRunner: React.FC = () => {
         sourceCode,
       });
 
-      const data = res?.data || res;
+      const data = (res as any)?.data || res;
       setResult(data);
-      setExecutionMessage(res?.message || 'Code Submitted Successfully (Full Test Suite)');
-      toast.success(res?.message || 'Admin validation completed across all test cases!');
+      setExecutionMessage((res as any)?.message || 'Code Submitted Successfully (Full Test Suite)');
+      toast.success((res as any)?.message || 'Admin validation completed across all test cases!');
     } catch (err: any) {
       const msg = err?.message || 'Admin submitCode validation failed';
       toast.error(msg);

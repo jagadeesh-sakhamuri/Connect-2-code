@@ -13,6 +13,7 @@ import type {
   QuestionTestCase,
 } from '../../core/types/domain';
 import { executionService } from '../executionService';
+import { questionService } from '../questionService';
 export type PageRequestPayload = PageRequest;
 export type QuestionListRequestPayload = QuestionListRequest;
 export type QuestionListItem = DomainQuestionListItem;
@@ -39,15 +40,15 @@ export const adminQuestionService = {
    * Fetches single question statement and details directly from Java backend.
    */
   async getQuestionById(id: string | number, signal?: AbortSignal): Promise<ApiResponse<QuestionPayload>> {
-    return apiClient.get(API_ENDPOINTS.QUESTION.DETAILS(id), { signal });
+    return questionService.getById(id, signal);
   },
 
   /**
    * POST /api/v1/question
    * Saves a new question or updates an existing question in the Java database.
    */
-  async saveOrUpdateQuestion(payload: QuestionPayload): Promise<ApiResponse<QuestionPayload>> {
-    return apiClient.post(API_ENDPOINTS.QUESTION.BASE, payload);
+  async saveOrUpdateQuestion(payload: QuestionPayload, signal?: AbortSignal): Promise<ApiResponse<QuestionPayload>> {
+    return questionService.saveOrUpdate(payload, signal);
   },
 
   /**
@@ -55,7 +56,7 @@ export const adminQuestionService = {
    * Attaches test cases to a question in the Java database.
    */
   async addTestCases(id: string | number, testCases: QuestionTestCase[], signal?: AbortSignal): Promise<ApiResponse<QuestionTestCase[]>> {
-    return apiClient.post(API_ENDPOINTS.QUESTION.TEST_CASES(id), testCases, { signal });
+    return questionService.addTestCases(id, testCases, signal);
   },
 
   /**

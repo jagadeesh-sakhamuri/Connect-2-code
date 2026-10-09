@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProblems } from '../redux/problemSlice';
 import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
@@ -17,18 +17,50 @@ export const ProblemList: React.FC = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawPage = searchParams.get('page');
+  const parsedPage = Number(rawPage || '1');
+  const currentPage = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
+
+  // Sanitize invalid page query parameters (F-031)
+  useEffect(() => {
+    if (rawPage !== null && (!Number.isInteger(parsedPage) || parsedPage < 1)) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('page', '1');
+        return next;
+      }, { replace: true });
+    }
+  }, [rawPage, parsedPage, setSearchParams]);
+
+  // Normalize out-of-bounds page query parameters when total pages decrease (F-031)
+  useEffect(() => {
+    if (!loading && pagination.totalPages > 0 && currentPage > pagination.totalPages) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set('page', String(pagination.totalPages));
+        return next;
+      }, { replace: true });
+    }
+  }, [loading, pagination.totalPages, currentPage, setSearchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchInput.trim());
-      setCurrentPage(1);
+      if (rawPage && rawPage !== '1') {
+        setSearchParams((prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('page', '1');
+          return next;
+        }, { replace: true });
+      }
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [searchInput, rawPage, setSearchParams]);
 
   useEffect(() => {
     const request = dispatch(
@@ -88,6 +120,7 @@ export const ProblemList: React.FC = () => {
       return;
     }
 
+    const isCurrentlyBookmarked = bookmarks.some((b) => b.itemId === problem.id);
     dispatch(
       toggleBookmarkItem({
         itemId: problem.id,
@@ -96,11 +129,22 @@ export const ProblemList: React.FC = () => {
         difficulty: problem.difficulty,
         category: problem.category || problem.topic || '',
       })
-    );
+    )
+      .unwrap()
+      .then(() => {
+        toast.success(isCurrentlyBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
+      })
+      .catch((err: any) => {
+        toast.error(typeof err === 'string' ? err : 'Failed to update bookmark');
+      });
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('page', String(page));
+      return next;
+    }, { replace: true });
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
@@ -203,8 +247,8 @@ export const ProblemList: React.FC = () => {
                           >
                             {problem.title}
                           </Link>
-                          <div className="text-[11px] text-gray-500 mt-1">
-                            {problem.id}
+                          <div className="text-[11px] text-gray-500 mt-1 font-mono">
+                            {problem.slug ? problem.slug : (problem.topic || problem.category || '')}
                           </div>
                         </div>
                       </div>

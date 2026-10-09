@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { fetchProblems, resetFilters } from '../redux/problemSlice';
@@ -8,7 +8,7 @@ import { openAuthModal } from '../../auth/redux/authSlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import { Pagination } from '../../../shared/components/ui/Pagination';
-import type { ReferenceItem } from '../../../core/types/domain';
+import type { Problem, ReferenceItem } from '../../../core/types/domain';
 import { fetchReferenceGroup } from '../../references/redux/referenceSlice';
 import { fetchCompanies } from '../../companies/redux/companySlice';
 // import { GfgLogoIcon, LeetCodeLogoIcon, HackerRankLogoIcon } from '../../../shared/components/ui/PlatformIcons';
@@ -31,36 +31,58 @@ export const PracticePage: React.FC = () => {
   const activeSheetTabParam = searchParams.get('tab');
   const activeSheetTab: 'all' | 'answered' | 'bookmarked' =
     activeSheetTabParam === 'answered' || activeSheetTabParam === 'bookmarked' ? activeSheetTabParam : 'all';
-  const searchInput = searchParams.get('q') || '';
+  const searchInputParam = searchParams.get('q') || '';
   const selectedTopic = searchParams.get('topic') || '';
   const selectedDifficulty = searchParams.get('difficulty') || '';
   const selectedCompany = searchParams.get('company') || '';
-  const parsedPage = Number(searchParams.get('page') || '1');
-  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-  const [debouncedSearch, setDebouncedSearch] = useState(searchInput);
+  const rawPage = searchParams.get('page');
+  const parsedPage = Number(rawPage || '1');
+  const currentPage = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const [searchInput, setSearchInput] = useState(searchInputParam);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchInputParam);
 
-  const updatePracticeParams = (updates: Record<string, string | null>) => {
-    setSearchParams((previous) => {
-      const next = new URLSearchParams(previous);
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value === null || value === '') next.delete(key);
-        else next.set(key, value);
-      });
-      return next;
-    }, { replace: true, preventScrollReset: true });
-  };
+  const updatePracticeParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      setSearchParams((previous) => {
+        const next = new URLSearchParams(previous);
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value === null || value === '') next.delete(key);
+          else next.set(key, value);
+        });
+        return next;
+      }, { replace: true, preventScrollReset: true });
+    },
+    [setSearchParams]
+  );
+
+  // Sanitize invalid page query parameters (F-031)
+  useEffect(() => {
+    if (rawPage !== null && (!Number.isInteger(parsedPage) || parsedPage < 1)) {
+      updatePracticeParams({ page: '1' });
+    }
+  }, [rawPage, parsedPage, updatePracticeParams]);
+
+  // Synchronize local search input if URL changes externally
+  useEffect(() => {
+    setSearchInput(searchInputParam);
+    setDebouncedSearch(searchInputParam);
+  }, [searchInputParam]);
+
+  // Debounce search input by 300ms before pushing URL updates (F-021)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      if (trimmed !== searchInputParam) {
+        updatePracticeParams({ q: trimmed || null, page: '1' });
+      }
+      setDebouncedSearch(trimmed);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, searchInputParam, updatePracticeParams]);
 
   const difficulties: ReferenceItem[] = referenceGroups.DIFF ?? [];
   const topics: ReferenceItem[] = referenceGroups.TOPIC ?? [];
   const companies = serverCompanies;
-
-  // Debounce search input by 300ms
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
 
   // Load filter catalog data through Redux instead of calling services from the page.
   useEffect(() => {
@@ -103,12 +125,13 @@ export const PracticePage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setDebouncedSearch(searchInput);
-    updatePracticeParams({ page: '1' });
+    const trimmed = searchInput.trim();
+    setDebouncedSearch(trimmed);
+    updatePracticeParams({ q: trimmed || null, page: '1' });
   };
 
   const handleSearchChange = (value: string) => {
-    updatePracticeParams({ q: value || null, page: '1' });
+    setSearchInput(value);
   };
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -145,6 +168,7 @@ export const PracticePage: React.FC = () => {
       dispatch(openAuthModal({ mode: 'login' }));
       return;
     }
+    const isCurrentlyBookmarked = bookmarks.some((b) => String(b.itemId) === String(problem.id));
     dispatch(
       toggleBookmarkItem({
         itemId: problem.id,
@@ -153,29 +177,110 @@ export const PracticePage: React.FC = () => {
         difficulty: problem.difficulty,
         category: problem.category || problem.topic || '',
       })
-    );
-    toast.success('Bookmark updated');
+    )
+      .unwrap()
+      .then(() => {
+        toast.success(isCurrentlyBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
+      })
+      .catch((err: any) => {
+        toast.error(typeof err === 'string' ? err : 'Failed to update bookmark');
+      });
   };
 
   const handleTabChange = (tab: 'all' | 'answered' | 'bookmarked') => {
-    updatePracticeParams({ tab: tab === 'all' ? null : tab });
+    updatePracticeParams({ tab: tab === 'all' ? null : tab, page: '1' });
   };
 
   const handleResetFilters = () => {
+    setSearchInput('');
     setDebouncedSearch('');
     setSearchParams(new URLSearchParams(), { replace: true, preventScrollReset: true });
     dispatch(resetFilters());
   };
 
-  // Client-side Tab Filtering for Answered / Bookmarked
-  const displayedProblems = problems.filter((p) => {
-    if (activeSheetTab === 'answered') return solvedByProblemId[p.id] ?? p.isSolved;
-    if (activeSheetTab === 'bookmarked') return p.isBookmarked || bookmarks.some((b) => b.itemId === p.id);
-    return true;
-  });
+  // Client-side Tab Filtering & Synthesis for Answered / Bookmarked (F-002)
+  const problemBookmarks = useMemo(
+    () => bookmarks.filter((b) => b.type === 'PROBLEM'),
+    [bookmarks]
+  );
 
-  const solvedCount = problems.filter((p) => solvedByProblemId[p.id] ?? p.isSolved).length;
-  const progressPercent = Math.round((solvedCount / (problems.length || 1)) * 100);
+  const displayedProblems = useMemo(() => {
+    if (activeSheetTab === 'answered') {
+      return problems.filter((p) => Boolean(solvedByProblemId[p.id] ?? p.isSolved));
+    }
+    if (activeSheetTab === 'bookmarked') {
+      const bookmarkedIds = new Set(problemBookmarks.map((b) => String(b.itemId)));
+      const onScreenBookmarked = problems.filter((p) => bookmarkedIds.has(String(p.id)) || p.isBookmarked);
+      if (onScreenBookmarked.length > 0) return onScreenBookmarked;
+
+      return problemBookmarks.map((b) => ({
+        id: String(b.itemId),
+        title: b.title || `Problem #${b.itemId}`,
+        slug: String(b.itemId),
+        difficulty: (b.difficulty as any) || 'Medium',
+        topic: b.category || 'General',
+        category: b.category || 'General',
+        companies: [],
+        acceptanceRate: '',
+        isBookmarked: true,
+        isSolved: Boolean(solvedByProblemId[b.itemId]),
+      })) as Problem[];
+    }
+    return problems;
+  }, [activeSheetTab, problems, solvedByProblemId, problemBookmarks]);
+
+  // Global solved stats calculated against full catalog total (F-003)
+  const isFiltered = Boolean(debouncedSearch.trim() || selectedTopic || selectedDifficulty || selectedCompany);
+  const totalCatalogProblems =
+    pagination.total > 0
+      ? pagination.total
+      : pagination.total === 0 && !loading && problems.length === 0
+      ? 0
+      : problems.length;
+
+  const globalSolvedCount = Object.values(solvedByProblemId).filter(Boolean).length;
+  const rawSolvedCount =
+    activeSheetTab === 'bookmarked'
+      ? displayedProblems.filter((p) => Boolean(solvedByProblemId[p.id] ?? p.isSolved)).length
+      : isFiltered
+      ? problems.filter((p) => Boolean(solvedByProblemId[p.id] ?? p.isSolved)).length
+      : globalSolvedCount > 0
+      ? globalSolvedCount
+      : problems.filter((p) => Boolean(solvedByProblemId[p.id] ?? p.isSolved)).length;
+
+  const solvedCount = totalCatalogProblems > 0 ? Math.min(rawSolvedCount, totalCatalogProblems) : 0;
+  const progressPercent = totalCatalogProblems > 0
+    ? Math.min(100, Math.round((solvedCount / totalCatalogProblems) * 100))
+    : 0;
+
+  // Pagination totals per tab (F-002)
+  const tabTotalElements =
+    activeSheetTab === 'all'
+      ? pagination.total || problems.length
+      : activeSheetTab === 'bookmarked'
+      ? problemBookmarks.length || displayedProblems.length
+      : globalSolvedCount || displayedProblems.length;
+
+  const tabTotalPages =
+    activeSheetTab === 'all'
+      ? pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1
+      : Math.ceil((tabTotalElements || 1) / pageSize) || 1;
+
+  // Client-side pagination slicing for bookmarked/answered tabs (F-002)
+  const paginatedProblems = useMemo(() => {
+    if (activeSheetTab === 'all') {
+      return displayedProblems;
+    }
+    const startIndex = (currentPage - 1) * pageSize;
+    return displayedProblems.slice(startIndex, startIndex + pageSize);
+  }, [activeSheetTab, displayedProblems, currentPage, pageSize]);
+
+  // Normalize out-of-bounds page query parameters when total pages decrease (F-031)
+  useEffect(() => {
+    if (!loading && tabTotalPages > 0 && currentPage > tabTotalPages) {
+      updatePracticeParams({ page: String(tabTotalPages) });
+    }
+  }, [loading, tabTotalPages, currentPage, updatePracticeParams]);
 
   return (
     <div className="w-full flex flex-col items-center pb-16 font-sans">
@@ -233,7 +338,7 @@ export const PracticePage: React.FC = () => {
             <div className="flex items-center gap-2 bg-[#202225] px-3 py-1.5 rounded-lg border border-white/10">
               <span className="text-gray-400">Solved:</span>
               <span className="font-bold text-[#A3E635]">
-                {solvedCount} / {problems.length}
+                {solvedCount} / {totalCatalogProblems}
               </span>
             </div>
             <div className="flex items-center gap-2 bg-[#202225] px-3 py-1.5 rounded-lg border border-white/10">
@@ -322,15 +427,25 @@ export const PracticePage: React.FC = () => {
           </div>
         ) : displayedProblems.length === 0 ? (
           <EmptyState
-            title="No practice problems found"
-            description="No problem matches your search criteria or filter options."
-            actionText="Reset All Filters"
-            onAction={handleResetFilters}
-            icon={<i className="fa-solid fa-code text-2xl text-gray-500"></i>}
+            title={activeSheetTab === 'bookmarked' ? 'No bookmarked problems' : 'No practice problems found'}
+            description={
+              activeSheetTab === 'bookmarked'
+                ? 'You have not bookmarked any problems yet.'
+                : 'No problem matches your search criteria or filter options.'
+            }
+            actionText={activeSheetTab === 'bookmarked' ? undefined : 'Reset All Filters'}
+            onAction={activeSheetTab === 'bookmarked' ? undefined : handleResetFilters}
+            icon={
+              <i
+                className={`fa-solid ${
+                  activeSheetTab === 'bookmarked' ? 'fa-star text-amber-400' : 'fa-code text-gray-500'
+                } text-2xl`}
+              ></i>
+            }
           />
         ) : (
           <div className="flex flex-col gap-2.5">
-            {displayedProblems.map((problem) => {
+            {paginatedProblems.map((problem) => {
               const isBookmarked = problem.isBookmarked || bookmarks.some((b) => b.itemId === problem.id);
               const companyList = problem.companies || [];
 
@@ -343,6 +458,7 @@ export const PracticePage: React.FC = () => {
                     {/* Tick / Untick Button */}
                     <button
                       onClick={(e) => handleSolveToggle(problem.id, e)}
+                      aria-label={(solvedByProblemId[problem.id] ?? problem.isSolved) ? 'Mark as Not Answered' : 'Mark as Answered'}
                       className={`text-lg transition-colors shrink-0 cursor-pointer ${
                         (solvedByProblemId[problem.id] ?? problem.isSolved) ? 'text-[#A3E635]' : 'text-gray-600 hover:text-gray-400'
                       }`}
@@ -354,6 +470,7 @@ export const PracticePage: React.FC = () => {
                     {/* Bookmark Star Button */}
                     <button
                       onClick={(e) => handleBookmarkToggle(problem, e)}
+                      aria-label={isBookmarked ? 'Remove Bookmark' : 'Bookmark Question'}
                       className={`p-1.5 rounded-md border transition-all text-xs shrink-0 cursor-pointer ${
                         isBookmarked
                           ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
@@ -470,12 +587,8 @@ export const PracticePage: React.FC = () => {
         <div className="mt-8">
           <Pagination
             currentPage={currentPage}
-            totalPages={
-              activeSheetTab === 'all'
-                ? pagination.totalPages || Math.ceil((pagination.total || 0) / pageSize) || 1
-                : Math.ceil((displayedProblems.length || 0) / pageSize) || 1
-            }
-            totalElements={activeSheetTab === 'all' ? pagination.total : displayedProblems.length}
+            totalPages={tabTotalPages}
+            totalElements={tabTotalElements}
             pageSize={pageSize}
             onPageChange={handlePageChange}
           />

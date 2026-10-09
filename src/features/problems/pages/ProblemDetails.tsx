@@ -7,13 +7,19 @@ import { fetchProblemById } from '../redux/problemSlice';
 import { markSolvedProblem } from '../../progress/redux/progressSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
 import { fetchLanguages } from '../../languages/redux/languageSlice';
-import type { Problem } from '../../../core/types/domain';
 import {
   executionService,
   LanguageDropdownItem,
   ExecutionResultData,
 } from '../../../services/executionService';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
+import { NotFound } from '../../../shared/components/errors/NotFound';
+import { EmptyState } from '../../../shared/components/ui/EmptyState';
+import {
+  resolveActiveQuestionId,
+  canExecuteProblem,
+} from '../utils/problemExecution';
+import { getProblemEditorial } from '../utils/problemEditorial';
 import { toast } from 'react-hot-toast';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 
@@ -38,24 +44,6 @@ interface SubmissionRecord {
   memoryMb?: number | string;
   language: string;
   timestamp: string;
-}
-
-interface EditorialApproach {
-  intuition: string;
-  bruteForce: {
-    title: string;
-    description: string;
-    timeComplexity: string;
-    spaceComplexity: string;
-  };
-  optimal: {
-    title: string;
-    description: string;
-    timeComplexity: string;
-    spaceComplexity: string;
-    pseudocode?: string;
-  };
-  tips: string[];
 }
 
 const DEFAULT_STARTER_CODE: Record<string, string> = {
@@ -106,165 +94,9 @@ solve();
 `,
 };
 
-/**
- * Editorial generator providing takeUforward/LeetCode style DSA breakdowns
- */
-function getProblemEditorial(p: Problem | null): EditorialApproach {
-  const title = (p?.title || '').toLowerCase();
-  const topic = (p?.topicRefName || p?.topic || '').toLowerCase();
-
-  if (title.includes('largest') && !title.includes('second')) {
-    return {
-      intuition:
-        'To find the maximum element in an unsorted array, we examine each element sequentially while maintaining a running maximum value.',
-      bruteForce: {
-        title: 'Sorting Approach',
-        description: 'Sort the entire array in ascending order and return the element at the last index (n - 1).',
-        timeComplexity: 'O(N log N)',
-        spaceComplexity: 'O(1)',
-      },
-      optimal: {
-        title: 'Single-Pass Linear Scan',
-        description:
-          'Initialize a variable `maxVal` with the first element `arr[0]`. Iterate through indices 1 to n - 1, updating `maxVal = max(maxVal, arr[i])`.',
-        timeComplexity: 'O(N)',
-        spaceComplexity: 'O(1)',
-        pseudocode: `int maxVal = arr[0];
-for (int i = 1; i < n; i++) {
-    if (arr[i] > maxVal) {
-        maxVal = arr[i];
-    }
-}
-return maxVal;`,
-      },
-      tips: [
-        'Always initialize with arr[0] or Integer.MIN_VALUE instead of 0 to support arrays containing only negative integers.',
-        'Single element arrays (n = 1) should instantly return arr[0].',
-      ],
-    };
-  }
-
-  if (title.includes('second largest')) {
-    return {
-      intuition:
-        'We need the greatest value that is strictly less than the array maximum. Tracking two running variables lets us accomplish this in a single scan.',
-      bruteForce: {
-        title: 'Two-Pass Scan / Sorting',
-        description:
-          'Sort the array (O(N log N)) or find the maximum in pass 1, then find the greatest element strictly smaller than max in pass 2.',
-        timeComplexity: 'O(N log N) or O(2N)',
-        spaceComplexity: 'O(1)',
-      },
-      optimal: {
-        title: 'Single-Pass Dual Variable Tracking',
-        description:
-          'Maintain `largest = -1` and `secondLargest = -1`. For each element, update both variables conditionally when a strictly larger value appears.',
-        timeComplexity: 'O(N)',
-        spaceComplexity: 'O(1)',
-        pseudocode: `int largest = arr[0], second = -1;
-for (int i = 1; i < n; i++) {
-    if (arr[i] > largest) {
-        second = largest;
-        largest = arr[i];
-    } else if (arr[i] < largest && arr[i] > second) {
-        second = arr[i];
-    }
-}
-return second;`,
-      },
-      tips: [
-        'If all elements in the array are identical (e.g., [10, 10, 10]), return -1 as no second largest exists.',
-        'Beware of duplicate maximums.',
-      ],
-    };
-  }
-
-  if (title.includes('reverse') && title.includes('array')) {
-    return {
-      intuition:
-        'Reversing an array is equivalent to swapping symmetrical elements moving from both boundary ends inward toward the center.',
-      bruteForce: {
-        title: 'Auxiliary Array Method',
-        description:
-          'Allocate a new array of size N. Iterate the original array backwards from n - 1 to 0 and insert into the auxiliary array.',
-        timeComplexity: 'O(N)',
-        spaceComplexity: 'O(N)',
-      },
-      optimal: {
-        title: 'Two-Pointers In-Place Swap',
-        description:
-          'Place `left = 0` and `right = n - 1`. While `left < right`, swap `arr[left]` and `arr[right]`, then advance `left++` and decrement `right--`.',
-        timeComplexity: 'O(N)',
-        spaceComplexity: 'O(1)',
-        pseudocode: `int left = 0, right = n - 1;
-while (left < right) {
-    swap(arr[left], arr[right]);
-    left++;
-    right--;
-}`,
-      },
-      tips: [
-        'Loop condition must be `left < right` (not `left <= right`) to avoid redundant self-swaps.',
-        'This in-place algorithm uses zero extra memory.',
-      ],
-    };
-  }
-
-  if (title.includes('two sum') || title.includes('sum')) {
-    return {
-      intuition:
-        'For any element X, the required complement to reach the target is (target - X). A hash table allows O(1) existence checks.',
-      bruteForce: {
-        title: 'Nested Loops',
-        description: 'Iterate over all pairs (i, j) with i < j and check if arr[i] + arr[j] == target.',
-        timeComplexity: 'O(N²)',
-        spaceComplexity: 'O(1)',
-      },
-      optimal: {
-        title: 'Hash Map Lookup',
-        description:
-          'Maintain a hash map of value to index. As you iterate each number, check if (target - arr[i]) exists in the map.',
-        timeComplexity: 'O(N)',
-        spaceComplexity: 'O(N)',
-        pseudocode: `Map<Integer, Integer> map = new HashMap<>();
-for (int i = 0; i < n; i++) {
-    int complement = target - arr[i];
-    if (map.containsKey(complement)) {
-        return new int[]{map.get(complement), i};
-    }
-    map.put(arr[i], i);
-}`,
-      },
-      tips: [
-        'The same element cannot be used twice.',
-        'Hash map average lookup time is O(1), making this optimal for large arrays.',
-      ],
-    };
-  }
-
-  // No verified editorial is available for unrecognized problems.
-  return {
-    intuition: 'Editorial content is not available for this problem.',
-    bruteForce: {
-      title: 'Editorial unavailable',
-      description: 'No verified brute-force approach has been provided for this problem.',
-      timeComplexity: '—',
-      spaceComplexity: '—',
-    },
-    optimal: {
-      title: 'Editorial unavailable',
-      description: 'No verified optimal approach has been provided for this problem.',
-      timeComplexity: '—',
-      spaceComplexity: '—',
-    },
-    tips: [],
-  };
-}
-
 export const ProblemDetails: React.FC = () => {
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
-  const questionIdParam = id || slug || '1';
-  const numericQuestionId = Number(questionIdParam) || 1;
+  const problemIdentifier = id || slug || '';
 
   const dispatch = useAppDispatch();
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
@@ -274,7 +106,7 @@ export const ProblemDetails: React.FC = () => {
   const isAdmin = isAuthenticated && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN');
 
   // Server state owned by Redux; only editor/execution/UI state stays local.
-  const { selectedProblem: problem, loading: loadingProblem } = useAppSelector((state) => state.problems);
+  const { selectedProblem: problem, loading: loadingProblem, error: problemError } = useAppSelector((state) => state.problems);
   const { languages: serverLanguages, loading: loadingLanguages } = useAppSelector((state) => state.languages);
 
   const languages = serverLanguages;
@@ -301,15 +133,46 @@ export const ProblemDetails: React.FC = () => {
   const [leftTab, setLeftTab] = useState<'description' | 'editorial' | 'submissions' | 'companies' | 'hints'>('description');
   const [bottomTab, setBottomTab] = useState<'testcases' | 'results'>('testcases');
 
-  // Submissions history for this session / problem
-  const [submissionsHistory, setSubmissionsHistory] = useState<SubmissionRecord[]>(() => {
-    try {
-      const saved = userScopedStorage.getItem(`submissions_${numericQuestionId}`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
+  // Check whether the currently loaded problem entity matches this route's identifier
+  const isProblemLoadedForRoute = Boolean(
+    problem &&
+      (String(problem.id) === String(problemIdentifier) ||
+        (problem.slug && problem.slug.toLowerCase() === problemIdentifier.toLowerCase()))
+  );
+
+  // Active question ID resolved from loaded problem entity (F-001, F-016)
+  const activeQuestionId = useMemo(
+    () => resolveActiveQuestionId(problem, problemIdentifier),
+    [problem, problemIdentifier]
+  );
+
+  // Execution readiness state (F-016)
+  const isExecutionReady = useMemo(
+    () =>
+      canExecuteProblem({
+        isExecuting,
+        loadingProblem,
+        activeQuestionId,
+        selectedLanguage,
+      }),
+    [isExecuting, loadingProblem, activeQuestionId, selectedLanguage]
+  );
+
+  // Submissions history scoped to active question ID
+  const [submissionsHistory, setSubmissionsHistory] = useState<SubmissionRecord[]>([]);
+
+  useEffect(() => {
+    if (activeQuestionId) {
+      try {
+        const saved = userScopedStorage.getItem(`submissions_${activeQuestionId}`);
+        setSubmissionsHistory(saved ? JSON.parse(saved) : []);
+      } catch {
+        setSubmissionsHistory([]);
+      }
+    } else {
+      setSubmissionsHistory([]);
     }
-  });
+  }, [activeQuestionId]);
 
   // Map language name to Monaco language
   const monacoLang = useMemo(() => {
@@ -335,11 +198,12 @@ export const ProblemDetails: React.FC = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    const request = dispatch(fetchProblemById(questionIdParam));
+    if (!problemIdentifier) return;
+    const request = dispatch(fetchProblemById(problemIdentifier));
     return () => {
       request.abort();
     };
-  }, [dispatch, questionIdParam]);
+  }, [dispatch, problemIdentifier]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -377,7 +241,7 @@ export const ProblemDetails: React.FC = () => {
         [selectedLanguage.id]: newCode,
       }));
     },
-    [selectedLanguage?.id]
+    [selectedLanguage]
   );
 
   // Handle Language Dropdown Change
@@ -446,16 +310,26 @@ export const ProblemDetails: React.FC = () => {
           difficulty: problem.difficultyRefName || problem.difficulty || 'Medium',
           category: problem.topicRefName || problem.topic || '',
         })
-      );
-      toast.success(isBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
+      )
+        .unwrap()
+        .then(() => {
+          toast.success(isBookmarked ? 'Bookmark removed' : 'Problem bookmarked!');
+        })
+        .catch((err: any) => {
+          toast.error(typeof err === 'string' ? err : 'Failed to update bookmark');
+        });
     }
   };
 
   // RUN CODE (Visible Sample Test Cases only)
   const handleRunCode = useCallback(async () => {
-    if (isExecuting || !selectedLanguage) {
-      if (!selectedLanguage) {
+    if (!isExecutionReady || !activeQuestionId || !selectedLanguage) {
+      if (loadingProblem) {
+        toast.error('Please wait for the problem to load');
+      } else if (!selectedLanguage) {
         toast.error('No supported execution language is available');
+      } else if (!activeQuestionId) {
+        toast.error('Problem details unavailable for execution');
       }
       return;
     }
@@ -468,23 +342,17 @@ export const ProblemDetails: React.FC = () => {
     if (consoleHeight === 'collapsed') setConsoleHeight('normal');
 
     const payload = {
-      questionId: numericQuestionId,
+      questionId: activeQuestionId,
       languageId: selectedLanguage.referenceId || selectedLanguage.id,
       sourceCode: currentCode,
     };
 
     try {
-      let result: ExecutionResultData;
-      if (isAdmin) {
-        result = await executionService.adminTestCode(payload);
-        toast.success('Admin: Sample test code executed');
+      const result: ExecutionResultData = await executionService.runCode(payload);
+      if (result.failedTestCases === 0 && result.passedTestCases > 0) {
+        toast.success('Sample test cases passed!');
       } else {
-        result = await executionService.runCode(payload);
-        if (result.failedTestCases === 0 && result.passedTestCases > 0) {
-          toast.success('Sample test cases passed!');
-        } else {
-          toast.error(`${result.failedTestCases} sample case(s) failed`);
-        }
+        toast.error(`${result.failedTestCases} sample case(s) failed`);
       }
       setExecutionResult(result);
       setSelectedTestCaseIdx(0);
@@ -496,13 +364,17 @@ export const ProblemDetails: React.FC = () => {
       setIsExecuting(false);
       setExecutionType(null);
     }
-  }, [isExecuting, numericQuestionId, selectedLanguage, currentCode, isAdmin, consoleHeight]);
+  }, [isExecutionReady, activeQuestionId, selectedLanguage, loadingProblem, currentCode, consoleHeight]);
 
   // SUBMIT CODE (Evaluation across all test cases - TEST CASES ARE HIDDEN)
   const handleSubmitCode = useCallback(async () => {
-    if (isExecuting || !selectedLanguage) {
-      if (!selectedLanguage) {
+    if (!isExecutionReady || !activeQuestionId || !selectedLanguage) {
+      if (loadingProblem) {
+        toast.error('Please wait for the problem to load');
+      } else if (!selectedLanguage) {
         toast.error('No supported execution language is available');
+      } else if (!activeQuestionId) {
+        toast.error('Problem details unavailable for execution');
       }
       return;
     }
@@ -515,24 +387,18 @@ export const ProblemDetails: React.FC = () => {
     if (consoleHeight === 'collapsed') setConsoleHeight('normal');
 
     const payload = {
-      questionId: numericQuestionId,
+      questionId: activeQuestionId,
       languageId: selectedLanguage.referenceId || selectedLanguage.id,
       sourceCode: currentCode,
     };
 
     try {
-      let result: ExecutionResultData;
-      if (isAdmin) {
-        result = await executionService.adminSubmitCode(payload);
-        toast.success('Admin: Code evaluated successfully');
+      const result: ExecutionResultData = await executionService.submitCode(payload);
+      if (result.failedTestCases === 0 && result.passedTestCases > 0) {
+        toast.success('Accepted! All test cases passed!');
+        dispatch(markSolvedProblem({ id: String(activeQuestionId) }));
       } else {
-        result = await executionService.submitCode(payload);
-        if (result.failedTestCases === 0 && result.passedTestCases > 0) {
-          toast.success('Accepted! All test cases passed!');
-          dispatch(markSolvedProblem({ id: String(numericQuestionId) }));
-        } else {
-          toast.error(`Submission: ${result.failedTestCases} test case(s) failed`);
-        }
+        toast.error(`Submission: ${result.failedTestCases} test case(s) failed`);
       }
       setExecutionResult(result);
 
@@ -551,9 +417,11 @@ export const ProblemDetails: React.FC = () => {
 
       setSubmissionsHistory((prev) => {
         const updated = [newRecord, ...prev].slice(0, 10);
-        try {
-          userScopedStorage.setItem(`submissions_${numericQuestionId}`, JSON.stringify(updated));
-        } catch {}
+        if (activeQuestionId) {
+          try {
+            userScopedStorage.setItem(`submissions_${activeQuestionId}`, JSON.stringify(updated));
+          } catch {}
+        }
         return updated;
       });
     } catch (err: any) {
@@ -564,7 +432,7 @@ export const ProblemDetails: React.FC = () => {
       setIsExecuting(false);
       setExecutionType(null);
     }
-  }, [isExecuting, numericQuestionId, selectedLanguage, currentCode, isAdmin, consoleHeight, dispatch]);
+  }, [isExecutionReady, activeQuestionId, selectedLanguage, loadingProblem, currentCode, consoleHeight, dispatch]);
 
   // Keyboard Shortcuts (Ctrl+' or Cmd+' to Run, Ctrl+Enter or Cmd+Enter to Submit)
   useEffect(() => {
@@ -612,7 +480,7 @@ export const ProblemDetails: React.FC = () => {
 
   const editorial = useMemo(() => getProblemEditorial(problem), [problem]);
 
-  if (loadingProblem) {
+  if (loadingProblem || (!isProblemLoadedForRoute && !problemError)) {
     return (
       <div className="w-full max-w-[1700px] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6 font-sans">
         <Skeleton className="h-10 w-80 rounded-xl" />
@@ -622,6 +490,10 @@ export const ProblemDetails: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (!isProblemLoadedForRoute || problemError) {
+    return <NotFound />;
   }
 
   const activeSampleCase = sampleTestCases[selectedTestCaseIdx];
@@ -688,7 +560,7 @@ export const ProblemDetails: React.FC = () => {
           {/* RUN CODE BUTTON */}
           <button
             onClick={handleRunCode}
-            disabled={isExecuting}
+            disabled={!isExecutionReady}
             className="px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold bg-[#222428] hover:bg-white/10 text-white border border-white/15 transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
             title="Run against Sample Test Cases (Ctrl + ')"
           >
@@ -709,7 +581,7 @@ export const ProblemDetails: React.FC = () => {
           {/* SUBMIT CODE BUTTON */}
           <button
             onClick={handleSubmitCode}
-            disabled={isExecuting}
+            disabled={!isExecutionReady}
             className="px-4 py-1.5 rounded-lg font-mono text-xs font-bold bg-[#A3E635] hover:bg-[#b0f53c] text-black transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-95 disabled:opacity-50"
             title="Submit solution for grading (Ctrl + Enter)"
           >
@@ -913,7 +785,16 @@ export const ProblemDetails: React.FC = () => {
 
             {/* 2. EDITORIAL TAB (takeUforward Style) */}
             {leftTab === 'editorial' && (
-              <div className="space-y-5 animate-fade-in">
+              editorial.isUnavailable ? (
+                <div className="py-6 animate-fade-in">
+                  <EmptyState
+                    title="Editorial Under Preparation"
+                    description="Our engineering team is currently preparing the official editorial, optimal algorithms, and complexity breakdown for this problem."
+                    icon={<i className="fa-solid fa-book-open text-2xl text-[#A3E635]"></i>}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-5 animate-fade-in">
                 {/* Intuition Card */}
                 <div className="p-4 bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/30 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider font-mono">
@@ -991,7 +872,8 @@ export const ProblemDetails: React.FC = () => {
                   </div>
                 )}
               </div>
-            )}
+            )
+          )}
 
             {/* 3. SUBMISSIONS TAB (LeetCode Session History) */}
             {leftTab === 'submissions' && (
@@ -1416,22 +1298,30 @@ export const ProblemDetails: React.FC = () => {
                               </span>
                             </div>
 
-                            {activeRunCase.input && (
-                              <div>
-                                <span className="text-gray-500 block mb-1 text-[11px]">Input:</span>
-                                <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-gray-200 overflow-x-auto whitespace-pre-wrap">
-                                  {activeRunCase.input}
-                                </pre>
+                            {activeRunCase.isHidden ? (
+                              <div className="p-3 bg-white/5 border border-white/10 rounded-lg text-gray-400 italic text-xs">
+                                Hidden test case — input and expected output details are hidden.
                               </div>
-                            )}
+                            ) : (
+                              <>
+                                {activeRunCase.input && (
+                                  <div>
+                                    <span className="text-gray-500 block mb-1 text-[11px]">Input:</span>
+                                    <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-gray-200 overflow-x-auto whitespace-pre-wrap">
+                                      {activeRunCase.input}
+                                    </pre>
+                                  </div>
+                                )}
 
-                            {activeRunCase.expectedOutput && (
-                              <div>
-                                <span className="text-gray-500 block mb-1 text-[11px]">Expected Output:</span>
-                                <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-emerald-400 overflow-x-auto whitespace-pre-wrap font-bold">
-                                  {activeRunCase.expectedOutput}
-                                </pre>
-                              </div>
+                                {activeRunCase.expectedOutput && (
+                                  <div>
+                                    <span className="text-gray-500 block mb-1 text-[11px]">Expected Output:</span>
+                                    <pre className="p-2.5 bg-[#18191c] border border-white/10 rounded-lg text-emerald-400 overflow-x-auto whitespace-pre-wrap font-bold">
+                                      {activeRunCase.expectedOutput}
+                                    </pre>
+                                  </div>
+                                )}
+                              </>
                             )}
 
                             {activeRunCase.actualOutput && (

@@ -43,7 +43,7 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
     watch,
     formState: { errors },
   } = useForm<CompanyFormData>({
-    resolver: zodResolver(companySchema),
+    resolver: zodResolver(companySchema) as any,
     defaultValues: {
       id: null,
       name: '',
@@ -57,7 +57,7 @@ export const CompanyFormModal: React.FC<CompanyFormModalProps> = ({
   useEffect(() => {
     if (initialData) {
       reset({
-        id: initialData.id ?? null,
+        id: typeof initialData.id === 'number' ? initialData.id : (initialData.id ? Number(initialData.id) || null : null),
         name: initialData.name || '',
         websiteUrl: initialData.websiteUrl || '',
         logoUrl: initialData.logoUrl || '',

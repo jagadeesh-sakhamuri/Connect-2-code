@@ -53,7 +53,7 @@ export const AdminCompanies: React.FC = () => {
     setIsDetailsOpen(true);
     try {
       const res = await adminCompanyService.getCompanyById(id);
-      const companyData = res?.data || (res?.id ? res : null);
+      const companyData = res?.data || ((res as any)?.id ? (res as any) : null);
       if (companyData) {
         setSelectedCompany(companyData);
       } else {
@@ -72,7 +72,7 @@ export const AdminCompanies: React.FC = () => {
     if (!item.id) return;
     try {
       const res = await adminCompanyService.getCompanyById(item.id);
-      const companyData = res?.data || (res?.id ? res : null);
+      const companyData = res?.data || ((res as any)?.id ? (res as any) : null);
       if (companyData) {
         setSelectedCompany(companyData);
         setIsFormOpen(true);
@@ -102,7 +102,7 @@ export const AdminCompanies: React.FC = () => {
       };
 
       const res = await adminCompanyService.saveOrUpdateCompany(payload);
-      if (res && (res.statusCode === 200 || res.statusCode === 201 || res.id || res.data)) {
+      if (res && (res.statusCode === 200 || res.statusCode === 201 || (res as any).id || res.data)) {
         toast.success(
           formData.id
             ? 'Company Updated Successfully in Java Database!'
@@ -140,7 +140,9 @@ export const AdminCompanies: React.FC = () => {
                 alt={row.name}
                 className="w-full h-full object-contain"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo-mark-transparent.png';
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = '/logo-mark-transparent.png';
                 }}
               />
             </div>

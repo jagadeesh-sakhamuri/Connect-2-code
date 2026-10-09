@@ -1,13 +1,19 @@
+import type { User } from '../types/domain';
+
 /**
  * Browser-side authentication storage.
  *
- * Tokens are kept in JavaScript-readable cookies because the current backend
- * returns them to the SPA. They are deliberately NOT mirrored into localStorage:
- * this reduces persistent token exposure to storage enumeration and keeps one
- * canonical browser token location.
- *
- * The backend should eventually move refresh-token handling to an HttpOnly,
- * Secure cookie; the frontend cannot add HttpOnly to a cookie created by JS.
+ * Security Requirements & Documentation (F-011):
+ * - Tokens are stored in JavaScript-accessible cookies as a fallback because the current
+ *   backend returns them in the JSON response body rather than in HttpOnly response headers.
+ * - Browser JavaScript (document.cookie) CANNOT set the HttpOnly flag.
+ * - Backend Architectural Requirement:
+ *   The Spring Boot backend should issue refresh tokens via HttpOnly, Secure, SameSite=Strict
+ *   cookies in Set-Cookie headers:
+ *   `Set-Cookie: refreshToken=...; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth`
+ * - Frontend Security Hardening:
+ *   Client-set cookies are restricted with `SameSite=Lax` and `; Secure` on HTTPS origins.
+ *   Tokens are deliberately NOT mirrored into localStorage to prevent persistent exposure.
  */
 
 const ACCESS_TOKEN_KEY = 'accessToken';
@@ -96,18 +102,18 @@ export const tokenStorage = {
     removeCookie(REFRESH_TOKEN_KEY);
   },
 
-  // User profile is UI/session metadata, not an authentication credential.
-  getUser(): any | null {
+  // User profile is UI/session metadata, not an authentication credential (F-013).
+  getUser(): User | null {
     const raw = getCookie(USER_PROFILE_KEY) || getLocalItem(USER_PROFILE_KEY);
     if (raw) {
       try {
-        return JSON.parse(raw);
+        return JSON.parse(raw) as User;
       } catch {}
     }
     return null;
   },
 
-  setUser(user: any, maxAgeSeconds: number = 604800): void {
+  setUser(user: User, maxAgeSeconds: number = 604800): void {
     const serialized = JSON.stringify(user);
     setCookie(USER_PROFILE_KEY, serialized, maxAgeSeconds);
     setLocalItem(USER_PROFILE_KEY, serialized);

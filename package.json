@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test scripts/tests/*.test.mjs",
     "preview": "vite preview",
     "verify:architecture": "node scripts/verify-architecture.mjs"
   },
@@ -32,6 +34,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
     "oxlint": "^1.75.0",
+    "typescript": "^5.9.3",
     "vite": "^8.2.0"
   },
   "overrides": {

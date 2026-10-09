@@ -83,7 +83,9 @@ export const CompanyDetailsModal: React.FC<CompanyDetailsModalProps> = ({
                 alt={company.name}
                 className="w-full h-full object-contain"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo-mark-transparent.png';
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = '/logo-mark-transparent.png';
                 }}
               />
             </div>

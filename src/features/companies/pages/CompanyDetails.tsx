@@ -6,19 +6,20 @@ import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { toggleSolvedProblem } from '../../progress/redux/progressSlice';
 import { toggleBookmarkItem } from '../../bookmarks/redux/bookmarkSlice';
 import { openAuthModal } from '../../auth/redux/authSlice';
-import { tokenStorage } from '../../../core/security/tokenStorage';
 import { toast } from 'react-hot-toast';
 
 export const CompanyDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const dispatch = useAppDispatch();
-  const { selectedCompany: company, companyProblems, loading } = useAppSelector((state) => state.companies);
+  const { selectedCompany: company, companyProblems, detailsLoading, loading } = useAppSelector((state) => state.companies);
+  const isDetailsLoading = detailsLoading ?? loading;
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const solvedByProblemId = useAppSelector((state) => state.progress.solvedByProblemId);
-  const isUserAuth = isAuthenticated || Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
+  // Canonical auth source from Redux state (F-027)
+  const isUserAuth = isAuthenticated;
   const location = useLocation();
-  const fromPatterns = (location.state as any)?.from === 'company-patterns';
+  const fromPatterns = (location.state as { from?: string } | null)?.from === 'company-patterns';
 
   useEffect(() => {
     if (!slug) return;
@@ -71,7 +72,7 @@ export const CompanyDetails: React.FC = () => {
     toast.success('Bookmark updated');
   };
 
-  if (loading || !company) {
+  if (isDetailsLoading || !company) {
     return (
       <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full p-8 font-sans">
         <Skeleton className="h-10 w-48 rounded-xl" />

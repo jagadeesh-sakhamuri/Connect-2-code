@@ -1,16 +1,59 @@
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../security/tokenStorage';
 
-const getBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
-
-  // 1. If explicitly configured with an absolute HTTP/HTTPS URL, use it (trim trailing slashes)
-  if (envUrl && (envUrl.startsWith('http://') || envUrl.startsWith('https://'))) {
-    return envUrl.replace(/\/+$/, '');
+/**
+ * Resolves and normalizes the API base URL.
+ *
+ * - Preserves explicitly configured absolute HTTP/HTTPS URLs (stripping trailing slashes).
+ * - Supports relative API base paths (e.g. '/api/v1') to enable Vite development proxying.
+ * - Normalizes relative paths without a leading slash (e.g. 'api/v1' -> '/api/v1').
+ * - Handles missing, empty, or invalid configuration safely and clearly by defaulting
+ *   to relative '/api/v1' with a diagnostic warning, removing silent fallback to a
+ *   hardcoded production Render instance (F-005, F-006).
+ */
+export const resolveApiBaseUrl = (rawUrl?: string | null): string => {
+  if (typeof rawUrl !== 'string') {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[apiClient] VITE_API_BASE_URL is not configured. Defaulting to relative path "/api/v1".');
+    }
+    return '/api/v1';
   }
 
-  // 2. Default directly to the Render backend base URL when no explicit API URL is configured.
-  return 'https://codingplatform-tdt0.onrender.com/api/v1';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[apiClient] VITE_API_BASE_URL is empty. Defaulting to relative path "/api/v1".');
+    }
+    return '/api/v1';
+  }
+
+  // 1. Explicit absolute HTTP/HTTPS URL
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed.replace(/\/+$/, '');
+  }
+
+  // 2. Explicit relative path starting with '/'
+  if (trimmed.startsWith('/')) {
+    return trimmed.replace(/\/+$/, '');
+  }
+
+  // 3. Relative path without leading slash (e.g. 'api/v1')
+  if (!trimmed.includes('://')) {
+    return `/${trimmed}`.replace(/\/+$/, '');
+  }
+
+  // 4. Invalid protocol or unsupported format
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn(`[apiClient] Invalid VITE_API_BASE_URL "${rawUrl}". Defaulting to relative path "/api/v1".`);
+  }
+  return '/api/v1';
+};
+
+const getBaseUrl = (): string => {
+  const envUrl = typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_API_BASE_URL
+    : undefined;
+  return resolveApiBaseUrl(envUrl);
 };
 
 export const BASE_URL = getBaseUrl();

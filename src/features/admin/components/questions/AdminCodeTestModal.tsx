@@ -50,6 +50,7 @@ int main() {
     return 0;
 }
 `,
+  // Monaco starter template for user solution (standard output for Judge0 execution):
   JavaScript: `const fs = require('fs');
 
 function solve() {
@@ -121,14 +122,15 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
   };
 
   const selectedLangObj = languages.find((l) => l.id === selectedLanguageId);
+  const selectedLangName = selectedLangObj?.name?.toLowerCase() || '';
   const monacoLang =
-    selectedLangObj.name.toLowerCase() === 'c++'
+    selectedLangName === 'c++'
       ? 'cpp'
-      : selectedLangObj.name.toLowerCase() === 'python'
+      : selectedLangName === 'python'
       ? 'python'
-      : selectedLangObj.name.toLowerCase() === 'javascript'
+      : selectedLangName === 'javascript'
       ? 'javascript'
-      : selectedLangObj?.name?.toLowerCase() === 'java'
+      : selectedLangName === 'java'
       ? 'java'
       : 'plaintext';
 
@@ -143,7 +145,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
         languageId: (selectedLangObj as any)?.referenceId ?? selectedLanguageId,
         sourceCode,
       });
-      const data = res?.data || res;
+      const data = (res as any)?.data || res;
       setResult(data);
       toast.success('Admin: Sample test cases executed');
     } catch (err: any) {
@@ -178,7 +180,7 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
         languageId: (selectedLangObj as any)?.referenceId ?? selectedLanguageId,
         sourceCode,
       });
-      const data = res?.data || res;
+      const data = (res as any)?.data || res;
       setResult(data);
       toast.success('Admin: Full validation submitted');
     } catch (err: any) {

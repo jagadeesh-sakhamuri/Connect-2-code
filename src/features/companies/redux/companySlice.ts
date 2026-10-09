@@ -29,6 +29,8 @@ export interface CompanyState {
   selectedCompany: CompanyItem | null;
   companyProblems: Problem[];
   loading: boolean;
+  listLoading: boolean;
+  detailsLoading: boolean;
   companyProblemsLoading: boolean;
   error: string | null;
   companiesRequestKey: string | null;
@@ -44,6 +46,8 @@ const initialState: CompanyState = {
   selectedCompany: null,
   companyProblems: [],
   loading: false,
+  listLoading: false,
+  detailsLoading: false,
   companyProblemsLoading: false,
   error: null,
   companiesRequestKey: null,
@@ -121,7 +125,7 @@ export const fetchCompanies = createAsyncThunk(
       const state = getState() as { companies: CompanyState };
       const key = getCompanyListKey(search);
 
-      if (state.companies.loading && state.companies.companiesRequestKey === key) {
+      if (state.companies.listLoading && state.companies.companiesRequestKey === key) {
         return false;
       }
 
@@ -169,7 +173,7 @@ export const fetchCompanyBySlug = createAsyncThunk(
       const state = getState() as { companies: CompanyState };
       const key = getCompanyDetailKey(slug);
 
-      if (state.companies.loading && state.companies.companyDetailRequestKey === key) {
+      if (state.companies.detailsLoading && state.companies.companyDetailRequestKey === key) {
         return false;
       }
 
@@ -241,27 +245,31 @@ const companySlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchCompanies.pending, (state, action) => {
+        state.listLoading = true;
         state.loading = true;
         state.error = null;
         state.companiesRequestKey = getCompanyListKey(action.meta.arg);
       })
-.addCase(fetchCompanies.fulfilled, (state, action) => {
+      .addCase(fetchCompanies.fulfilled, (state, action) => {
         const { key, companies, fetchedAt } = action.payload;
         state.listCache[key] = { companies, fetchedAt };
         if (state.companiesRequestKey !== key) {
           return;
         }
         state.companies = companies;
-        state.loading = false;
+        state.listLoading = false;
+        state.loading = state.detailsLoading || state.companyProblemsLoading;
       })
       .addCase(fetchCompanies.rejected, (state, action) => {
         if (action.meta.aborted || state.companiesRequestKey !== getCompanyListKey(action.meta.arg)) {
           return;
         }
-        state.loading = false;
+        state.listLoading = false;
+        state.loading = state.detailsLoading || state.companyProblemsLoading;
         state.error = (action.payload as string) || action.error.message || 'Failed to fetch companies';
       })
       .addCase(fetchCompanyBySlug.pending, (state, action) => {
+        state.detailsLoading = true;
         state.loading = true;
         state.error = null;
         state.companyDetailRequestKey = getCompanyDetailKey(action.meta.arg);
@@ -274,14 +282,16 @@ const companySlice = createSlice({
           return;
         }
         state.detailCache[key] = { company, fetchedAt };
-        state.loading = false;
+        state.detailsLoading = false;
+        state.loading = state.listLoading || state.companyProblemsLoading;
         state.selectedCompany = company;
       })
       .addCase(fetchCompanyBySlug.rejected, (state, action) => {
         if (action.meta.aborted || state.companyDetailRequestKey !== getCompanyDetailKey(action.meta.arg)) {
           return;
         }
-        state.loading = false;
+        state.detailsLoading = false;
+        state.loading = state.listLoading || state.companyProblemsLoading;
         state.error = (action.payload as string) || action.error.message || 'Failed to fetch company detail';
       })
       .addCase(fetchCompanyProblems.pending, (state, action) => {

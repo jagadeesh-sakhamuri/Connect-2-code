@@ -10,7 +10,15 @@ export interface JourneyNode {
   tags: string[];
   description: string;
   whyImportant?: string[];
-  problems?: { title: string; difficulty: 'Easy' | 'Medium' | 'Hard'; slug: string }[];
+  problems?: {
+    title: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    slug: string;
+    isOwnProblem?: boolean;
+    gfgUrl?: string;
+    leetCodeUrl?: string;
+    hackerRankUrl?: string;
+  }[];
 }
 
 export interface PhaseData {

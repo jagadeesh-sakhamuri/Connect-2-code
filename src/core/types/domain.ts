@@ -182,6 +182,7 @@ export interface UserProfile {
   lastName?: string;
   fullName?: string;
   email: string;
+  role?: string;
   collegeName?: string;
   graduationYear?: number | string;
   phone?: string;
@@ -191,6 +192,8 @@ export interface UserProfile {
   bio?: string;
   avatarUrl?: string;
 }
+
+export type User = UserProfile;
 
 export interface CodeExecutionPayload {
   questionId: number;

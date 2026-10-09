@@ -97,7 +97,7 @@ export const AdminQuestions: React.FC = () => {
         },
       });
 
-      const rawData = res?.data?.data || res?.data || res;
+      const rawData: any = (res?.data as any)?.data || res?.data || res;
       const contentList = Array.isArray(rawData?.content)
         ? rawData.content
         : Array.isArray(rawData)
@@ -162,7 +162,7 @@ export const AdminQuestions: React.FC = () => {
     setIsDetailsOpen(true);
     try {
       const res = await adminQuestionService.getQuestionById(id);
-      const questionData = res?.data || (res?.id ? res : null);
+      const questionData = res?.data || ((res as any)?.id ? (res as any) : null);
       if (questionData) {
         setSelectedQuestion(questionData);
       } else {
@@ -181,7 +181,7 @@ export const AdminQuestions: React.FC = () => {
     if (!item.id) return;
     try {
       const res = await adminQuestionService.getQuestionById(item.id);
-      const questionData = res?.data || (res?.id ? res : null);
+      const questionData = res?.data || ((res as any)?.id ? (res as any) : null);
       if (questionData) {
         setSelectedQuestion(questionData);
         setCreatedQuestionIdForRetry(null);
@@ -221,7 +221,7 @@ export const AdminQuestions: React.FC = () => {
 
       // STEP 1: Construct Question Payload
       const payload: QuestionPayload = {
-        id: formData.id ?? null,
+        id: formData.id ?? undefined,
         title: formData.title,
         description: formData.description,
         constraints: formData.constraints || '',
@@ -250,8 +250,8 @@ export const AdminQuestions: React.FC = () => {
       // Save question if not already created on previous attempt
       if (!questionSavedSuccessfully) {
         const res = await adminQuestionService.saveOrUpdateQuestion(payload);
-        const createdObj = res?.data?.data || res?.data || res;
-        savedId = createdObj?.id || (res?.data && res.data.id) || (res && res.id) || formData.id;
+        const createdObj: any = (res?.data as any)?.data || res?.data || res;
+        savedId = createdObj?.id || (res?.data && (res.data as any).id) || ((res as any) && (res as any).id) || formData.id;
 
         if (res && (res.statusCode === 200 || res.statusCode === 201 || savedId)) {
           questionSavedSuccessfully = true;

@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import type { RootState } from '../../../app/store';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
+import { userQuestionService } from '../../../services/userQuestionService';
 
 const PROGRESS_STORAGE_KEY = 'problem_progress';
 const LEGACY_PROGRESS_KEYS = ['solved_problems', 'dsa_sheet_solved'] as const;
@@ -64,7 +65,31 @@ export const getProblemSolvedStatus = (
 
 export const hydrateProgress = createAsyncThunk(
   'progress/hydrate',
-  async () => loadInitialProgress()
+  async (_, { getState }) => {
+    const canonical = loadInitialProgress();
+    const state = getState() as RootState;
+    const userId = state.auth?.user?.id;
+    const isAuthenticated = state.auth?.isAuthenticated;
+
+    if (isAuthenticated && userId) {
+      try {
+        const solvedList = await userQuestionService.getSolvedQuestions(userId);
+        if (Array.isArray(solvedList) && solvedList.length > 0) {
+          solvedList.forEach((item: any) => {
+            const qId = String(item?.questionId ?? item?.id ?? item);
+            if (qId && qId !== '[object Object]') {
+              canonical[qId] = true;
+            }
+          });
+          persistProgress(canonical);
+        }
+      } catch {
+        // Backend endpoint /api/v1/users/{userId}/solvedQuestions may be unmapped on remote; preserve local progress safely
+      }
+    }
+
+    return canonical;
+  }
 );
 
 export const toggleSolvedProblem = createAsyncThunk(

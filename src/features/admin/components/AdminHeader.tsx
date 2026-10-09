@@ -42,8 +42,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
           <i className="fa-solid fa-bars text-sm"></i>
         </button>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#A3E635] animate-pulse" />
-          <span className="text-xs font-semibold text-gray-400">Live REST Engine Active</span>
+          <span className="w-2 h-2 rounded-full bg-slate-400" />
+          <span className="text-xs font-semibold text-gray-400">REST API Client</span>
         </div>
       </div>
 

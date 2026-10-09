@@ -5,9 +5,34 @@ import { fetchCompanies } from '../redux/companySlice';
 import { Skeleton } from '../../../shared/components/ui/Skeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 
+const CompanyLogoItem: React.FC<{ name: string; logoUrl?: string }> = ({ name, logoUrl }) => {
+  const [imageFailed, setImageFailed] = useState(false);
+  const initial = name ? name.trim().charAt(0).toUpperCase() : 'C';
+
+  if (!logoUrl || imageFailed) {
+    return (
+      <div className="w-full h-full rounded-lg bg-gradient-to-br from-[#1e2025] to-[#121316] border border-white/10 flex items-center justify-center text-3xl font-black text-[#A3E635] shadow-inner font-heading select-none">
+        {initial}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      className="rounded-lg object-contain h-full w-full p-4"
+      width="200"
+      height="200"
+      alt={name}
+      src={logoUrl}
+      onError={() => setImageFailed(true)}
+    />
+  );
+};
+
 export const CompanyList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { companies, loading } = useAppSelector((state) => state.companies);
+  const { companies, listLoading, loading } = useAppSelector((state) => state.companies);
+  const isLoading = listLoading ?? loading;
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -77,7 +102,7 @@ export const CompanyList: React.FC = () => {
       </div>
 
       {/* Companies Grid - Exactly 3 per Row on Medium screens, max-w-2xl */}
-      {loading ? (
+      {isLoading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 m-2 max-w-2xl mt-10 w-full px-4">
           <Skeleton className="h-44 w-full rounded-lg" count={6} />
         </div>
@@ -104,22 +129,8 @@ export const CompanyList: React.FC = () => {
                 className="h-full p-2 border border-white/10 hover:border-white/30 rounded-lg bg-[#121316] hover:bg-[#1a1c22] transition-all group shadow-md"
               >
                 <div className="flex h-full flex-col w-full items-center truncate">
-                  <div className="relative rounded-lg h-32 bg-white aspect-square w-full shadow-sm flex items-center justify-center p-6">
-                    <div className="w-full h-full flex items-center justify-center text-gray-600">
-                      <i className="fa-solid fa-building text-4xl"></i>
-                    </div>
-                    {logoUrl && (
-                      <img
-                        className="absolute rounded-lg object-contain h-32 p-6 aspect-square w-full"
-                        width="200"
-                        height="200"
-                        alt={company.name}
-                        src={logoUrl}
-                        onError={(e) => {
-                          e.currentTarget.remove();
-                        }}
-                      />
-                    )}
+                  <div className="relative rounded-lg h-32 bg-[#16181d] aspect-square w-full shadow-sm flex items-center justify-center border border-white/5 overflow-hidden">
+                    <CompanyLogoItem name={company.name} logoUrl={logoUrl} />
                   </div>
                   <div className="text-wrap w-full text-center mb-3 mt-3">
                     <p className="text-lg font-semibold text-white font-sans tracking-tight">

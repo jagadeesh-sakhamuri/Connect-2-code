@@ -79,26 +79,31 @@ export const executionService = {
   },
 
   /**
-   * Resolves any incoming languageId (table id 1-4 or name) to backend required referenceId (5-8).
+   * Resolves any incoming languageId to the backend required referenceId.
+   * Leverages dynamic language registry from GET /api/v1/language.
    */
   async resolveLanguageReferenceId(languageId: number, languageName?: string): Promise<number> {
     const numericId = Number(languageId);
 
-    // If already known referenceId (5, 6, 7, 8) or greater
-    if (numericId >= 5) {
-      return numericId;
-    }
-
-    // Check cached languages
+    // Ensure cached languages are populated
     if (!cachedLanguages) {
       await this.getLanguageDropdown().catch(() => {});
     }
 
-    if (cachedLanguages) {
-      const match = cachedLanguages.find((l) => l.id === numericId || l.referenceId === numericId);
-      if (match?.referenceId) {
-        return match.referenceId;
+    if (cachedLanguages && cachedLanguages.length > 0) {
+      // 1. If numericId matches language table ID (e.g. 1), resolve to referenceId (e.g. 5)
+      const idMatch = cachedLanguages.find((l) => l.id === numericId);
+      if (idMatch?.referenceId) {
+        return idMatch.referenceId;
       }
+
+      // 2. If numericId is already a known referenceId, retain it
+      const refMatch = cachedLanguages.find((l) => l.referenceId === numericId);
+      if (refMatch?.referenceId) {
+        return refMatch.referenceId;
+      }
+
+      // 3. Fallback match by language name if provided
       if (languageName) {
         const nameMatch = cachedLanguages.find(
           (l) => l.name.toLowerCase() === languageName.toLowerCase()
@@ -107,6 +112,11 @@ export const executionService = {
           return nameMatch.referenceId;
         }
       }
+    }
+
+    // If no dynamic match found but numericId is positive, return it as fallback
+    if (numericId > 0) {
+      return numericId;
     }
 
     throw new Error(
@@ -125,8 +135,16 @@ export const executionService = {
     const resolvedLanguageId = await this.resolveLanguageReferenceId(payload.languageId);
     let sanitizedCode = payload.sourceCode || '';
 
-    // If Java (referenceId 5), ensure Judge0 Main entry class
-    if (resolvedLanguageId === 5) {
+    // Check if Java via cached registry or fallback reference ID 5
+    const isJava =
+      cachedLanguages?.some(
+        (l) =>
+          (l.id === payload.languageId || l.referenceId === resolvedLanguageId) &&
+          l.name.toLowerCase().includes('java') &&
+          !l.name.toLowerCase().includes('script')
+      ) || resolvedLanguageId === 5;
+
+    if (isJava) {
       if (/public\s+class\s+Solution\b/.test(sanitizedCode)) {
         sanitizedCode = sanitizedCode.replace(/public\s+class\s+Solution\b/g, 'public class Main');
       }

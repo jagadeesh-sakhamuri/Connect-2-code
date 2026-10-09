@@ -38,11 +38,7 @@ export const problemService = {
       ? params.search.trim()
       : null;
 
-    const payload = {
-      level: levelArr,
-      companies: companiesArr,
-      topic: topicArr,
-      searchText: rawSearch,
+    const payload: Record<string, any> = {
       pageRequest: {
         pageNumber: pageNum,
         pageSize,
@@ -50,6 +46,19 @@ export const problemService = {
         sortDirection: 'ASC' as const,
       },
     };
+
+    if (levelArr && levelArr.length > 0) {
+      payload.level = levelArr;
+    }
+    if (companiesArr && companiesArr.length > 0) {
+      payload.companies = companiesArr;
+    }
+    if (topicArr && topicArr.length > 0) {
+      payload.topic = topicArr;
+    }
+    if (rawSearch) {
+      payload.searchText = rawSearch;
+    }
 
     try {
       const res: any = await apiClient.post(API_ENDPOINTS.PROBLEMS.LIST, payload, { signal });

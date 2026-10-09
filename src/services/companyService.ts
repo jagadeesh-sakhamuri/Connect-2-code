@@ -81,9 +81,14 @@ export const companyService = {
         };
       }
 
-      throw new Error('Company details response did not contain a company');
-    } catch (err) {
+    } catch (err: any) {
       if (isRequestCanceled(err)) {
+        throw err;
+      }
+      // F-012: Only genuine HTTP 404 responses trigger catalog search fallback.
+      // Propagate HTTP 500, network failures, auth errors, and any non-404 failures.
+      const status = err?.statusCode || err?.response?.status || err?.status;
+      if (status !== 404) {
         throw err;
       }
     }

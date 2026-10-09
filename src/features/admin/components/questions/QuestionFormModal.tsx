@@ -90,7 +90,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
     watch,
     formState: { errors },
   } = useForm<QuestionFormData>({
-    resolver: zodResolver(questionSchema),
+    resolver: zodResolver(questionSchema) as any,
     defaultValues: {
       id: null,
       difficultyRefGroupCode: 'DIFF',
@@ -437,7 +437,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
           )}
         </div>
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
+        <form onSubmit={handleSubmit(handleFormSubmit as any)} className="space-y-5">
           {refError && (
             <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs">
               <i className="fa-solid fa-triangle-exclamation mr-2"></i>

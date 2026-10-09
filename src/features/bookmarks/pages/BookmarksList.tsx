@@ -16,8 +16,14 @@ export const BookmarksList: React.FC = () => {
   }, [dispatch]);
 
   const handleRemove = (itemId: string) => {
-    dispatch(toggleBookmarkItem({ itemId }));
-    toast.success('Bookmark removed');
+    dispatch(toggleBookmarkItem({ itemId }))
+      .unwrap()
+      .then(() => {
+        toast.success('Bookmark removed');
+      })
+      .catch((err: any) => {
+        toast.error(typeof err === 'string' ? err : 'Failed to remove bookmark');
+      });
   };
 
   const filteredBookmarks = bookmarks.filter((bm) => {

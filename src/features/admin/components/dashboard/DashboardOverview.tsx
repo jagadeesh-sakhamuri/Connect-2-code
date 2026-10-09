@@ -29,11 +29,11 @@ export const DashboardOverview: React.FC = () => {
         <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/10">
           <div className="flex flex-col text-right hidden sm:flex">
             <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
-              Backend Status
+              Backend Architecture
             </span>
-            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5 justify-end">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Live Connected
+            <span className="text-xs font-semibold text-gray-300 flex items-center gap-1.5 justify-end">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+              REST API Client
             </span>
           </div>
         </div>

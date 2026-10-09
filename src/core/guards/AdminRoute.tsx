@@ -1,29 +1,28 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../../app/hooks';
 import { tokenStorage } from '../security/tokenStorage';
+import { isJwtAdmin } from '../security/jwt';
 
 /**
- * AdminRoute Guard
+ * AdminRoute Guard (F-036)
  * Restricts access to Admin Frontend routes (/admin/*).
- * Verifies that the user is both authenticated AND possesses an ADMIN role.
- * Redirects unauthenticated users to /login and non-admin users to /practice.
+ * Verifies that the user is authenticated AND possesses an ADMIN role
+ * verified strictly from cryptographically signed JWT payload claims,
+ * preventing privilege escalation via client-mutable localStorage.
  */
 export const AdminRoute: React.FC = () => {
-  const { user } = useAppSelector((state) => state.auth);
   const location = useLocation();
-
-  const currentUser = user || tokenStorage.getUser();
-  const hasAuth = Boolean(tokenStorage.getAccessToken() || tokenStorage.getRefreshToken());
+  const token = tokenStorage.getAccessToken();
+  const refreshToken = tokenStorage.getRefreshToken();
+  const hasAuth = Boolean(token || refreshToken);
 
   // 1. Check Authentication Status
   if (!hasAuth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2. Check Admin Role Authorization (supports 'ADMIN' or 'ROLE_ADMIN')
-  const role = currentUser?.role?.toUpperCase();
-  const isAdmin = role === 'ADMIN' || role === 'ROLE_ADMIN' || (role && role.includes('ADMIN'));
+  // 2. Check Admin Role Authorization strictly from signed JWT claims (F-036)
+  const isAdmin = isJwtAdmin(token);
 
   if (!isAdmin) {
     return <Navigate to="/practice" replace />;

@@ -59,7 +59,7 @@ export const AdminDashboard: React.FC = () => {
       let totalCompanies = 0;
 
       if (probRes.status === 'fulfilled' && probRes.value) {
-        const rawData = probRes.value?.data || probRes.value;
+        const rawData: any = probRes.value?.data || probRes.value;
         const questionsList = Array.isArray(rawData?.content)
           ? rawData.content
           : (Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.data) ? rawData.data : []));
@@ -81,7 +81,7 @@ export const AdminDashboard: React.FC = () => {
       }
 
       if (compRes.status === 'fulfilled' && compRes.value) {
-        const rawCompData = compRes.value?.data || compRes.value;
+        const rawCompData: any = compRes.value?.data || compRes.value;
         const compList = Array.isArray(rawCompData?.content)
           ? rawCompData.content
           : (Array.isArray(rawCompData) ? rawCompData : (Array.isArray(rawCompData?.data) ? rawCompData.data : []));

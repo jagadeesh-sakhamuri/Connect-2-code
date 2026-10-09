@@ -8,6 +8,7 @@ const routes = ['/', '/login', '/practice', '/problems/1', '/companies/tcs'];
 
 const server = spawn('npm', ['run', 'preview', '--', '--host', host, '--port', String(port)], {
   stdio: ['ignore', 'pipe', 'pipe'],
+  shell: true,
 });
 
 let output = '';
@@ -55,6 +56,8 @@ try {
     throw new Error(`Vite preview did not become ready.\n${output}`);
   }
 
+  const verifiedAssets = new Set();
+
   for (const route of routes) {
     const response = await fetchWithTimeout(`${baseUrl}${route}`);
     const body = await response.text();
@@ -66,9 +69,34 @@ try {
     if (!body.includes('<!doctype html>') && !body.includes('<!DOCTYPE html>')) {
       throw new Error(`Route ${route} did not return the built SPA HTML document`);
     }
+
+    if (!body.includes('id="root"')) {
+      throw new Error(`Route ${route} missing #root mounting container`);
+    }
+
+    // Extract and verify referenced JS/CSS bundle assets
+    const assetMatches = body.matchAll(/(?:src|href)="(\/assets\/[^"]+\.(?:js|css))"/g);
+    for (const match of assetMatches) {
+      const assetPath = match[1];
+      if (!verifiedAssets.has(assetPath)) {
+        const assetResponse = await fetchWithTimeout(`${baseUrl}${assetPath}`);
+        if (!assetResponse.ok) {
+          throw new Error(`Referenced asset ${assetPath} failed to load (HTTP ${assetResponse.status})`);
+        }
+        const assetContent = await assetResponse.text();
+        if (assetContent.startsWith('<!doctype') || assetContent.startsWith('<!DOCTYPE')) {
+          throw new Error(`Referenced asset ${assetPath} returned SPA HTML fallback instead of static asset bundle`);
+        }
+        verifiedAssets.add(assetPath);
+      }
+    }
   }
 
-  console.log(`Preview smoke test passed for ${routes.length} routes.`);
+  if (verifiedAssets.size === 0) {
+    throw new Error('No JS/CSS bundle assets were detected in preview HTML documents');
+  }
+
+  console.log(`Preview smoke test passed for ${routes.length} routes and ${verifiedAssets.size} verified assets.`);
 } catch (error) {
   exitCode = 1;
   console.error(error instanceof Error ? error.message : error);
