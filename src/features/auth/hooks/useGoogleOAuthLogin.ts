@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { registerOAuthPopupWindow } from './useGoogleOAuthHandler';
 
 const GOOGLE_AUTH_URL = 'https://codingplatform-tdt0.onrender.com/oauth2/authorization/google';
 
@@ -21,6 +22,7 @@ export function useGoogleOAuthLogin() {
       return;
     }
 
+    registerOAuthPopupWindow(popup);
     popup.focus?.();
   }, []);
 
