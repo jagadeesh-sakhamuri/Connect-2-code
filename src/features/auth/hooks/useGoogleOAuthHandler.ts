@@ -11,6 +11,11 @@ let isProcessingExchange = false;
 let processedToken: string | null = null;
 let oauthPopupWindow: Window | null = null;
 
+/** Register the exact popup opened by the parent window for strict postMessage source validation. */
+export function registerOAuthPopupWindow(popup: Window | null): void {
+  oauthPopupWindow = popup;
+}
+
 export function useGoogleOAuthHandler() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
