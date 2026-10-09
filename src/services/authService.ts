@@ -62,18 +62,20 @@ export const authService = {
   // Configured with 120s timeout to tolerate Java backend Render cold-start delays
   async login(payload: LoginPayload): Promise<ApiResponse<AuthResponseData>> {
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, { timeout: 120000 });
-    if (response && response.data) {
-      if (response.data.token) {
-        tokenStorage.setAccessToken(response.data.token);
-      }
-      if (response.data.refreshToken) {
-        tokenStorage.setRefreshToken(response.data.refreshToken);
-      }
-      if (response.data.user) {
-        tokenStorage.setUser(response.data.user);
-      } else {
-        tokenStorage.setUser(response.data);
-      }
+    // apiClient unwraps AxiosResponse.data, but the backend still returns its
+    // standard { statusCode, data } envelope. Accept both token field names
+    // used by the backend versions and tolerate an extra nested data envelope.
+    const loginData = response?.data?.data || response?.data || response;
+    const accessToken = loginData?.accessToken || loginData?.token;
+    if (accessToken) {
+      tokenStorage.setAccessToken(accessToken);
+    }
+    if (loginData?.refreshToken) {
+      tokenStorage.setRefreshToken(loginData.refreshToken);
+    }
+    const user = loginData?.user || loginData;
+    if (user && (user.id || user.email || user.firstName || user.fullName)) {
+      tokenStorage.setUser(user);
     }
     return response;
   },
@@ -106,24 +108,23 @@ export const authService = {
       throw new Error('No refresh token available in cookie');
     }
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }, { timeout: 60000 });
-    if (response && response.data) {
-      const data = response.data;
-      const bearerToken = data.token || data.accessToken;
-      if (bearerToken) {
-        tokenStorage.setAccessToken(bearerToken);
-      }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
-      }
-      if (data.id && data.email) {
-        tokenStorage.setUser({
-          id: data.id,
-          email: data.email,
-          role: data.role || 'USER',
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-        });
-      }
+    const data = response?.data?.data || response?.data || response;
+    const bearerToken = data?.accessToken || data?.token;
+    if (bearerToken) {
+      tokenStorage.setAccessToken(bearerToken);
+    }
+    if (data?.refreshToken) {
+      tokenStorage.setRefreshToken(data.refreshToken);
+    }
+    const user = data?.user || data;
+    if (user?.id && user?.email) {
+      tokenStorage.setUser({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'USER',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+      });
     }
     return response;
   },
@@ -134,23 +135,23 @@ export const authService = {
       throw new Error('No refresh token provided');
     }
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }, { timeout: 60000 });
-    if (response && response.data) {
-      const data = response.data;
-      const bearerToken = data.token || data.accessToken;
-      if (bearerToken) {
-        tokenStorage.setAccessToken(bearerToken);
-      }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
-      }
-      const userObj = {
-        id: data.id,
-        email: data.email,
-        role: data.role || 'USER',
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-      };
-      tokenStorage.setUser(userObj);
+    const data = response?.data?.data || response?.data || response;
+    const bearerToken = data?.accessToken || data?.token;
+    if (bearerToken) {
+      tokenStorage.setAccessToken(bearerToken);
+    }
+    if (data?.refreshToken) {
+      tokenStorage.setRefreshToken(data.refreshToken);
+    }
+    const user = data?.user || data;
+    if (user?.id || user?.email) {
+      tokenStorage.setUser({
+        id: user.id,
+        email: user.email,
+        role: user.role || 'USER',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+      });
     }
     return response;
   },

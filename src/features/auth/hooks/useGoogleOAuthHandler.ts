@@ -11,6 +11,11 @@ let isProcessingExchange = false;
 let processedToken: string | null = null;
 let oauthPopupWindow: Window | null = null;
 
+/** Register the exact popup opened by the parent window for strict postMessage source validation. */
+export function registerOAuthPopupWindow(popup: Window | null): void {
+  oauthPopupWindow = popup;
+}
+
 export function useGoogleOAuthHandler() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -45,9 +50,12 @@ export function useGoogleOAuthHandler() {
             navigate('/practice', { replace: true });
           }
         } else {
+          // Allow a retry when the backend rejects the token or the exchange fails.
+          processedToken = null;
           toast.error((result.payload as string) || 'Google sign-in failed. Please try again.');
         }
       } catch (err: any) {
+        processedToken = null;
         toast.error(err?.message || 'Error completing Google sign-in.');
       } finally {
         isProcessingExchange = false;
