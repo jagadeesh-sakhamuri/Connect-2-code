@@ -50,9 +50,12 @@ export function useGoogleOAuthHandler() {
             navigate('/practice', { replace: true });
           }
         } else {
+          // Allow a retry when the backend rejects the token or the exchange fails.
+          processedToken = null;
           toast.error((result.payload as string) || 'Google sign-in failed. Please try again.');
         }
       } catch (err: any) {
+        processedToken = null;
         toast.error(err?.message || 'Error completing Google sign-in.');
       } finally {
         isProcessingExchange = false;
