@@ -60,53 +60,22 @@ describe('BATCH-1: Network Transport & API Client Base URL Resolution (F-005, F-
     );
   });
 
-  it('F-005: unconfigured env variable (undefined) safely defaults to relative "/api/v1" without hardcoded Render URL', () => {
-    const warnings = [];
-    const originalWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
-
-    try {
-      const result = resolveApiBaseUrl(undefined);
-      assert.equal(result, '/api/v1');
-      assert.ok(!result.includes('onrender.com'), 'Must not contain hardcoded Render domain');
-      assert.equal(warnings.length, 1);
-      assert.match(warnings[0], /VITE_API_BASE_URL is not configured/);
-    } finally {
-      console.warn = originalWarn;
-    }
+  it('defaults to production Render backend URL when env variable is unconfigured (undefined)', () => {
+    const result = resolveApiBaseUrl(undefined);
+    assert.equal(result, 'https://codingplatform-tdt0.onrender.com/api/v1');
   });
 
-  it('F-005: empty or whitespace-only env variable safely defaults to relative "/api/v1"', () => {
-    const warnings = [];
-    const originalWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
-
-    try {
-      assert.equal(resolveApiBaseUrl(''), '/api/v1');
-      assert.equal(resolveApiBaseUrl('   '), '/api/v1');
-      assert.equal(warnings.length, 2);
-    } finally {
-      console.warn = originalWarn;
-    }
+  it('empty or whitespace-only env variable defaults to production Render backend URL', () => {
+    assert.equal(resolveApiBaseUrl(''), 'https://codingplatform-tdt0.onrender.com/api/v1');
+    assert.equal(resolveApiBaseUrl('   '), 'https://codingplatform-tdt0.onrender.com/api/v1');
   });
 
-  it('invalid protocol safely falls back to relative "/api/v1" with diagnostic warning', () => {
-    const warnings = [];
-    const originalWarn = console.warn;
-    console.warn = (msg) => warnings.push(msg);
-
-    try {
-      const result = resolveApiBaseUrl('ftp://invalid-server/api');
-      assert.equal(result, '/api/v1');
-      assert.equal(warnings.length, 1);
-      assert.match(warnings[0], /Invalid VITE_API_BASE_URL/);
-    } finally {
-      console.warn = originalWarn;
-    }
+  it('invalid protocol safely falls back to production Render backend URL', () => {
+    const result = resolveApiBaseUrl('ftp://invalid-server/api');
+    assert.equal(result, 'https://codingplatform-tdt0.onrender.com/api/v1');
   });
 
-  it('exported BASE_URL defaults safely in test/unconfigured environment', () => {
-    assert.equal(BASE_URL, '/api/v1');
-    assert.ok(!BASE_URL.includes('onrender.com'), 'BASE_URL must not contain hardcoded Render domain');
+  it('exported BASE_URL defaults to production Render backend URL in test/unconfigured environment', () => {
+    assert.equal(BASE_URL, 'https://codingplatform-tdt0.onrender.com/api/v1');
   });
 });

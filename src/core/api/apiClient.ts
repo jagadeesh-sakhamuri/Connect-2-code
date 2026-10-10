@@ -11,20 +11,16 @@ import { tokenStorage } from '../security/tokenStorage';
  *   to relative '/api/v1' with a diagnostic warning, removing silent fallback to a
  *   hardcoded production Render instance (F-005, F-006).
  */
+export const DEFAULT_API_BASE_URL = 'https://codingplatform-tdt0.onrender.com/api/v1';
+
 export const resolveApiBaseUrl = (rawUrl?: string | null): string => {
   if (typeof rawUrl !== 'string') {
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn('[apiClient] VITE_API_BASE_URL is not configured. Defaulting to relative path "/api/v1".');
-    }
-    return '/api/v1';
+    return DEFAULT_API_BASE_URL;
   }
 
   const trimmed = rawUrl.trim();
   if (!trimmed) {
-    if (typeof console !== 'undefined' && console.warn) {
-      console.warn('[apiClient] VITE_API_BASE_URL is empty. Defaulting to relative path "/api/v1".');
-    }
-    return '/api/v1';
+    return DEFAULT_API_BASE_URL;
   }
 
   // 1. Explicit absolute HTTP/HTTPS URL
@@ -42,11 +38,8 @@ export const resolveApiBaseUrl = (rawUrl?: string | null): string => {
     return `/${trimmed}`.replace(/\/+$/, '');
   }
 
-  // 4. Invalid protocol or unsupported format
-  if (typeof console !== 'undefined' && console.warn) {
-    console.warn(`[apiClient] Invalid VITE_API_BASE_URL "${rawUrl}". Defaulting to relative path "/api/v1".`);
-  }
-  return '/api/v1';
+  // 4. Invalid protocol or unsupported format -> fallback to default Render backend
+  return DEFAULT_API_BASE_URL;
 };
 
 const getBaseUrl = (): string => {
