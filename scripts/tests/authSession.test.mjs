@@ -29,7 +29,7 @@ register('data:text/javascript,' + encodeURIComponent(loaderCode), pathToFileURL
 const { decodeJwtPayload, isJwtAdmin } = await import('../../src/core/security/jwt.ts');
 const { tokenStorage } = await import('../../src/core/security/tokenStorage.ts');
 const authSliceModule = await import('../../src/features/auth/redux/authSlice.ts');
-const { default: authReducer, logoutUser } = authSliceModule;
+const { default: authReducer, logoutUser, refreshSessionThunk } = authSliceModule;
 
 // Helper to create mock JWT tokens with base64url payload
 function createMockJwt(payload) {
@@ -74,6 +74,21 @@ describe('BATCH-3: Security, Session Hygiene & Route Authorization', () => {
         authorities: [{ authority: 'ROLE_ADMIN' }],
       });
       assert.equal(isJwtAdmin(springAuthoritiesToken), true);
+    });
+
+    it('identifies uppercase Role claim from live backend JWTs', () => {
+      const liveRenderAdminToken = createMockJwt({
+        sub: 'admin@c2c.test',
+        Role: 'ADMIN',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      assert.equal(isJwtAdmin(liveRenderAdminToken), true);
+
+      const rolesUpperToken = createMockJwt({
+        Roles: ['ADMIN'],
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      assert.equal(isJwtAdmin(rolesUpperToken), true);
     });
 
     it('rejects regular USER tokens (prevents privilege escalation)', () => {
@@ -133,6 +148,63 @@ describe('BATCH-3: Security, Session Hygiene & Route Authorization', () => {
       assert.equal(nextState.refreshToken, null, 'Refresh token must be cleared on failure');
       assert.equal(nextState.isAuthenticated, false, 'Session must not remain active after failed logout');
       assert.equal(nextState.loading, false, 'Loading flag must be reset');
+    });
+
+    it('PRESERVES active session state if access token is unexpired when refreshSessionThunk is rejected', () => {
+      const validToken = createMockJwt({
+        sub: 'user-42',
+        role: 'USER',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      const activeState = {
+        user: { id: 'user-42', email: 'user@c2c.test' },
+        token: validToken,
+        refreshToken: null,
+        status: 'AUTHENTICATED',
+        isAuthenticated: true,
+        loading: false,
+        error: null,
+        isAuthModalOpen: false,
+        authModalMode: 'login',
+      };
+
+      const nextState = authReducer(activeState, {
+        type: refreshSessionThunk.rejected.type,
+        error: { message: 'Refresh token invalid or expired' },
+      });
+
+      assert.equal(nextState.isAuthenticated, true, 'Active session must be preserved on background refresh failure');
+      assert.equal(nextState.status, 'AUTHENTICATED', 'Status must remain AUTHENTICATED');
+      assert.equal(nextState.loading, false, 'Loading must be false');
+      assert.equal(nextState.user?.id, 'user-42', 'User must not be cleared');
+    });
+
+    it('CLEARS session if access token is expired when refreshSessionThunk is rejected', () => {
+      const expiredToken = createMockJwt({
+        sub: 'user-42',
+        role: 'USER',
+        exp: Math.floor(Date.now() / 1000) - 3600,
+      });
+      const expiredState = {
+        user: { id: 'user-42', email: 'user@c2c.test' },
+        token: expiredToken,
+        refreshToken: null,
+        status: 'AUTHENTICATED',
+        isAuthenticated: true,
+        loading: false,
+        error: null,
+        isAuthModalOpen: false,
+        authModalMode: 'login',
+      };
+
+      const nextState = authReducer(expiredState, {
+        type: refreshSessionThunk.rejected.type,
+        error: { message: 'Refresh token invalid or expired' },
+      });
+
+      assert.equal(nextState.isAuthenticated, false, 'Session must be cleared when expired token refresh fails');
+      assert.equal(nextState.status, 'UNAUTHENTICATED', 'Status must be UNAUTHENTICATED');
+      assert.equal(nextState.user, null, 'User must be cleared');
     });
   });
 

@@ -10,6 +10,7 @@ import {
 import { fetchBookmarks } from '../features/bookmarks/redux/bookmarkSlice';
 import { registerAuthListener, registerAuthFailureListener } from '../core/api/apiClient';
 import { tokenStorage } from '../core/security/tokenStorage';
+import { decodeJwtPayload, isJwtExpired } from '../core/security/jwt';
 
 /**
  * Root route shell (F-010, F-039):
@@ -46,7 +47,13 @@ export const AppRouterLayout: React.FC = () => {
 
     // /oauth/callback route coordinates its own refresh lifecycle
     if (!location.pathname.startsWith('/oauth')) {
-      dispatch(refreshSessionThunk());
+      const token = tokenStorage.getAccessToken();
+      const hasValidToken = Boolean(token && !isJwtExpired(decodeJwtPayload(token)));
+      const hasRefreshToken = Boolean(tokenStorage.getRefreshToken());
+      // Only refresh proactively if no active valid access token exists
+      if (!hasValidToken && (hasRefreshToken || typeof document !== 'undefined')) {
+        dispatch(refreshSessionThunk());
+      }
     }
   }, [dispatch, location.pathname]);
 

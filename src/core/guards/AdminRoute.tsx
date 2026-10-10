@@ -25,6 +25,7 @@ export const AdminRoute: React.FC = () => {
   const status = useAppSelector((state) => state.auth.status);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const token = useAppSelector((state) => state.auth.token) || tokenStorage.getAccessToken();
+  const user = useAppSelector((state) => state.auth.user) || tokenStorage.getUser();
 
   // 1. Prevent premature redirect during asynchronous startup session restoration
   if (status === 'LOADING') {
@@ -32,12 +33,14 @@ export const AdminRoute: React.FC = () => {
   }
 
   // 2. Check Authentication Status
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Check Admin Role Authorization strictly from signed JWT claims (F-036)
-  const isAdmin = isJwtAdmin(token);
+  // 3. Check Admin Role Authorization strictly from signed JWT claims and verified session metadata
+  const userRole = String(user?.role || '').toUpperCase();
+  const isUserRoleAdmin = userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN');
+  const isAdmin = isJwtAdmin(token) || isUserRoleAdmin;
 
   if (!isAdmin) {
     return <Navigate to="/practice" replace />;

@@ -3,6 +3,8 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { logoutUser, openAuthModal } from '../../../features/auth/redux/authSlice';
 import { useTheme } from '../../context/ThemeContext';
+import { tokenStorage } from '../../../core/security/tokenStorage';
+import { isJwtAdmin } from '../../../core/security/jwt';
 
 export interface NeetCodeNavbarProps {
   user?: any;
@@ -28,6 +30,10 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
     email: 'alex.dev@Connect 2 Code.io',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
   };
+
+  const token = tokenStorage.getAccessToken();
+  const userRole = String(currentUser?.role || reduxUser?.role || '').toUpperCase();
+  const isAdmin = isLoggedIn && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN') || isJwtAdmin(token));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -105,6 +111,17 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
 
           {/* RIGHT SIDE: AUTH / PROFILE + MOBILE MENU TOGGLE */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 hover:bg-purple-500/25 hover:text-white transition-all text-xs font-bold shadow-sm group shrink-0"
+                title="Switch to Admin Dashboard"
+              >
+                <i className="fa-solid fa-shield-halved text-purple-400 group-hover:scale-110 transition-transform text-xs"></i>
+                <span className="hidden sm:inline">Admin Portal</span>
+              </Link>
+            )}
+
             {isLoggedIn ? (
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -163,6 +180,17 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                         <i className="fa-regular fa-bookmark text-xs text-amber-400 w-4 text-center"></i>
                         <span>My Bookmarks</span>
                       </Link>
+
+                      {isAdmin && (
+                        <Link
+                          to="/admin/dashboard"
+                          onClick={() => setIsProfileDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-purple-300 hover:text-white hover:bg-purple-500/20 transition-colors font-sans"
+                        >
+                          <i className="fa-solid fa-shield-halved text-xs text-purple-400 w-4 text-center"></i>
+                          <span>Admin Portal</span>
+                        </Link>
+                      )}
 
                       <div className="my-1 border-t border-white/10"></div>
 
@@ -236,6 +264,16 @@ export const NeetCodeNavbar: React.FC<NeetCodeNavbarProps> = ({
                 <span>{item.label}</span>
               </NavLink>
             ))}
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30 transition-all mt-1"
+              >
+                <i className="fa-solid fa-shield-halved text-sm w-5 text-center text-purple-400"></i>
+                <span>Admin Portal</span>
+              </Link>
+            )}
           </nav>
         </div>
       )}

@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { logoutUser } from '../../../features/auth/redux/authSlice';
 import { useTheme } from '../../../shared/context/ThemeContext';
+import { tokenStorage } from '../../../core/security/tokenStorage';
 import { AdminBadge } from './AdminBadge';
 
 interface AdminHeaderProps {
@@ -10,7 +12,8 @@ interface AdminHeaderProps {
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar }) => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const reduxUser = useAppSelector((state) => state.auth.user);
+  const user = reduxUser || tokenStorage.getUser();
   const { theme, toggleTheme } = useTheme();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -48,7 +51,17 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Switch to User Portal (Practice) */}
+        <Link
+          to="/practice"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#A3E635]/15 border border-[#A3E635]/30 hover:border-[#A3E635] text-[#A3E635] hover:bg-[#A3E635] hover:text-black text-xs font-bold transition-all shadow-sm group"
+          title="Switch to User Portal (Practice)"
+        >
+          <i className="fa-solid fa-code text-xs group-hover:scale-110 transition-transform"></i>
+          <span className="hidden sm:inline">User Portal</span>
+        </Link>
+
         {/* Theme Switcher */}
         <button
           type="button"
@@ -92,6 +105,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleMobileSidebar 
                 </AdminBadge>
               </div>
               <div className="my-1 border-t border-white/10"></div>
+              <Link
+                to="/practice"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-gray-300 hover:text-white hover:bg-white/10 transition-colors w-full text-left"
+              >
+                <i className="fa-solid fa-code text-xs text-[#A3E635]"></i>
+                <span>Switch to User Portal</span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors w-full text-left cursor-pointer"

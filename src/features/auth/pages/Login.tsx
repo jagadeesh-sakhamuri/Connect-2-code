@@ -14,6 +14,8 @@ import { authService } from '../../../services/authService';
 import { toast } from 'react-hot-toast';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { useGoogleOAuthLogin } from '../hooks/useGoogleOAuthLogin';
+import { tokenStorage } from '../../../core/security/tokenStorage';
+import { decodeJwtPayload, isJwtAdmin } from '../../../core/security/jwt';
 
 // 1. Login Validation Schema
 const loginSchema = z.object({
@@ -73,6 +75,7 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>(initialMode);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [loginSubmitting, setLoginSubmitting] = useState<boolean>(false);
 
   // --------------------------------------------------------------------------
   // DIRECT SIGNUP STATE (NO OTP)
@@ -165,30 +168,48 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
   // LOGIN SUBMIT
   // --------------------------------------------------------------------------
   const onLoginSubmit = async (data: LoginFormData) => {
-    const result = await dispatch(loginUser(data));
-    if (loginUser.fulfilled.match(result)) {
-      const userObj = result.payload;
-      const userName = userObj?.firstName || userObj?.fullName || 'User';
-      toast.success(`Welcome ${userName}`);
+    setLoginSubmitting(true);
+    try {
+      const result = await dispatch(loginUser(data));
+      if (loginUser.fulfilled.match(result)) {
+        const userObj = result.payload as any;
+        const userName = userObj?.firstName || userObj?.fullName || 'User';
+        toast.success(`Welcome ${userName}`);
 
-      const userRole = String(userObj?.role || '').toUpperCase();
-      const isAdmin = userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN');
+        const token = userObj?.accessToken || userObj?.token || tokenStorage.getAccessToken();
+        const jwtPayload = decodeJwtPayload(token);
+        const rawRole =
+          userObj?.role ||
+          userObj?.Role ||
+          userObj?.user?.role ||
+          userObj?.user?.Role ||
+          jwtPayload?.Role ||
+          jwtPayload?.role;
+        const userRole = String(rawRole || '').toUpperCase();
+        const isAdmin =
+          userRole === 'ADMIN' ||
+          userRole === 'ROLE_ADMIN' ||
+          userRole.includes('ADMIN') ||
+          isJwtAdmin(token);
 
-      if (onCloseModal) {
-        onCloseModal();
-      }
+        if (onCloseModal) {
+          onCloseModal();
+        }
 
-      const navLocationState = location.state as NavigationLocationState | null;
-      const fromPath = navLocationState?.from?.pathname;
-      if (isAdmin) {
-        navigate('/admin/dashboard');
-      } else if (fromPath && fromPath !== '/login' && fromPath !== '/signup') {
-        navigate(fromPath);
+        const navLocationState = location.state as NavigationLocationState | null;
+        const fromPath = navLocationState?.from?.pathname;
+        if (isAdmin) {
+          navigate('/admin/dashboard', { replace: true });
+        } else if (fromPath && fromPath !== '/login' && fromPath !== '/signup') {
+          navigate(fromPath, { replace: true });
+        } else {
+          navigate('/practice', { replace: true });
+        }
       } else {
-        navigate('/practice');
+        toast.error((result.payload as string) || 'Invalid Email or Password');
       }
-    } else {
-      toast.error((result.payload as string) || 'Invalid Email or Password');
+    } finally {
+      setLoginSubmitting(false);
     }
   };
 
@@ -471,10 +492,10 @@ export const Login: React.FC<AuthPageProps> = ({ defaultMode, onCloseModal }) =>
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loginSubmitting}
                 className="w-full py-3 px-4 mt-2 bg-[#A3E635] hover:bg-[#84CC16] text-black font-extrabold text-base rounded-lg transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#A3E635]/25 active:scale-[0.99] disabled:opacity-50 font-sans"
               >
-                {loading ? (
+                {loginSubmitting ? (
                   <>
                     <i className="fa-solid fa-circle-notch animate-spin text-black"></i>
                     <span>Authenticating...</span>

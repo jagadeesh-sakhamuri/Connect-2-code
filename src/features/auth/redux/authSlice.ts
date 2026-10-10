@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, isAnyOf, type PayloadAction } from '@reduxjs/toolkit';
 import { authService, type LoginPayload } from '../../../services/authService';
 import { tokenStorage } from '../../../core/security/tokenStorage';
+import { decodeJwtPayload, isJwtExpired } from '../../../core/security/jwt';
 
 export type AuthStatus = 'LOADING' | 'AUTHENTICATED' | 'UNAUTHENTICATED';
 
@@ -116,15 +117,18 @@ const authSlice = createSlice({
     initializeAuth(state) {
       const token = tokenStorage.getAccessToken();
       const savedUser = tokenStorage.getUser();
-      if (token) {
+      const isTokenValid = Boolean(token && !isJwtExpired(decodeJwtPayload(token)));
+      if (isTokenValid) {
         state.status = 'AUTHENTICATED';
         state.isAuthenticated = true;
         state.user = savedUser;
         state.token = token;
         state.loading = false;
-      } else {
-        // Keeps status as LOADING if startup refresh has not completed yet
+      } else if (!token) {
+        state.status = 'UNAUTHENTICATED';
+        state.isAuthenticated = false;
         state.token = null;
+        state.loading = false;
       }
     },
     setAuthenticatedSession(state, action: PayloadAction<{ token: string; user?: any }>) {
@@ -161,9 +165,9 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Canonical Refresh Session
-      .addCase(refreshSessionThunk.pending, (state) => {
-        state.loading = true;
+      // Canonical Refresh Session (proactive background check does NOT block UI loading)
+      .addCase(refreshSessionThunk.pending, () => {
+        // Intentionally keep state.loading false so login form submit buttons remain interactive
       })
       .addCase(refreshSessionThunk.fulfilled, (state, action) => {
         state.loading = false;
@@ -175,13 +179,14 @@ const authSlice = createSlice({
         if (data) {
           const u = data.user || data;
           if (u && (u.id || u.email)) {
+            const roleVal = u.role || u.Role;
             const userObj: UserProfile = {
               id: u.id,
               firstName: u.firstName,
               lastName: u.lastName,
               fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email || 'User',
               email: String(u.email || ''),
-              role: u.role,
+              role: roleVal,
             };
             state.user = userObj;
             tokenStorage.setUser(userObj);
@@ -189,13 +194,21 @@ const authSlice = createSlice({
         }
       })
       .addCase(refreshSessionThunk.rejected, (state) => {
-        state.user = null;
-        state.token = null;
-        state.refreshToken = null;
-        state.status = 'UNAUTHENTICATED';
-        state.isAuthenticated = false;
         state.loading = false;
-        tokenStorage.clearTokens();
+        const currentToken = state.token || tokenStorage.getAccessToken();
+        const isStillValid = Boolean(currentToken && !isJwtExpired(decodeJwtPayload(currentToken)));
+        if (isStillValid) {
+          // Preserve valid active access token session! Do NOT purge or log user out.
+          state.status = 'AUTHENTICATED';
+          state.isAuthenticated = true;
+        } else {
+          state.user = null;
+          state.token = null;
+          state.refreshToken = null;
+          state.status = 'UNAUTHENTICATED';
+          state.isAuthenticated = false;
+          tokenStorage.clearTokens();
+        }
       })
       // Login
       .addCase(loginUser.pending, (state) => {
@@ -209,13 +222,15 @@ const authSlice = createSlice({
         state.isAuthModalOpen = false;
         const data = action.payload as any;
         state.token = tokenStorage.getAccessToken();
+        const rawUser = data?.user || data;
+        const roleVal = rawUser?.role || rawUser?.Role;
         const userObj: UserProfile = {
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'User',
-          email: String(data.email || ''),
-          role: data.role,
+          id: rawUser?.id,
+          firstName: rawUser?.firstName,
+          lastName: rawUser?.lastName,
+          fullName: `${rawUser?.firstName || ''} ${rawUser?.lastName || ''}`.trim() || rawUser?.email || 'User',
+          email: String(rawUser?.email || ''),
+          role: roleVal,
         };
         state.user = userObj;
         tokenStorage.setUser(userObj);

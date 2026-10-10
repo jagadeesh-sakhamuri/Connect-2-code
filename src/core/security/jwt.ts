@@ -11,8 +11,11 @@
 export interface DecodedJwtPayload {
   sub?: string;
   role?: string;
+  Role?: string;
   roles?: string[];
+  Roles?: string[];
   authorities?: Array<string | { authority?: string }>;
+  scope?: string;
   exp?: number;
   iat?: number;
   email?: string;
@@ -64,6 +67,7 @@ export function isJwtExpired(payload: DecodedJwtPayload | null): boolean {
 /**
  * Checks whether the JWT contains claims indicating an admin role.
  * Used for client-side UI navigation gating only.
+ * Checks role, Role, roles, Roles, authorities, and scope claims.
  */
 export function isJwtAdmin(token: string | null | undefined): boolean {
   const payload = decodeJwtPayload(token);
@@ -77,12 +81,24 @@ export function isJwtAdmin(token: string | null | undefined): boolean {
     return upper === 'ADMIN' || upper === 'ROLE_ADMIN' || upper.includes('ADMIN');
   };
 
-  if (matchesAdmin(payload.role)) return true;
-  if (Array.isArray(payload.roles) && payload.roles.some(matchesAdmin)) return true;
+  // 1. Check primary single role claims (e.g. { role: "ADMIN" } or { Role: "ADMIN" })
+  if (matchesAdmin(payload.role) || matchesAdmin(payload.Role)) return true;
+
+  // 2. Check roles array claims (e.g. { roles: ["ADMIN"] } or { Roles: ["ADMIN"] })
+  const rolesArray = payload.roles || payload.Roles;
+  if (Array.isArray(rolesArray) && rolesArray.some(matchesAdmin)) return true;
+
+  // 3. Check Spring Security authorities array (e.g. { authorities: ["ROLE_ADMIN"] } or [{ authority: "ROLE_ADMIN" }])
   if (Array.isArray(payload.authorities)) {
     return payload.authorities.some((auth) =>
       typeof auth === 'string' ? matchesAdmin(auth) : matchesAdmin(auth?.authority)
     );
+  }
+
+  // 4. Check OAuth2/OIDC space-delimited scope string
+  if (typeof payload.scope === 'string') {
+    const scopes = payload.scope.split(' ');
+    if (scopes.some(matchesAdmin)) return true;
   }
 
   return false;

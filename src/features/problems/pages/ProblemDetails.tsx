@@ -23,6 +23,8 @@ import { getProblemEditorial } from '../utils/problemEditorial';
 import { toast } from 'react-hot-toast';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
 import { userQuestionService } from '../../../services/userQuestionService';
+import { tokenStorage } from '../../../core/security/tokenStorage';
+import { isJwtAdmin } from '../../../core/security/jwt';
 
 interface QuestionTestCase {
   id?: number;
@@ -104,8 +106,9 @@ export const ProblemDetails: React.FC = () => {
   const { bookmarks } = useAppSelector((state) => state.bookmarks);
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
-  const userRole = user?.role?.toUpperCase();
-  const isAdmin = isAuthenticated && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN');
+  const token = tokenStorage.getAccessToken();
+  const userRole = String(user?.role || '').toUpperCase();
+  const isAdmin = (isAuthenticated || Boolean(token)) && (userRole === 'ADMIN' || userRole === 'ROLE_ADMIN' || userRole.includes('ADMIN') || isJwtAdmin(token));
 
   // Server state owned by Redux; only editor/execution/UI state stays local.
   const { selectedProblem: problem, loading: loadingProblem, error: problemError } = useAppSelector((state) => state.problems);

@@ -203,8 +203,10 @@ apiClient.interceptors.response.use(
         reqUrl.includes('/auth/generatePasswordResetOtp') ||
         reqUrl.includes('/auth/verifyPasswordResetOtp')
       ) {
-        tokenStorage.clearTokens();
-        notifyAuthFailure();
+        if (reqUrl.includes('/auth/refresh')) {
+          tokenStorage.clearTokens();
+          notifyAuthFailure();
+        }
         const errBody = error.response?.data || {};
         return Promise.reject({
           statusCode: error.response.status,
