@@ -114,6 +114,17 @@ export const executionService = {
       }
     }
 
+    // Fallback deterministic mapping for standard platforms: Table ID (1-4) -> Reference ID (5-8)
+    const STATIC_TABLE_TO_REF: Record<number, number> = { 1: 5, 2: 6, 3: 7, 4: 8 };
+    if (STATIC_TABLE_TO_REF[numericId]) {
+      return STATIC_TABLE_TO_REF[numericId];
+    }
+
+    // If numericId is already a known reference ID (5-8), retain it
+    if (numericId >= 5 && numericId <= 8) {
+      return numericId;
+    }
+
     // If no dynamic match found but numericId is positive, return it as fallback
     if (numericId > 0) {
       return numericId;

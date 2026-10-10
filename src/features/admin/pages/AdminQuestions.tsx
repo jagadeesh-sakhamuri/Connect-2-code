@@ -261,31 +261,38 @@ export const AdminQuestions: React.FC = () => {
         }
       }
 
-      // STEP 2: If own problem & new question, attach Test Cases immediately in the SAME single modal workflow
-      if (isNewQuestion && isOwn && savedId && (formData as any).testCases && (formData as any).testCases.length > 0) {
+      // STEP 2: If own problem, attach / sync Test Cases immediately in the SAME single modal workflow
+      if (isOwn && savedId && (formData as any).testCases && (formData as any).testCases.length > 0) {
         const rawCases: QuestionTestCase[] = (formData as any).testCases;
-        const testCasePayload: QuestionTestCase[] = rawCases.map((tc, idx) => ({
-          ...tc,
-          displayOrder: idx + 1,
-          typeRefGroupCode: 'TESTCASETYPE',
-          typeRefCode: tc.typeRefCode || 'NECESSARY',
-        }));
+        const testCasePayload: QuestionTestCase[] = rawCases.map((tc, idx) => {
+          const typeCode = tc.typeRefCode || (tc.isHidden ? 'NECESSARY' : 'SAMPLE');
+          return {
+            ...tc,
+            displayOrder: idx + 1,
+            typeRefGroupCode: 'TESTCASETYPE',
+            typeRefCode: typeCode,
+            typeRefName: tc.typeRefName || (tc.isHidden ? 'Mandatory Test Case' : 'Visible Sample Test Case'),
+          };
+        });
 
         try {
           const tcRes = await adminQuestionService.addTestCases(savedId, testCasePayload);
           if (tcRes && (tcRes.statusCode === 200 || tcRes.statusCode === 201 || tcRes.data)) {
-            toast.success(`Question #${savedId} & Test Cases Created Successfully!`);
+            toast.success(isNewQuestion ? `Question #${savedId} & Test Cases Created Successfully!` : `Question #${savedId} & Test Cases Updated Successfully!`);
             setCreatedQuestionIdForRetry(null);
             setIsFormOpen(false);
             fetchQuestions();
           } else {
-            // Keep question ID in state so retry submits test cases without creating duplicate question
+            const detail = Array.isArray((tcRes as any)?.errors) && (tcRes as any).errors.length > 0 ? (tcRes as any).errors.join('; ') : '';
+            const msg = detail ? `${tcRes?.message || 'Failed'}: ${detail}` : (tcRes?.message || 'Failed to attach test cases');
             setCreatedQuestionIdForRetry(savedId);
-            toast.error(`Question #${savedId} created, but test cases failed: ${tcRes?.message || 'Failed to attach test cases'}`);
+            toast.error(`Question #${savedId} saved, but test cases failed: ${msg}`);
           }
         } catch (tcErr: any) {
+          const detail = Array.isArray(tcErr?.errors) && tcErr.errors.length > 0 ? tcErr.errors.join('; ') : '';
+          const msg = detail ? `${tcErr?.message || 'Failed'}: ${detail}` : (tcErr?.message || 'Failed to attach test cases');
           setCreatedQuestionIdForRetry(savedId);
-          toast.error(`Question #${savedId} created, but test cases failed: ${tcErr?.message || 'Failed to attach test cases'}`);
+          toast.error(`Question #${savedId} saved, but test cases failed: ${msg}`);
         }
       } else {
         // External problem or edit flow

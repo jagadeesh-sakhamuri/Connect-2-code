@@ -353,7 +353,26 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
   const handleTestCaseChange = (index: number, field: keyof QuestionTestCase, value: any) => {
     setTestCases((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      const target = { ...updated[index], [field]: value };
+
+      if (field === 'typeRefCode') {
+        const matched = testCaseTypes.find((t) => t.refCode === value);
+        if (matched) {
+          target.typeRefGroupCode = 'TESTCASETYPE';
+          target.typeRefName = matched.refName;
+        }
+      }
+      if (field === 'isHidden') {
+        if (value === true && target.typeRefCode === 'SAMPLE') {
+          target.typeRefCode = 'NECESSARY';
+          target.typeRefName = testCaseTypes.find((t) => t.refCode === 'NECESSARY')?.refName || 'Mandatory Test Case';
+        } else if (value === false && target.typeRefCode === 'NECESSARY') {
+          target.typeRefCode = 'SAMPLE';
+          target.typeRefName = testCaseTypes.find((t) => t.refCode === 'SAMPLE')?.refName || 'Visible Sample Test Case';
+        }
+      }
+
+      updated[index] = target;
       return updated;
     });
   };
@@ -381,6 +400,18 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
       }
     }
 
+    const sanitizedTestCases: QuestionTestCase[] = testCases.map((tc, idx) => {
+      const typeCode = tc.typeRefCode || (tc.isHidden ? 'NECESSARY' : 'SAMPLE');
+      const matched = testCaseTypes.find((t) => t.refCode === typeCode);
+      return {
+        ...tc,
+        displayOrder: idx + 1,
+        typeRefGroupCode: 'TESTCASETYPE',
+        typeRefCode: typeCode,
+        typeRefName: matched?.refName || tc.typeRefName || (tc.isHidden ? 'Mandatory Test Case' : 'Visible Sample Test Case'),
+      };
+    });
+
     onSubmit({
       ...data,
       isOwnProblem: isOwn,
@@ -390,7 +421,7 @@ export const QuestionFormModal: React.FC<QuestionFormModalProps> = ({
       gfgUrl: !isOwn && data.gfgUrl ? data.gfgUrl.trim() : '',
       hackerRankUrl: !isOwn && data.hackerRankUrl ? data.hackerRankUrl.trim() : '',
       questionHints: hints.filter((h) => h.hintText.trim() !== ''),
-      testCases: isOwn ? testCases : [],
+      testCases: isOwn ? sanitizedTestCases : [],
       companies: selectedCompanies,
     });
   };

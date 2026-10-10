@@ -36,38 +36,69 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
   const [typesLoading, setTypesLoading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Fetch TESTCASETYPE Reference Library from real backend API on modal open
+  // Fetch existing test cases & TESTCASETYPE Reference Library from backend on modal open
   useEffect(() => {
     if (!isOpen) return;
 
-    // Reset test cases state when modal opens for a new question
-    setTestCases([
-      {
-        input: '',
-        expectedOutput: '',
-        explanation: '',
-        isHidden: false,
-        displayOrder: 1,
-        typeRefGroupCode: 'TESTCASETYPE',
-        typeRefCode: 'NECESSARY',
-      },
-    ]);
-
     let isMounted = true;
-    const fetchTestCaseTypes = async () => {
-      setTypesLoading(true);
+    setTypesLoading(true);
+
+    const initModal = async () => {
       try {
-        const res = await referenceService.getByGroupCode('TESTCASETYPE');
-        const list = res?.data || (Array.isArray(res) ? res : []);
-        if (isMounted && Array.isArray(list)) {
-          setTestCaseTypes(list);
-          if (list.length > 0) {
-            setTestCases((prev) =>
-              prev.map((tc) => ({
-                ...tc,
-                typeRefCode: tc.typeRefCode || list[0].refCode,
-              }))
-            );
+        // 1. Fetch Reference Library TESTCASETYPE items
+        const refRes = await referenceService.getByGroupCode('TESTCASETYPE');
+        const refList = refRes?.data || (Array.isArray(refRes) ? refRes : []);
+        const validTypes = Array.isArray(refList) ? refList : [];
+        if (isMounted) {
+          setTestCaseTypes(validTypes);
+        }
+
+        // 2. Fetch existing test cases for the question if questionId is provided
+        let existingCases: QuestionTestCase[] = [];
+        if (questionId) {
+          try {
+            const qRes: any = await adminQuestionService.getQuestionById(questionId);
+            const qData = qRes?.data || qRes;
+            if (Array.isArray(qData?.testCases) && qData.testCases.length > 0) {
+              existingCases = qData.testCases.map((tc: any, idx: number) => {
+                const typeCode = tc.typeRefCode || (tc.isHidden ? 'NECESSARY' : 'SAMPLE');
+                const matchedType = validTypes.find((t) => t.refCode === typeCode);
+                return {
+                  id: tc.id,
+                  questionId: tc.questionId || questionId,
+                  input: tc.input || '',
+                  expectedOutput: tc.expectedOutput || '',
+                  explanation: tc.explanation || '',
+                  isHidden: tc.isHidden === true,
+                  displayOrder: tc.displayOrder || idx + 1,
+                  typeRefGroupCode: 'TESTCASETYPE',
+                  typeRefCode: typeCode,
+                  typeRefName: matchedType?.refName || tc.typeRefName || (tc.isHidden ? 'Mandatory Test Case' : 'Visible Sample Test Case'),
+                };
+              });
+            }
+          } catch (qErr) {
+            console.warn('Could not load existing test cases for question:', qErr);
+          }
+        }
+
+        if (isMounted) {
+          if (existingCases.length > 0) {
+            setTestCases(existingCases);
+          } else {
+            const defaultType = validTypes.length > 0 ? validTypes[0].refCode : 'SAMPLE';
+            setTestCases([
+              {
+                input: '',
+                expectedOutput: '',
+                explanation: '',
+                isHidden: false,
+                displayOrder: 1,
+                typeRefGroupCode: 'TESTCASETYPE',
+                typeRefCode: defaultType,
+                typeRefName: validTypes.find((t) => t.refCode === defaultType)?.refName || 'Visible Sample Test Case',
+              },
+            ]);
           }
         }
       } catch (err) {
@@ -77,14 +108,15 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
       }
     };
 
-    fetchTestCaseTypes();
+    initModal();
     return () => {
       isMounted = false;
     };
-  }, [isOpen]);
+  }, [isOpen, questionId]);
 
   const handleAddRow = () => {
-    const defaultType = testCaseTypes.length > 0 ? testCaseTypes[0].refCode : 'NECESSARY';
+    const defaultType = testCaseTypes.length > 0 ? testCaseTypes[0].refCode : 'SAMPLE';
+    const defaultName = testCaseTypes.find((t) => t.refCode === defaultType)?.refName || 'Visible Sample Test Case';
     setTestCases((prev) => [
       ...prev,
       {
@@ -95,6 +127,7 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
         displayOrder: prev.length + 1,
         typeRefGroupCode: 'TESTCASETYPE',
         typeRefCode: defaultType,
+        typeRefName: defaultName,
       },
     ]);
   };
@@ -110,7 +143,28 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
   const handleChange = (index: number, field: keyof QuestionTestCase, value: any) => {
     setTestCases((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      const target = { ...updated[index], [field]: value };
+
+      // Synchronize type metadata when typeRefCode changes
+      if (field === 'typeRefCode') {
+        const matched = testCaseTypes.find((t) => t.refCode === value);
+        if (matched) {
+          target.typeRefGroupCode = 'TESTCASETYPE';
+          target.typeRefName = matched.refName;
+        }
+      }
+      // When isHidden changes, auto-suggest type if still at initial default
+      if (field === 'isHidden') {
+        if (value === true && target.typeRefCode === 'SAMPLE') {
+          target.typeRefCode = 'NECESSARY';
+          target.typeRefName = testCaseTypes.find((t) => t.refCode === 'NECESSARY')?.refName || 'Mandatory Test Case';
+        } else if (value === false && target.typeRefCode === 'NECESSARY') {
+          target.typeRefCode = 'SAMPLE';
+          target.typeRefName = testCaseTypes.find((t) => t.refCode === 'SAMPLE')?.refName || 'Visible Sample Test Case';
+        }
+      }
+
+      updated[index] = target;
       return updated;
     });
   };
@@ -136,12 +190,17 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
 
     setSubmitting(true);
     try {
-      const payload: QuestionTestCase[] = testCases.map((tc, idx) => ({
-        ...tc,
-        displayOrder: idx + 1,
-        typeRefGroupCode: 'TESTCASETYPE',
-        typeRefCode: tc.typeRefCode || (testCaseTypes.length > 0 ? testCaseTypes[0].refCode : 'NECESSARY'),
-      }));
+      const payload: QuestionTestCase[] = testCases.map((tc, idx) => {
+        const typeCode = tc.typeRefCode || (tc.isHidden ? 'NECESSARY' : 'SAMPLE');
+        const matched = testCaseTypes.find((t) => t.refCode === typeCode);
+        return {
+          ...tc,
+          displayOrder: idx + 1,
+          typeRefGroupCode: 'TESTCASETYPE',
+          typeRefCode: typeCode,
+          typeRefName: matched?.refName || tc.typeRefName || (tc.isHidden ? 'Mandatory Test Case' : 'Visible Sample Test Case'),
+        };
+      });
 
       const res = await adminQuestionService.addTestCases(questionId, payload);
       if (res && (res.statusCode === 200 || res.statusCode === 201 || res.data)) {
@@ -149,10 +208,14 @@ export const TestCaseModal: React.FC<TestCaseModalProps> = ({
         if (onSuccess) onSuccess();
         onClose();
       } else {
-        toast.error(res?.message || 'Failed to attach test cases');
+        const detail = Array.isArray((res as any)?.errors) && (res as any).errors.length > 0 ? (res as any).errors.join('; ') : '';
+        const msg = detail ? `${res?.message || 'Failed'}: ${detail}` : (res?.message || 'Failed to attach test cases');
+        toast.error(msg);
       }
     } catch (err: any) {
-      toast.error(err?.message || 'Error attaching test cases to backend');
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : '';
+      const msg = detail ? `${err?.message || 'Error'}: ${detail}` : (err?.message || 'Error attaching test cases to backend');
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

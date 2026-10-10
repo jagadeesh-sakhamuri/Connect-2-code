@@ -208,7 +208,8 @@ export const DashboardCodeRunner: React.FC = () => {
       setExecutionMessage((res as any)?.message || 'Code Executed Successfully (Sample Test Cases)');
       toast.success((res as any)?.message || 'Admin test completed on sample test cases!');
     } catch (err: any) {
-      const msg = err?.message || 'Admin testCode execution failed';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Admin testCode execution failed'}: ${detail}` : (err?.message || 'Admin testCode execution failed');
       toast.error(msg);
       setExecutionMessage(msg);
       setResult({
@@ -255,7 +256,8 @@ export const DashboardCodeRunner: React.FC = () => {
       setExecutionMessage((res as any)?.message || 'Code Submitted Successfully (Full Test Suite)');
       toast.success((res as any)?.message || 'Admin validation completed across all test cases!');
     } catch (err: any) {
-      const msg = err?.message || 'Admin submitCode validation failed';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Admin submitCode validation failed'}: ${detail}` : (err?.message || 'Admin submitCode validation failed');
       toast.error(msg);
       setExecutionMessage(msg);
       setResult({

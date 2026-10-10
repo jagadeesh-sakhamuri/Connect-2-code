@@ -433,7 +433,8 @@ export const ProblemDetails: React.FC = () => {
       setExecutionResult(result);
       setSelectedTestCaseIdx(0);
     } catch (err: any) {
-      const msg = err?.message || (err?.errors && err.errors[0]) || 'Failed to execute code';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Failed to execute code'}: ${detail}` : (err?.message || 'Failed to execute code');
       setExecutionError(msg);
       toast.error(msg);
     } finally {
@@ -501,7 +502,8 @@ export const ProblemDetails: React.FC = () => {
         return updated;
       });
     } catch (err: any) {
-      const msg = err?.message || (err?.errors && err.errors[0]) || 'Failed to submit code';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Failed to submit code'}: ${detail}` : (err?.message || 'Failed to submit code');
       setExecutionError(msg);
       toast.error(msg);
     } finally {

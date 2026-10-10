@@ -149,7 +149,8 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
       setResult(data);
       toast.success('Admin: Sample test cases executed');
     } catch (err: any) {
-      const msg = err?.message || 'Admin run failed';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Admin run failed'}: ${detail}` : (err?.message || 'Admin run failed');
       toast.error(msg);
       setResult({
         totalTestCases: 0,
@@ -184,7 +185,8 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
       setResult(data);
       toast.success('Admin: Full validation submitted');
     } catch (err: any) {
-      const msg = err?.message || 'Admin validation failed';
+      const detail = Array.isArray(err?.errors) && err.errors.length > 0 ? err.errors.join('; ') : err?.error || '';
+      const msg = detail && detail !== err?.message ? `${err?.message || 'Admin validation failed'}: ${detail}` : (err?.message || 'Admin validation failed');
       toast.error(msg);
       setResult({
         totalTestCases: 0,
@@ -212,14 +214,14 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
   );
   const allTestCasesCount = rawCases.length;
 
-    return (
-      <AdminModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={`Admin Code Test: #${question.id} ${question.title}`}
-        subtitle="Validate problem statement with sample tests (POST /api/v1/admin/testCode) or full suite (POST /api/v1/admin/submitCode)"
-        maxWidth="4xl"
-      >
+  return (
+    <AdminModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Admin Code Test: #${question.id} ${question.title}`}
+      subtitle="Validate problem statement with sample tests (POST /api/v1/admin/testCode) or full suite (POST /api/v1/admin/submitCode)"
+      maxWidth="4xl"
+    >
         <div className="flex flex-col gap-4 font-sans text-xs">
           {/* Admin Mode Notice */}
           <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
@@ -469,7 +471,9 @@ export const AdminCodeTestModal: React.FC<AdminCodeTestModalProps> = ({
                               }`}
                             ></i>
                             <span>Test Case #{idx + 1}</span>
-                            <span className="text-gray-500 font-mono text-[10px]">({tc.testCaseType})</span>
+                            <span className="text-gray-500 font-mono text-[10px]">
+                              ({tc.testCaseType || (isHidden ? 'Hidden Test Case' : 'Visible Sample Test Case')})
+                            </span>
                           </span>
 
                           <div className="flex items-center gap-2">
