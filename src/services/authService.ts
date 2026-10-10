@@ -68,6 +68,10 @@ export const authService = {
       if (token) {
         tokenStorage.setAccessToken(token);
       }
+      const refreshToken = data.refreshToken;
+      if (refreshToken) {
+        tokenStorage.setRefreshToken(refreshToken);
+      }
       if (data.user) {
         tokenStorage.setUser(data.user);
       } else {
@@ -81,7 +85,9 @@ export const authService = {
   // Backend invalidates session and clears HttpOnly refresh cookie via Set-Cookie
   async logout(): Promise<ApiResponse<string>> {
     try {
-      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, {}, { withCredentials: true });
+      const token = tokenStorage.getRefreshToken();
+      const payload = token ? { refreshToken: token } : {};
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, payload, { withCredentials: true });
     } catch (e) {
       console.warn('Logout API warning:', e);
     } finally {
@@ -96,11 +102,12 @@ export const authService = {
     };
   },
 
-  // Refresh Token: POST /api/v1/auth/refresh
-  // Sends { refreshToken } in the JSON request body
+  // Refresh Token: POST /api/v1/auth/refresh with credentials
+  // Obtains refresh token from explicit argument or tokenStorage (cookies/localStorage),
+  // transmitting it in request payload { refreshToken }
   async refreshToken(explicitRefreshToken?: string): Promise<ApiResponse<AuthResponseData>> {
-    const refreshToken = explicitRefreshToken || tokenStorage.getRefreshToken();
-    const payload = refreshToken ? { refreshToken } : {};
+    const token = explicitRefreshToken || tokenStorage.getRefreshToken();
+    const payload = token ? { refreshToken: token } : {};
     const response: any = await apiClient.post(
       API_ENDPOINTS.AUTH.REFRESH,
       payload,
@@ -112,8 +119,9 @@ export const authService = {
       if (bearerToken) {
         tokenStorage.setAccessToken(bearerToken);
       }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
+      const newRefreshToken = data.refreshToken || token;
+      if (newRefreshToken) {
+        tokenStorage.setRefreshToken(newRefreshToken);
       }
       if (data.user) {
         tokenStorage.setUser(data.user);

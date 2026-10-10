@@ -47,7 +47,7 @@ export const OAuthCallback: React.FC = () => {
       return;
     }
 
-    // Extract any token passed via query parameter or URL hash
+    // Extract any token passed via query parameter, URL hash, or cookies/storage
     const tokenFromQuery =
       searchParams.get('refreshToken') ||
       searchParams.get('token') ||
@@ -63,7 +63,12 @@ export const OAuthCallback: React.FC = () => {
         hashParams.get('refresh_token');
     } catch {}
 
-    const resolvedToken = tokenFromQuery || tokenFromHash || tokenStorage.getRefreshToken() || undefined;
+    const tokenFromStorage = tokenStorage.getRefreshToken();
+    const resolvedToken = tokenFromQuery || tokenFromHash || tokenFromStorage || undefined;
+
+    if (resolvedToken && resolvedToken !== tokenFromStorage) {
+      tokenStorage.setRefreshToken(resolvedToken);
+    }
 
     // Coordinate refresh with resolved token (or fallback to credentials cookie)
     const completeAuth = async () => {

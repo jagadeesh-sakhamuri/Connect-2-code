@@ -219,9 +219,8 @@ apiClient.interceptors.response.use(
       if (!refreshTokenPromise) {
         refreshTokenPromise = (async () => {
           try {
-            const refreshToken = tokenStorage.getRefreshToken();
-            const payload = refreshToken ? { refreshToken } : {};
-
+            const storedRefreshToken = tokenStorage.getRefreshToken();
+            const payload = storedRefreshToken ? { refreshToken: storedRefreshToken } : {};
             const refreshRes = await axios.post(
               `${BASE_URL}/auth/refresh`,
               payload,
@@ -237,7 +236,7 @@ apiClient.interceptors.response.use(
             const responseData = refreshRes.data;
             const tokenData = responseData?.data || responseData;
             const newAccessToken = tokenData?.accessToken || tokenData?.token;
-            const newRefreshToken = tokenData?.refreshToken || refreshToken;
+            const newRefreshToken = tokenData?.refreshToken || storedRefreshToken;
 
             if (newAccessToken) {
               tokenStorage.setAccessToken(newAccessToken);

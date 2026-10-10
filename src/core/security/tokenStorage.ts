@@ -98,7 +98,13 @@ export const tokenStorage = {
   },
 
   getRefreshToken(): string | null {
-    return inMemoryRefreshToken || getCookie(REFRESH_TOKEN_KEY) || getLocalItem(REFRESH_TOKEN_KEY);
+    return (
+      inMemoryRefreshToken ||
+      getCookie(REFRESH_TOKEN_KEY) ||
+      getCookie('refresh_token') ||
+      getLocalItem(REFRESH_TOKEN_KEY) ||
+      getLocalItem('refresh_token')
+    );
   },
 
   setRefreshToken(token: string, maxAgeSeconds: number = 604800): void {
@@ -110,7 +116,9 @@ export const tokenStorage = {
   removeRefreshToken(): void {
     inMemoryRefreshToken = null;
     removeCookie(REFRESH_TOKEN_KEY);
+    removeCookie('refresh_token');
     removeLocalItem(REFRESH_TOKEN_KEY);
+    removeLocalItem('refresh_token');
   },
 
   // User profile is UI/session metadata, not an authentication credential (F-013).

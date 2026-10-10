@@ -80,9 +80,9 @@ describe('PRODUCTION-GRADE GOOGLE OAUTH & AUTHENTICATION LIFECYCLE', () => {
       assert.equal(tokenStorage.getAccessToken(), null);
     });
 
-    it('stores and retrieves refresh token for payload-based session refresh', () => {
-      tokenStorage.setRefreshToken('active.refresh.token');
-      assert.equal(tokenStorage.getRefreshToken(), 'active.refresh.token');
+    it('stores and retrieves refresh token in tokenStorage', () => {
+      tokenStorage.setRefreshToken('test.refresh.token');
+      assert.equal(tokenStorage.getRefreshToken(), 'test.refresh.token');
       tokenStorage.removeRefreshToken();
       assert.equal(tokenStorage.getRefreshToken(), null);
     });
