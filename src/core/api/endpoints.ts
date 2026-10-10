@@ -34,8 +34,11 @@ export const API_ENDPOINTS = {
     BOOKMARK: (userId: string | number, questionId: string | number) =>
       `/users/${userId}/questions/${questionId}/bookmark`,
     BOOKMARKS: (userId: string | number) => `/users/${userId}/questions/bookmarks`,
-    SOLVED_QUESTIONS: (userId: string | number) => `/users/${userId}/solvedQuestions`,
-    ATTEMPTED_QUESTIONS: (userId: string | number) => `/users/${userId}/attemptedQuestions`,
+    SUBMITTED_QUESTIONS: (userId: string | number) => `/${userId}/getSubmiteedQuestionIds`,
+    ATTEMPTED_QUESTIONS: (userId: string | number) => `/${userId}/getAPttemptedQuestionIds`,
+    QUESTION_SUBMISSIONS: (userId: string | number, questionId: string | number) =>
+      `/${userId}/question/${questionId}/getSubmissions`,
+    SOLVED_QUESTIONS: (userId: string | number) => `/${userId}/getSubmiteedQuestionIds`,
   },
   LANGUAGE: {
     BASE: '/language',

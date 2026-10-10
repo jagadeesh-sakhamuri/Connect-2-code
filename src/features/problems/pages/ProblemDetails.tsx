@@ -22,6 +22,7 @@ import {
 import { getProblemEditorial } from '../utils/problemEditorial';
 import { toast } from 'react-hot-toast';
 import { userScopedStorage } from '../../../core/storage/userScopedStorage';
+import { userQuestionService } from '../../../services/userQuestionService';
 
 interface QuestionTestCase {
   id?: number;
@@ -44,6 +45,7 @@ interface SubmissionRecord {
   memoryMb?: number | string;
   language: string;
   timestamp: string;
+  sourceCode?: string;
 }
 
 const DEFAULT_STARTER_CODE: Record<string, string> = {
@@ -160,19 +162,90 @@ export const ProblemDetails: React.FC = () => {
 
   // Submissions history scoped to active question ID
   const [submissionsHistory, setSubmissionsHistory] = useState<SubmissionRecord[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState<boolean>(false);
+  const [expandedSubmissionId, setExpandedSubmissionId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (activeQuestionId) {
+    let isMounted = true;
+
+    const loadSubmissions = async () => {
+      if (!activeQuestionId) {
+        setSubmissionsHistory([]);
+        return;
+      }
+
+      // 1. Initial cached history from local storage
       try {
         const saved = userScopedStorage.getItem(`submissions_${activeQuestionId}`);
-        setSubmissionsHistory(saved ? JSON.parse(saved) : []);
-      } catch {
-        setSubmissionsHistory([]);
+        if (saved && isMounted) {
+          setSubmissionsHistory(JSON.parse(saved));
+        }
+      } catch {}
+
+      // 2. Fetch live submissions from backend if user is authenticated
+      if (user?.id) {
+        try {
+          setLoadingSubmissions(true);
+          const serverSubs = await userQuestionService.getQuestionSubmissions(
+            user.id,
+            activeQuestionId
+          );
+          if (isMounted && Array.isArray(serverSubs) && serverSubs.length > 0) {
+            const mappedRecords: SubmissionRecord[] = serverSubs.map((sub) => {
+              const langObj = languages.find((l) => l.id === sub.languageId);
+              const langName =
+                langObj?.name ||
+                (sub.languageId === 5
+                  ? 'Java'
+                  : sub.languageId === 6
+                  ? 'Python'
+                  : `Language #${sub.languageId}`);
+              const isAccepted =
+                sub.status === 'Accepted' ||
+                (sub.totalTestCases > 0 && sub.passedTestCases === sub.totalTestCases);
+              const dateStr = sub.submittedAt
+                ? new Date(sub.submittedAt).toLocaleDateString([], {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                  })
+                : 'Recent';
+              const timeStr = sub.submittedAt
+                ? new Date(sub.submittedAt).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                : '';
+              return {
+                id: String(sub.id),
+                status: isAccepted ? 'Accepted' : 'Wrong Answer',
+                passedTestCases: sub.passedTestCases,
+                totalTestCases: sub.totalTestCases,
+                language: langName,
+                timestamp: `${dateStr} ${timeStr}`.trim(),
+                sourceCode: sub.sourceCode,
+              };
+            });
+            setSubmissionsHistory(mappedRecords);
+            userScopedStorage.setItem(
+              `submissions_${activeQuestionId}`,
+              JSON.stringify(mappedRecords)
+            );
+          }
+        } catch {
+          // Keep local cache if network request fails
+        } finally {
+          if (isMounted) setLoadingSubmissions(false);
+        }
       }
-    } else {
-      setSubmissionsHistory([]);
-    }
-  }, [activeQuestionId]);
+    };
+
+    loadSubmissions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeQuestionId, user?.id, languages]);
 
   // Map language name to Monaco language
   const monacoLang = useMemo(() => {
@@ -875,7 +948,7 @@ export const ProblemDetails: React.FC = () => {
             )
           )}
 
-            {/* 3. SUBMISSIONS TAB (LeetCode Session History) */}
+            {/* 3. SUBMISSIONS TAB (Backend + Session History) */}
             {leftTab === 'submissions' && (
               <div className="space-y-3 animate-fade-in">
                 <div className="flex items-center justify-between pb-2 border-b border-white/10">
@@ -883,7 +956,7 @@ export const ProblemDetails: React.FC = () => {
                     Recent Submissions
                   </span>
                   <span className="text-[11px] text-gray-500 font-mono">
-                    Session Records
+                    {loadingSubmissions ? 'Loading...' : `${submissionsHistory.length} Record(s)`}
                   </span>
                 </div>
 
@@ -898,33 +971,69 @@ export const ProblemDetails: React.FC = () => {
                 ) : (
                   submissionsHistory.map((sub) => {
                     const isAccepted = sub.status === 'Accepted';
+                    const isExpanded = expandedSubmissionId === sub.id;
                     return (
                       <div
                         key={sub.id}
-                        className={`p-3.5 bg-[#121113] border rounded-xl flex items-center justify-between font-mono text-xs transition-all ${
+                        className={`p-3.5 bg-[#121113] border rounded-xl flex flex-col font-mono text-xs transition-all ${
                           isAccepted ? 'border-emerald-500/30' : 'border-rose-500/30'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
-                              isAccepted
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                            }`}
-                          >
-                            {isAccepted ? '✓ Accepted' : '✗ Wrong Answer'}
-                          </span>
-                          <span className="text-gray-300 font-sans text-xs">
-                            {sub.passedTestCases}/{sub.totalTestCases} Tests
-                          </span>
+                        <div
+                          className="flex items-center justify-between cursor-pointer select-none"
+                          onClick={() => setExpandedSubmissionId(isExpanded ? null : sub.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
+                                isAccepted
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                              }`}
+                            >
+                              {isAccepted ? '✓ Accepted' : '✗ Wrong Answer'}
+                            </span>
+                            <span className="text-gray-300 font-sans text-xs">
+                              {sub.passedTestCases}/{sub.totalTestCases} Tests
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-gray-400 text-[11px]">
+                            <span>{sub.language}</span>
+                            {sub.runtimeMs !== undefined && sub.runtimeMs !== null && (
+                              <span className="text-white font-bold">{sub.runtimeMs} ms</span>
+                            )}
+                            <span className="text-gray-500">{sub.timestamp}</span>
+                            <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'} text-[10px] text-gray-500`} />
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-4 text-gray-400 text-[11px]">
-                          <span>{sub.language}</span>
-                          <span className="text-white font-bold">{sub.runtimeMs ?? '—'}{sub.runtimeMs !== undefined && sub.runtimeMs !== null ? ' ms' : ''}</span>
-                          <span className="text-gray-500">{sub.timestamp}</span>
-                        </div>
+                        {isExpanded && sub.sourceCode && (
+                          <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-gray-400">Submitted Source Code ({sub.language}):</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (selectedLanguage) {
+                                    setCodeByLang((prev) => ({
+                                      ...prev,
+                                      [selectedLanguage.id]: sub.sourceCode || '',
+                                    }));
+                                    toast.success('Loaded submission code into editor');
+                                  }
+                                }}
+                                className="text-[#A3E635] hover:underline font-sans cursor-pointer flex items-center gap-1.5"
+                              >
+                                <i className="fa-solid fa-code text-[10px]"></i>
+                                <span>Load into Editor</span>
+                              </button>
+                            </div>
+                            <pre className="p-3 bg-[#090A0C] border border-white/10 rounded-lg text-gray-300 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre">
+                              {sub.sourceCode}
+                            </pre>
+                          </div>
+                        )}
                       </div>
                     );
                   })

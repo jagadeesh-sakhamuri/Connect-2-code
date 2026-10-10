@@ -7,9 +7,11 @@ const PROGRESS_STORAGE_KEY = 'problem_progress';
 const LEGACY_PROGRESS_KEYS = ['solved_problems', 'dsa_sheet_solved'] as const;
 
 export type SolvedByProblemId = Record<string, boolean>;
+export type AttemptedByProblemId = Record<string, boolean>;
 
 export interface ProblemProgressState {
   solvedByProblemId: SolvedByProblemId;
+  attemptedByProblemId: AttemptedByProblemId;
 }
 
 const readMap = (key: string): SolvedByProblemId => {
@@ -51,6 +53,7 @@ const persistProgress = (solvedByProblemId: SolvedByProblemId): void => {
 
 const initialState: ProblemProgressState = {
   solvedByProblemId: loadInitialProgress(),
+  attemptedByProblemId: {},
 };
 
 export interface ProblemProgressRef {
@@ -63,6 +66,11 @@ export const getProblemSolvedStatus = (
   ref: ProblemProgressRef
 ): boolean => solvedByProblemId[String(ref.id)] ?? !!ref.fallbackSolved;
 
+export const getProblemAttemptedStatus = (
+  attemptedByProblemId: AttemptedByProblemId | undefined,
+  ref: ProblemProgressRef
+): boolean => Boolean(attemptedByProblemId?.[String(ref.id)]);
+
 export const hydrateProgress = createAsyncThunk(
   'progress/hydrate',
   async (_, { getState }) => {
@@ -70,12 +78,17 @@ export const hydrateProgress = createAsyncThunk(
     const state = getState() as RootState;
     const userId = state.auth?.user?.id;
     const isAuthenticated = state.auth?.isAuthenticated;
+    const attemptedMap: AttemptedByProblemId = {};
 
     if (isAuthenticated && userId) {
       try {
-        const solvedList = await userQuestionService.getSolvedQuestions(userId);
-        if (Array.isArray(solvedList) && solvedList.length > 0) {
-          solvedList.forEach((item: any) => {
+        const [solvedRes, attemptedRes] = await Promise.allSettled([
+          userQuestionService.getSolvedQuestions(userId),
+          userQuestionService.getAttemptedQuestions(userId),
+        ]);
+
+        if (solvedRes.status === 'fulfilled' && Array.isArray(solvedRes.value) && solvedRes.value.length > 0) {
+          solvedRes.value.forEach((item: any) => {
             const qId = String(item?.questionId ?? item?.id ?? item);
             if (qId && qId !== '[object Object]') {
               canonical[qId] = true;
@@ -83,12 +96,24 @@ export const hydrateProgress = createAsyncThunk(
           });
           persistProgress(canonical);
         }
+
+        if (attemptedRes.status === 'fulfilled' && Array.isArray(attemptedRes.value) && attemptedRes.value.length > 0) {
+          attemptedRes.value.forEach((item: any) => {
+            const qId = String(item?.questionId ?? item?.id ?? item);
+            if (qId && qId !== '[object Object]') {
+              attemptedMap[qId] = true;
+            }
+          });
+        }
       } catch {
-        // Backend endpoint /api/v1/users/{userId}/solvedQuestions may be unmapped on remote; preserve local progress safely
+        // preserve local progress safely
       }
     }
 
-    return canonical;
+    return {
+      solved: canonical,
+      attempted: attemptedMap,
+    };
   }
 );
 
@@ -121,7 +146,12 @@ const problemProgressSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(hydrateProgress.fulfilled, (state, action) => {
-        state.solvedByProblemId = action.payload;
+        if (action.payload && typeof action.payload === 'object' && 'solved' in action.payload) {
+          state.solvedByProblemId = action.payload.solved;
+          state.attemptedByProblemId = action.payload.attempted;
+        } else {
+          state.solvedByProblemId = action.payload as any;
+        }
       })
       .addCase(toggleSolvedProblem.fulfilled, (state, action) => {
         state.solvedByProblemId[action.payload.problemId] = action.payload.isSolved;

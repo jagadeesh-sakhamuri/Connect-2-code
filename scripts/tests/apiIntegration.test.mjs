@@ -55,12 +55,20 @@ describe('API Integration: Endpoints, Contracts, & Payload Integrity', () => {
         '/users/63/questions/bookmarks'
       );
       assert.equal(
+        API_ENDPOINTS.USER.SUBMITTED_QUESTIONS(63),
+        '/63/getSubmiteedQuestionIds'
+      );
+      assert.equal(
         API_ENDPOINTS.USER.SOLVED_QUESTIONS(63),
-        '/users/63/solvedQuestions'
+        '/63/getSubmiteedQuestionIds'
       );
       assert.equal(
         API_ENDPOINTS.USER.ATTEMPTED_QUESTIONS(63),
-        '/users/63/attemptedQuestions'
+        '/63/getAPttemptedQuestionIds'
+      );
+      assert.equal(
+        API_ENDPOINTS.USER.QUESTION_SUBMISSIONS(63, 1),
+        '/63/question/1/getSubmissions'
       );
     });
 
@@ -104,6 +112,13 @@ describe('API Integration: Endpoints, Contracts, & Payload Integrity', () => {
       assert.deepEqual(solved, []);
       const attempted = await userQuestionService.getAttemptedQuestions('');
       assert.deepEqual(attempted, []);
+    });
+
+    it('safely returns empty list if userId or questionId is missing for getQuestionSubmissions', async () => {
+      const emptyUser = await userQuestionService.getQuestionSubmissions(null, 1);
+      assert.deepEqual(emptyUser, []);
+      const emptyQ = await userQuestionService.getQuestionSubmissions(63, null);
+      assert.deepEqual(emptyQ, []);
     });
   });
 
