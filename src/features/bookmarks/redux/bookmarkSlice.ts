@@ -257,7 +257,9 @@ const bookmarkSlice = createSlice({
       .addMatcher(
         (action) =>
           action.type === 'auth/login/fulfilled' ||
-          action.type === 'auth/loginWithGoogleRefreshToken/fulfilled',
+          action.type === 'auth/loginWithGoogleRefreshToken/fulfilled' ||
+          action.type === 'auth/refreshSession/fulfilled' ||
+          action.type === 'auth/silentRefresh/fulfilled',
         (state, action: any) => {
           state.currentRequestId = null;
           state.activeUserId = action.payload?.id ?? action.payload?.user?.id ?? null;
@@ -274,15 +276,6 @@ const bookmarkSlice = createSlice({
           state.bookmarks = loadBookmarksFromStorage();
           state.loading = false;
           state.error = null;
-        }
-      )
-      .addMatcher(
-        (action) => action.type === 'auth/silentRefresh/fulfilled',
-        (state, action: any) => {
-          const user = action.payload?.user || action.payload;
-          if (user?.id) {
-            state.activeUserId = user.id;
-          }
         }
       );
   },

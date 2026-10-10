@@ -16,6 +16,7 @@ import { ForgotPassword } from '../features/auth/pages/ForgotPassword';
 
 // Lazy-loaded Pages for Production Code Splitting
 const Landing = lazy(() => import('../features/landing/pages/Landing').then((m: any) => ({ default: m.Landing || m.default })));
+const OAuthCallback = lazy(() => import('../features/auth/pages/OAuthCallback').then((m: any) => ({ default: m.OAuthCallback || m.default })));
 
 const PracticePage = lazy(() => import('../features/problems/pages/PracticePage').then((m: any) => ({ default: m.PracticePage || m.default })));
 const ProblemList = lazy(() => import('../features/problems/pages/ProblemList').then((m: any) => ({ default: m.ProblemList || m.default })));
@@ -80,6 +81,10 @@ const appRoutes = [
   {
     path: '/',
     element: withSuspense(Landing),
+  },
+  {
+    path: '/oauth/callback',
+    element: withSuspense(OAuthCallback),
   },
   {
     element: <GuestRoute />,

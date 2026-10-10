@@ -1,27 +1,27 @@
 import { useCallback } from 'react';
+import { getGoogleOAuthUrl } from '../../../core/api/apiClient';
 
-const GOOGLE_AUTH_URL = 'https://codingplatform-tdt0.onrender.com/oauth2/authorization/google';
-
-/** Starts the Google OAuth flow. The completion listener is owned by the router shell. */
+/**
+ * Initiates the Google OAuth flow via direct browser navigation.
+ * Leaves the frontend and delegates OAuth negotiation completely to backend Spring Security.
+ */
 export function useGoogleOAuthLogin() {
   const initiateGoogleLogin = useCallback(() => {
-    const width = 500;
-    const height = 650;
-    const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
-    const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
+    // Preserve current internal route for post-auth navigation if safe
+    try {
+      const currentPath = window.location.pathname;
+      if (
+        currentPath &&
+        currentPath !== '/login' &&
+        currentPath !== '/signup' &&
+        !currentPath.startsWith('/oauth')
+      ) {
+        sessionStorage.setItem('post_auth_redirect', currentPath);
+      }
+    } catch {}
 
-    const popup = window.open(
-      GOOGLE_AUTH_URL,
-      'google_oauth_popup',
-      `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes,scrollbars=yes`
-    );
-
-    if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-      window.location.href = GOOGLE_AUTH_URL;
-      return;
-    }
-
-    popup.focus?.();
+    const authUrl = getGoogleOAuthUrl();
+    window.location.href = authUrl;
   }, []);
 
   return { initiateGoogleLogin };

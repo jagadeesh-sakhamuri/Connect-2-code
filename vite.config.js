@@ -21,6 +21,11 @@ export default defineConfig({
         target: 'https://codingplatform-tdt0.onrender.com',
         changeOrigin: true,
         secure: false,
+      },
+      '/oauth2': {
+        target: 'https://codingplatform-tdt0.onrender.com',
+        changeOrigin: true,
+        secure: false,
       }
     }
   }

@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, isAnyOf, type PayloadAction } from '@red
 import { authService, type LoginPayload } from '../../../services/authService';
 import { tokenStorage } from '../../../core/security/tokenStorage';
 
+export type AuthStatus = 'LOADING' | 'AUTHENTICATED' | 'UNAUTHENTICATED';
+
 export interface UserProfile {
   id?: number | string;
   firstName?: string;
@@ -16,6 +18,7 @@ export interface AuthState {
   user: UserProfile | null;
   token: string | null;
   refreshToken: string | null;
+  status: AuthStatus;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -23,37 +26,38 @@ export interface AuthState {
   authModalMode: 'login' | 'signup' | 'forgot';
 }
 
-const initialToken = tokenStorage.getAccessToken();
-const initialRefreshToken = tokenStorage.getRefreshToken();
-const initialUser = tokenStorage.getUser();
-
-// User is authenticated if they have an active access token, a valid refresh token, or a persisted user profile
-const initialIsAuthenticated = Boolean(initialToken || initialRefreshToken);
-
 const initialState: AuthState = {
-  user: initialIsAuthenticated ? initialUser : null,
-  token: initialToken,
-  refreshToken: initialRefreshToken,
-  isAuthenticated: initialIsAuthenticated,
-  loading: false,
+  user: null,
+  token: null,
+  refreshToken: null,
+  status: 'LOADING',
+  isAuthenticated: false,
+  loading: true,
   error: null,
   isAuthModalOpen: false,
   authModalMode: 'login',
 };
 
-export const silentRefreshSession = createAsyncThunk(
-  'auth/silentRefresh',
+// Canonical session refresh thunk: calls POST /api/v1/auth/refresh with HttpOnly cookie
+export const refreshSessionThunk = createAsyncThunk(
+  'auth/refreshSession',
   async (_, { rejectWithValue }) => {
     try {
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (!refreshToken) return null;
       const res = await authService.refreshToken();
-      return res.data;
+      const data = res?.data || res;
+      return data;
     } catch (err: any) {
-      return rejectWithValue(err.message || 'Session refresh failed');
+      const errMsg = err?.message || (err?.errors && err?.errors[0]) || 'Session refresh failed';
+      return rejectWithValue(errMsg);
     }
   }
 );
+
+// Backward compatibility alias for silent refresh
+export const silentRefreshSession = refreshSessionThunk;
+
+// Backward compatibility alias for legacy Google login thunk
+export const loginWithGoogleRefreshToken = refreshSessionThunk;
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -97,19 +101,6 @@ export const verifyPasswordResetOtpThunk = createAsyncThunk(
   }
 );
 
-export const loginWithGoogleRefreshToken = createAsyncThunk(
-  'auth/loginWithGoogleRefreshToken',
-  async (refreshToken: string, { rejectWithValue }) => {
-    try {
-      const response = await authService.exchangeRefreshToken(refreshToken);
-      return response.data;
-    } catch (err: any) {
-      const errMsg = err.message || (err.errors && err.errors[0]) || 'Failed to authenticate with Google';
-      return rejectWithValue(errMsg);
-    }
-  }
-);
-
 export const logoutUser = createAsyncThunk('auth/logout', async () => {
   await authService.logout();
 });
@@ -120,13 +111,33 @@ const authSlice = createSlice({
   reducers: {
     initializeAuth(state) {
       const token = tokenStorage.getAccessToken();
-      const refreshToken = tokenStorage.getRefreshToken();
       const savedUser = tokenStorage.getUser();
-      const hasAuth = Boolean(token || refreshToken);
-      state.isAuthenticated = hasAuth;
-      state.user = hasAuth ? savedUser : null;
-      state.token = token;
-      state.refreshToken = refreshToken;
+      if (token) {
+        state.status = 'AUTHENTICATED';
+        state.isAuthenticated = true;
+        state.user = savedUser;
+        state.token = token;
+        state.loading = false;
+      } else {
+        // Keeps status as LOADING if startup refresh has not completed yet
+        state.token = null;
+      }
+    },
+    setAuthenticatedSession(state, action: PayloadAction<{ token: string; user?: any }>) {
+      state.status = 'AUTHENTICATED';
+      state.isAuthenticated = true;
+      state.loading = false;
+      state.token = action.payload.token;
+      if (action.payload.user) {
+        state.user = action.payload.user;
+      }
+    },
+    setUnauthenticatedSession(state) {
+      state.status = 'UNAUTHENTICATED';
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.token = null;
+      state.user = null;
     },
     clearAuthError(state) {
       state.error = null;
@@ -146,16 +157,21 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Silent Refresh
-      .addCase(silentRefreshSession.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.isAuthenticated = true;
-          state.token = tokenStorage.getAccessToken();
-          state.refreshToken = tokenStorage.getRefreshToken();
-          const data = action.payload;
-          if (data.user || data.email) {
-            const u = data.user || data;
-            const userObj = {
+      // Canonical Refresh Session
+      .addCase(refreshSessionThunk.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(refreshSessionThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.status = 'AUTHENTICATED';
+        state.isAuthenticated = true;
+        state.error = null;
+        state.token = tokenStorage.getAccessToken();
+        const data = action.payload as any;
+        if (data) {
+          const u = data.user || data;
+          if (u && (u.id || u.email)) {
+            const userObj: UserProfile = {
               id: u.id,
               firstName: u.firstName,
               lastName: u.lastName,
@@ -168,10 +184,11 @@ const authSlice = createSlice({
           }
         }
       })
-      .addCase(silentRefreshSession.rejected, (state) => {
+      .addCase(refreshSessionThunk.rejected, (state) => {
         state.user = null;
         state.token = null;
         state.refreshToken = null;
+        state.status = 'UNAUTHENTICATED';
         state.isAuthenticated = false;
         state.loading = false;
         tokenStorage.clearTokens();
@@ -183,12 +200,12 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
+        state.status = 'AUTHENTICATED';
         state.isAuthenticated = true;
         state.isAuthModalOpen = false;
-        const data = action.payload;
+        const data = action.payload as any;
         state.token = tokenStorage.getAccessToken();
-        state.refreshToken = tokenStorage.getRefreshToken();
-        const userObj = {
+        const userObj: UserProfile = {
           id: data.id,
           firstName: data.firstName,
           lastName: data.lastName,
@@ -203,33 +220,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Google OAuth loginWithGoogleRefreshToken
-      .addCase(loginWithGoogleRefreshToken.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(loginWithGoogleRefreshToken.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = true;
-        state.isAuthModalOpen = false;
-        const data = action.payload;
-        state.token = tokenStorage.getAccessToken();
-        state.refreshToken = tokenStorage.getRefreshToken();
-        const userObj = {
-          id: data.id,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          fullName: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'User',
-          email: String(data.email || ''),
-          role: data.role,
-        };
-        state.user = userObj;
-        tokenStorage.setUser(userObj);
-      })
-      .addCase(loginWithGoogleRefreshToken.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
       // Logout - Unconditional token and state cleanup (F-035)
       .addMatcher(
         isAnyOf(logoutUser.fulfilled, logoutUser.rejected),
@@ -237,6 +227,7 @@ const authSlice = createSlice({
           state.user = null;
           state.token = null;
           state.refreshToken = null;
+          state.status = 'UNAUTHENTICATED';
           state.isAuthenticated = false;
           state.loading = false;
           state.error = null;
@@ -246,5 +237,14 @@ const authSlice = createSlice({
   },
 });
 
-export const { initializeAuth, clearAuthError, openAuthModal, closeAuthModal, setAuthModalMode } = authSlice.actions;
+export const {
+  initializeAuth,
+  setAuthenticatedSession,
+  setUnauthenticatedSession,
+  clearAuthError,
+  openAuthModal,
+  closeAuthModal,
+  setAuthModalMode,
+} = authSlice.actions;
+
 export default authSlice.reducer;

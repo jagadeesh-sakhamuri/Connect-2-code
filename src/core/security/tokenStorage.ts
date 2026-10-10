@@ -77,29 +77,33 @@ function removeLocalItem(key: string): void {
   } catch {}
 }
 
+let inMemoryAccessToken: string | null = null;
+
 export const tokenStorage = {
   getAccessToken(): string | null {
-    return getCookie(ACCESS_TOKEN_KEY);
+    return inMemoryAccessToken;
   },
 
-  setAccessToken(token: string, maxAgeSeconds: number = 900): void {
-    setCookie(ACCESS_TOKEN_KEY, token, maxAgeSeconds);
+  setAccessToken(token: string): void {
+    inMemoryAccessToken = token;
   },
 
   removeAccessToken(): void {
-    removeCookie(ACCESS_TOKEN_KEY);
+    inMemoryAccessToken = null;
   },
 
+  // Refresh token is an HttpOnly, Secure cookie managed exclusively by the browser/backend.
+  // JavaScript cannot and must not access it directly.
   getRefreshToken(): string | null {
-    return getCookie(REFRESH_TOKEN_KEY);
+    return null;
   },
 
-  setRefreshToken(token: string, maxAgeSeconds: number = 604800): void {
-    setCookie(REFRESH_TOKEN_KEY, token, maxAgeSeconds);
+  setRefreshToken(_token: string): void {
+    // No-op: refresh token is an HttpOnly cookie managed by the browser
   },
 
   removeRefreshToken(): void {
-    removeCookie(REFRESH_TOKEN_KEY);
+    // No-op: refresh token is an HttpOnly cookie invalidated by the backend on logout
   },
 
   // User profile is UI/session metadata, not an authentication credential (F-013).
@@ -128,5 +132,8 @@ export const tokenStorage = {
     this.removeAccessToken();
     this.removeRefreshToken();
     this.removeUser();
+    // Clear any residual legacy cookies from earlier versions
+    removeCookie(ACCESS_TOKEN_KEY);
+    removeCookie(REFRESH_TOKEN_KEY);
   },
 };

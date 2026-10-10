@@ -63,28 +63,25 @@ export const authService = {
   async login(payload: LoginPayload): Promise<ApiResponse<AuthResponseData>> {
     const response: any = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, { timeout: 120000 });
     if (response && response.data) {
-      if (response.data.token) {
-        tokenStorage.setAccessToken(response.data.token);
+      const data = response.data;
+      const token = data.accessToken || data.token;
+      if (token) {
+        tokenStorage.setAccessToken(token);
       }
-      if (response.data.refreshToken) {
-        tokenStorage.setRefreshToken(response.data.refreshToken);
-      }
-      if (response.data.user) {
-        tokenStorage.setUser(response.data.user);
+      if (data.user) {
+        tokenStorage.setUser(data.user);
       } else {
-        tokenStorage.setUser(response.data);
+        tokenStorage.setUser(data);
       }
     }
     return response;
   },
 
-  // Logout: POST /api/v1/auth/logout
+  // Logout: POST /api/v1/auth/logout with credentials
+  // Backend invalidates session and clears HttpOnly refresh cookie via Set-Cookie
   async logout(): Promise<ApiResponse<string>> {
-    const refreshToken = tokenStorage.getRefreshToken();
     try {
-      if (refreshToken) {
-        await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, { refreshToken });
-      }
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT, {}, { withCredentials: true });
     } catch (e) {
       console.warn('Logout API warning:', e);
     } finally {
@@ -99,23 +96,23 @@ export const authService = {
     };
   },
 
-  // Refresh Token: POST /api/v1/auth/refresh
+  // Refresh Token: POST /api/v1/auth/refresh with credentials
+  // Browser automatically transmits HttpOnly refreshToken cookie; request body is empty {}
   async refreshToken(): Promise<ApiResponse<AuthResponseData>> {
-    const refreshToken = tokenStorage.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available in cookie');
-    }
-    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }, { timeout: 60000 });
-    if (response && response.data) {
-      const data = response.data;
-      const bearerToken = data.token || data.accessToken;
+    const response: any = await apiClient.post(
+      API_ENDPOINTS.AUTH.REFRESH,
+      {},
+      { withCredentials: true, timeout: 60000 }
+    );
+    if (response) {
+      const data = response.data || response;
+      const bearerToken = data.accessToken || data.token;
       if (bearerToken) {
         tokenStorage.setAccessToken(bearerToken);
       }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
-      }
-      if (data.id && data.email) {
+      if (data.user) {
+        tokenStorage.setUser(data.user);
+      } else if (data.id && data.email) {
         tokenStorage.setUser({
           id: data.id,
           email: data.email,
@@ -124,33 +121,6 @@ export const authService = {
           lastName: data.lastName || '',
         });
       }
-    }
-    return response;
-  },
-
-  // Exchange Google OAuth Refresh Token: POST /api/v1/auth/refresh
-  async exchangeRefreshToken(refreshToken: string): Promise<ApiResponse<AuthResponseData>> {
-    if (!refreshToken) {
-      throw new Error('No refresh token provided');
-    }
-    const response: any = await apiClient.post(API_ENDPOINTS.AUTH.REFRESH, { refreshToken }, { timeout: 60000 });
-    if (response && response.data) {
-      const data = response.data;
-      const bearerToken = data.token || data.accessToken;
-      if (bearerToken) {
-        tokenStorage.setAccessToken(bearerToken);
-      }
-      if (data.refreshToken) {
-        tokenStorage.setRefreshToken(data.refreshToken);
-      }
-      const userObj = {
-        id: data.id,
-        email: data.email,
-        role: data.role || 'USER',
-        firstName: data.firstName || '',
-        lastName: data.lastName || '',
-      };
-      tokenStorage.setUser(userObj);
     }
     return response;
   },
@@ -164,5 +134,4 @@ export const authService = {
   async verifyPasswordResetOtp(payload: VerifyOtpPayload): Promise<ApiResponse<unknown>> {
     return apiClient.post(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload, { timeout: 60000 });
   },
-
 };

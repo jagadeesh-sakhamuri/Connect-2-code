@@ -11,6 +11,7 @@ import { tokenStorage } from '../security/tokenStorage';
  *   to relative '/api/v1' with a diagnostic warning, removing silent fallback to a
  *   hardcoded production Render instance (F-005, F-006).
  */
+export const RENDER_BACKEND_ORIGIN = 'https://codingplatform-tdt0.onrender.com';
 export const DEFAULT_API_BASE_URL = 'https://codingplatform-tdt0.onrender.com/api/v1';
 
 export const resolveApiBaseUrl = (rawUrl?: string | null): string => {
@@ -42,34 +43,91 @@ export const resolveApiBaseUrl = (rawUrl?: string | null): string => {
   return DEFAULT_API_BASE_URL;
 };
 
+export const getBackendOrigin = (rawUrl?: string | null): string => {
+  const resolved = resolveApiBaseUrl(rawUrl);
+  const stripped = resolved.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '');
+  if (!stripped || !stripped.startsWith('http')) {
+    return RENDER_BACKEND_ORIGIN;
+  }
+  return stripped;
+};
+
 const getBaseUrl = (): string => {
   const envUrl = typeof import.meta !== 'undefined' && import.meta.env
     ? import.meta.env.VITE_API_BASE_URL
     : undefined;
-  return resolveApiBaseUrl(envUrl);
+  const resolved = resolveApiBaseUrl(envUrl);
+  // Ensure that in browser runtime, API requests always target Render backend
+  // because frontend and backend are deployed on different servers
+  if (typeof window !== 'undefined' && (!resolved || !resolved.startsWith('http'))) {
+    return DEFAULT_API_BASE_URL;
+  }
+  return resolved;
 };
 
 export const BASE_URL = getBaseUrl();
+
+export const getGoogleOAuthUrl = (): string => {
+  const envUrl = typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_API_BASE_URL
+    : undefined;
+  return `${getBackendOrigin(envUrl)}/oauth2/authorization/google`;
+};
 
 export const isRequestCanceled = (error: unknown): boolean => axios.isCancel(error);
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
 
-// Shared Promise Lock for Concurrent 401 Refresh Requests
+type AuthListener = (token: string, data: any) => void;
+type AuthFailureListener = () => void;
+
+const authListeners: AuthListener[] = [];
+const authFailureListeners: AuthFailureListener[] = [];
+
+export const registerAuthListener = (listener: AuthListener) => {
+  authListeners.push(listener);
+  return () => {
+    const idx = authListeners.indexOf(listener);
+    if (idx !== -1) authListeners.splice(idx, 1);
+  };
+};
+
+export const registerAuthFailureListener = (listener: AuthFailureListener) => {
+  authFailureListeners.push(listener);
+  return () => {
+    const idx = authFailureListeners.indexOf(listener);
+    if (idx !== -1) authFailureListeners.splice(idx, 1);
+  };
+};
+
+function notifyAuthListeners(token: string, data: any) {
+  authListeners.forEach((fn) => {
+    try { fn(token, data); } catch {}
+  });
+}
+
+function notifyAuthFailure() {
+  authFailureListeners.forEach((fn) => {
+    try { fn(); } catch {}
+  });
+}
+
+// Shared Promise Lock for Single-Flight Concurrent 401 Refresh Requests
 let refreshTokenPromise: Promise<string> | null = null;
 
-// Request Interceptor: Attach Access Token from Storage (EXCLUDES Public Auth Endpoints)
+// Request Interceptor: Attach In-Memory Access Token (EXCLUDES Public Auth Endpoints)
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const reqUrl = config.url || '';
-    
+
     const isPublicAuthEndpoint =
       reqUrl.includes('/auth/login') ||
       reqUrl.includes('/signUp') ||
@@ -77,45 +135,7 @@ apiClient.interceptors.request.use(
       reqUrl.includes('/auth/generatePasswordResetOtp') ||
       reqUrl.includes('/auth/verifyPasswordResetOtp');
 
-    let token = tokenStorage.getAccessToken();
-    const refreshToken = tokenStorage.getRefreshToken();
-
-    // Proactively refresh expired access token if a valid refresh token exists
-    if (!token && refreshToken && !isPublicAuthEndpoint) {
-      if (!refreshTokenPromise) {
-        refreshTokenPromise = (async () => {
-          try {
-            const refreshRes = await axios.post(
-              `${BASE_URL}/auth/refresh`,
-              { refreshToken },
-              { headers: { 'Content-Type': 'application/json' } }
-            );
-
-            const responseData = refreshRes.data;
-            const tokenData = responseData?.data || responseData;
-            const newAccessToken = tokenData.accessToken || tokenData.token;
-            const newRefreshToken = tokenData.refreshToken || refreshToken;
-
-            if (newAccessToken) {
-              tokenStorage.setAccessToken(newAccessToken);
-              tokenStorage.setRefreshToken(newRefreshToken);
-              return newAccessToken;
-            } else {
-              throw new Error('No access token returned from refresh');
-            }
-          } catch (refreshErr) {
-            tokenStorage.clearTokens();
-            throw refreshErr;
-          } finally {
-            refreshTokenPromise = null;
-          }
-        })();
-      }
-
-      try {
-        token = await refreshTokenPromise;
-      } catch {}
-    }
+    const token = tokenStorage.getAccessToken();
 
     if (token && config.headers && !isPublicAuthEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -175,7 +195,7 @@ apiClient.interceptors.response.use(
 
     // Check for HTTP 401 Unauthorized
     if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      // Exclude auth endpoints from refresh loop
+      // Exclude public auth and refresh endpoints from the refresh loop to prevent recursion
       if (
         reqUrl.includes('/auth/refresh') ||
         reqUrl.includes('/auth/login') ||
@@ -184,6 +204,7 @@ apiClient.interceptors.response.use(
         reqUrl.includes('/auth/verifyPasswordResetOtp')
       ) {
         tokenStorage.clearTokens();
+        notifyAuthFailure();
         const errBody = error.response?.data || {};
         return Promise.reject({
           statusCode: error.response.status,
@@ -193,37 +214,38 @@ apiClient.interceptors.response.use(
       }
 
       originalRequest._retry = true;
-      const refreshToken = tokenStorage.getRefreshToken();
 
-      if (!refreshToken) {
-        tokenStorage.clearTokens();
-        return Promise.reject(error.response?.data || error);
-      }
-
-      // If a refresh is already in progress, wait for the shared promise
+      // Single-Flight Refresh: If a refresh is already in progress, wait for the shared promise
       if (!refreshTokenPromise) {
         refreshTokenPromise = (async () => {
           try {
+            // POST /api/v1/auth/refresh with credentials (HttpOnly cookie sent automatically by browser, empty body)
             const refreshRes = await axios.post(
               `${BASE_URL}/auth/refresh`,
-              { refreshToken },
-              { headers: { 'Content-Type': 'application/json' } }
+              {},
+              {
+                withCredentials: true,
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                },
+              }
             );
 
             const responseData = refreshRes.data;
             const tokenData = responseData?.data || responseData;
-            const newAccessToken = tokenData.accessToken || tokenData.token;
-            const newRefreshToken = tokenData.refreshToken || refreshToken;
+            const newAccessToken = tokenData?.accessToken || tokenData?.token;
 
             if (newAccessToken) {
               tokenStorage.setAccessToken(newAccessToken);
-              tokenStorage.setRefreshToken(newRefreshToken);
+              notifyAuthListeners(newAccessToken, tokenData);
               return newAccessToken;
             } else {
-              throw new Error('No access token returned from refresh');
+              throw new Error('No access token returned from refresh endpoint');
             }
           } catch (refreshErr) {
             tokenStorage.clearTokens();
+            notifyAuthFailure();
             throw refreshErr;
           } finally {
             refreshTokenPromise = null;
@@ -239,7 +261,7 @@ apiClient.interceptors.response.use(
         return Promise.reject({
           statusCode: 401,
           message: 'Your session has expired. Please login again.',
-          errors: refreshErr?.response?.data?.errors || ['Refresh token invalid or expired'],
+          errors: refreshErr?.response?.data?.errors || ['Session expired or unauthorized'],
         });
       }
     }
