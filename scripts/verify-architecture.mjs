@@ -35,7 +35,16 @@ if (existsSync(join(root, '.env'))) {
 }
 
 if (existsSync(join(root, 'vercel.json'))) {
-  failures.push('Vercel configuration exists even though GitHub Actions is the deployment validation path.');
+  try {
+    const vercelConfig = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
+    const hasValidRewrites = Array.isArray(vercelConfig.rewrites) &&
+      vercelConfig.rewrites.some(r => r.destination === '/index.html' || r.destination === '/');
+    if (!hasValidRewrites) {
+      failures.push('vercel.json must only configure SPA fallback rewrite to /index.html.');
+    }
+  } catch (err) {
+    failures.push(`Invalid vercel.json configuration: ${err.message}`);
+  }
 }
 
 for (const file of files) {
