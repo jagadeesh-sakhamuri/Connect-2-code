@@ -97,11 +97,12 @@ export const authService = {
   },
 
   // Refresh Token: POST /api/v1/auth/refresh with credentials
-  // Browser automatically transmits HttpOnly refreshToken cookie; request body is empty {}
-  async refreshToken(): Promise<ApiResponse<AuthResponseData>> {
+  // Supports both explicit payload { refreshToken } and automatic HttpOnly cookie transmission
+  async refreshToken(explicitRefreshToken?: string): Promise<ApiResponse<AuthResponseData>> {
+    const payload = explicitRefreshToken ? { refreshToken: explicitRefreshToken } : {};
     const response: any = await apiClient.post(
       API_ENDPOINTS.AUTH.REFRESH,
-      {},
+      payload,
       { withCredentials: true, timeout: 60000 }
     );
     if (response) {

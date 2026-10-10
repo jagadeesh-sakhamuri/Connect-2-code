@@ -47,10 +47,28 @@ export const OAuthCallback: React.FC = () => {
       return;
     }
 
-    // Coordinate single canonical refresh with credentials
+    // Extract any token passed via query parameter or URL hash
+    const tokenFromQuery =
+      searchParams.get('refreshToken') ||
+      searchParams.get('token') ||
+      searchParams.get('refresh_token');
+
+    let tokenFromHash: string | null = null;
+    try {
+      const hash = window.location.hash ? window.location.hash.replace(/^#\/?/, '') : '';
+      const hashParams = new URLSearchParams(hash);
+      tokenFromHash =
+        hashParams.get('refreshToken') ||
+        hashParams.get('token') ||
+        hashParams.get('refresh_token');
+    } catch {}
+
+    const resolvedToken = tokenFromQuery || tokenFromHash || undefined;
+
+    // Coordinate refresh with resolved token (or fallback to credentials cookie)
     const completeAuth = async () => {
       try {
-        const result = await dispatch(refreshSessionThunk());
+        const result = await dispatch(refreshSessionThunk(resolvedToken));
 
         if (refreshSessionThunk.fulfilled.match(result)) {
           dispatch(closeAuthModal());

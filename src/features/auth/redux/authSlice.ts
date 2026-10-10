@@ -38,12 +38,16 @@ const initialState: AuthState = {
   authModalMode: 'login',
 };
 
-// Canonical session refresh thunk: calls POST /api/v1/auth/refresh with HttpOnly cookie
-export const refreshSessionThunk = createAsyncThunk(
+// Canonical session refresh thunk: calls POST /api/v1/auth/refresh with HttpOnly cookie or explicit token
+export const refreshSessionThunk = createAsyncThunk<
+  any,
+  string | undefined,
+  { rejectValue: string }
+>(
   'auth/refreshSession',
-  async (_, { rejectWithValue }) => {
+  async (explicitToken, { rejectWithValue }) => {
     try {
-      const res = await authService.refreshToken();
+      const res = await authService.refreshToken(explicitToken);
       const data = res?.data || res;
       return data;
     } catch (err: any) {
