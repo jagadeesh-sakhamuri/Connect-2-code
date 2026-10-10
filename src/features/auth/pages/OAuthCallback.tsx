@@ -63,7 +63,7 @@ export const OAuthCallback: React.FC = () => {
         hashParams.get('refresh_token');
     } catch {}
 
-    const resolvedToken = tokenFromQuery || tokenFromHash || undefined;
+    const resolvedToken = tokenFromQuery || tokenFromHash || tokenStorage.getRefreshToken() || undefined;
 
     // Coordinate refresh with resolved token (or fallback to credentials cookie)
     const completeAuth = async () => {

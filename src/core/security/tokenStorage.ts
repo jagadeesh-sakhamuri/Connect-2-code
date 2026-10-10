@@ -78,32 +78,39 @@ function removeLocalItem(key: string): void {
 }
 
 let inMemoryAccessToken: string | null = null;
+let inMemoryRefreshToken: string | null = null;
 
 export const tokenStorage = {
   getAccessToken(): string | null {
-    return inMemoryAccessToken;
+    return inMemoryAccessToken || getCookie(ACCESS_TOKEN_KEY) || getLocalItem(ACCESS_TOKEN_KEY);
   },
 
-  setAccessToken(token: string): void {
+  setAccessToken(token: string, maxAgeSeconds: number = 900): void {
     inMemoryAccessToken = token;
+    setCookie(ACCESS_TOKEN_KEY, token, maxAgeSeconds);
+    setLocalItem(ACCESS_TOKEN_KEY, token);
   },
 
   removeAccessToken(): void {
     inMemoryAccessToken = null;
+    removeCookie(ACCESS_TOKEN_KEY);
+    removeLocalItem(ACCESS_TOKEN_KEY);
   },
 
-  // Refresh token is an HttpOnly, Secure cookie managed exclusively by the browser/backend.
-  // JavaScript cannot and must not access it directly.
   getRefreshToken(): string | null {
-    return null;
+    return inMemoryRefreshToken || getCookie(REFRESH_TOKEN_KEY) || getLocalItem(REFRESH_TOKEN_KEY);
   },
 
-  setRefreshToken(_token: string): void {
-    // No-op: refresh token is an HttpOnly cookie managed by the browser
+  setRefreshToken(token: string, maxAgeSeconds: number = 604800): void {
+    inMemoryRefreshToken = token;
+    setCookie(REFRESH_TOKEN_KEY, token, maxAgeSeconds);
+    setLocalItem(REFRESH_TOKEN_KEY, token);
   },
 
   removeRefreshToken(): void {
-    // No-op: refresh token is an HttpOnly cookie invalidated by the backend on logout
+    inMemoryRefreshToken = null;
+    removeCookie(REFRESH_TOKEN_KEY);
+    removeLocalItem(REFRESH_TOKEN_KEY);
   },
 
   // User profile is UI/session metadata, not an authentication credential (F-013).

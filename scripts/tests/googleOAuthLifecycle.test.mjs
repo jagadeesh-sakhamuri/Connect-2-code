@@ -80,9 +80,10 @@ describe('PRODUCTION-GRADE GOOGLE OAUTH & AUTHENTICATION LIFECYCLE', () => {
       assert.equal(tokenStorage.getAccessToken(), null);
     });
 
-    it('refuses to expose or store refresh token in JavaScript', () => {
-      // JavaScript cannot and must not access HttpOnly refresh cookies
-      tokenStorage.setRefreshToken('attempted.refresh.token');
+    it('stores and retrieves refresh token for payload-based session refresh', () => {
+      tokenStorage.setRefreshToken('active.refresh.token');
+      assert.equal(tokenStorage.getRefreshToken(), 'active.refresh.token');
+      tokenStorage.removeRefreshToken();
       assert.equal(tokenStorage.getRefreshToken(), null);
     });
 

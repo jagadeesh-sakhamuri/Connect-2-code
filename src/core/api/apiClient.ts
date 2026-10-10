@@ -219,10 +219,12 @@ apiClient.interceptors.response.use(
       if (!refreshTokenPromise) {
         refreshTokenPromise = (async () => {
           try {
-            // POST /api/v1/auth/refresh with credentials (HttpOnly cookie sent automatically by browser, empty body)
+            const refreshToken = tokenStorage.getRefreshToken();
+            const payload = refreshToken ? { refreshToken } : {};
+
             const refreshRes = await axios.post(
               `${BASE_URL}/auth/refresh`,
-              {},
+              payload,
               {
                 withCredentials: true,
                 headers: {
@@ -235,9 +237,13 @@ apiClient.interceptors.response.use(
             const responseData = refreshRes.data;
             const tokenData = responseData?.data || responseData;
             const newAccessToken = tokenData?.accessToken || tokenData?.token;
+            const newRefreshToken = tokenData?.refreshToken || refreshToken;
 
             if (newAccessToken) {
               tokenStorage.setAccessToken(newAccessToken);
+              if (newRefreshToken) {
+                tokenStorage.setRefreshToken(newRefreshToken);
+              }
               notifyAuthListeners(newAccessToken, tokenData);
               return newAccessToken;
             } else {
